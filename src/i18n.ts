@@ -33,6 +33,21 @@ export const SUPPORTED_LANGUAGES: Language[] = [
     }
   },
   {
+    code: 'ca',
+    name: 'Catalan',
+    nativeName: 'Català',
+    keywords: ['Recordar:', 'Notificar:', 'Alerta:', 'Recordatori:', 'Avís:', 'Reminder:', 'Notify:', 'Alert:'],
+    datePatterns: {
+      today: ['avui'],
+      tomorrow: ['demà'],
+      yesterday: ['ahir']
+    },
+    timePatterns: {
+      format24h: ['HH:MM', 'H:MM'],
+      format12h: ['HH:MM AM/PM', 'H:MM AM/PM']
+    }
+  },
+  {
     code: 'en',
     name: 'English',
     nativeName: 'English',
@@ -193,6 +208,10 @@ export const TRANSLATIONS = {
       debounceDelayDesc: 'Tiempo a esperar después del último cambio antes de procesar',
       showConfirmationModal: 'Mostrar modal de confirmación',
       showConfirmationModalDesc: 'Preguntar antes de crear cada notificación',
+      addVisualIndicators: 'Añadir iconos visuales',
+      addVisualIndicatorsDesc: 'Añadir iconos a los recordatorios procesados para identificarlos visualmente',
+      visualIndicatorIcon: 'Icono visual',
+      visualIndicatorIconDesc: 'Icono a añadir al final de los recordatorios procesados',
       supportedPatterns: 'Patrones Soportados',
       keywords: 'Palabras clave',
       dates: 'Fechas:',
@@ -245,6 +264,10 @@ export const TRANSLATIONS = {
       debounceDelayDesc: 'Time to wait after last change before processing',
       showConfirmationModal: 'Show confirmation modal',
       showConfirmationModalDesc: 'Ask before creating each notification',
+      addVisualIndicators: 'Add visual indicators',
+      addVisualIndicatorsDesc: 'Add icons to processed reminders to identify them visually',
+      visualIndicatorIcon: 'Visual icon',
+      visualIndicatorIconDesc: 'Icon to add at the end of processed reminders',
       supportedPatterns: 'Supported Patterns',
       keywords: 'Keywords',
       dates: 'Dates:',
@@ -272,6 +295,62 @@ export const TRANSLATIONS = {
       messageLabel: 'Message:',
       confirmButton: 'Yes, create notification',
       cancelButton: 'Cancel'
+    }
+  },
+  ca: {
+    settings: {
+      title: 'Configuració de Notelert',
+      autoProcess: 'Processament automàtic',
+      autoProcessDesc: 'Activar el processament automàtic de patrons',
+      processOnSave: 'Processar en desar',
+      processOnSaveDesc: 'Processar automàticament quan es desa una nota',
+      processOnOpen: 'Processar en obrir',
+      processOnOpenDesc: 'Processar automàticament quan s\'obre una nota',
+      debugMode: 'Mode debug',
+      debugModeDesc: 'Mostrar missatges de debug a la consola',
+      language: 'Idioma',
+      languageDesc: 'Seleccionar idioma per a la detecció de patrons',
+      excludedFolders: 'Carpetes excloses',
+      excludedFoldersDesc: 'Carpetes que no es processaran (separades per comes)',
+      customPatterns: 'Paraules clau personalitzades',
+      customPatternsDesc: 'Paraules que activen el processament (separades per comes)',
+      useDebounce: 'Usar retard intel·ligent',
+      useDebounceDesc: 'Esperar que acabis d\'escriure abans de processar (evita notificacions duplicades)',
+      debounceDelay: 'Temps d\'espera (segons)',
+      debounceDelayDesc: 'Temps a esperar després del darrer canvi abans de processar',
+      showConfirmationModal: 'Mostrar modal de confirmació',
+      showConfirmationModalDesc: 'Preguntar abans de crear cada notificació',
+      addVisualIndicators: 'Afegir indicadors visuals',
+      addVisualIndicatorsDesc: 'Afegir icones als recordatoris processats per identificar-los visualment',
+      visualIndicatorIcon: 'Icona visual',
+      visualIndicatorIconDesc: 'Icona a afegir al final dels recordatoris processats',
+      supportedPatterns: 'Patrons Suportats',
+      keywords: 'Paraules clau',
+      dates: 'Dates:',
+      times: 'Hores:',
+      examples: 'Exemples:'
+    },
+    commands: {
+      processCurrentNote: 'Processar nota actual per a Notelert',
+      processAllNotes: 'Processar totes les notes per a Notelert',
+      clearProcessedHistory: 'Netejar historial de processament'
+    },
+    notices: {
+      noActiveNote: 'No hi ha cap nota oberta per processar',
+      processedNotes: 'Processades {count} notes per a Notelert',
+      processedNote: 'Processada: {filename} ({count} notificacions)',
+      clearedHistory: 'Historial de processament netejat',
+      errorCreatingNotification: 'Error creant notificació: {title}',
+      defaultTitle: 'Recordatori'
+    },
+    modal: {
+      title: 'Crear notificació a Notelert?',
+      titleLabel: 'Títol:',
+      dateLabel: 'Data:',
+      timeLabel: 'Hora:',
+      messageLabel: 'Missatge:',
+      confirmButton: 'Sí, crear notificació',
+      cancelButton: 'Cancel·lar'
     }
   },
   fr: {

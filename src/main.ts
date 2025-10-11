@@ -29,6 +29,8 @@ interface NotelertSettings {
   debounceDelay: number; // Tiempo de espera en milisegundos
   useDebounce: boolean; // Activar/desactivar el sistema de debounce
   showConfirmationModal: boolean; // Mostrar modal de confirmación antes de crear notificaciones
+  addVisualIndicators: boolean; // Añadir iconos visuales a recordatorios procesados
+  visualIndicatorIcon: string; // Icono a usar para indicar recordatorios procesados
 }
 
 interface DetectedPattern {
@@ -40,6 +42,8 @@ interface DetectedPattern {
   fullMatch: string;
   startIndex: number;
   endIndex: number;
+  filePath?: string; // Ruta del archivo donde se detectó el patrón
+  lineNumber?: number; // Número de línea donde se detectó el patrón
 }
 
 // Modal de confirmación para notificaciones
@@ -65,30 +69,39 @@ class NotelertConfirmationModal extends Modal {
 
     // Mostrar información de la notificación
     const infoDiv = contentEl.createEl("div", { cls: "notelert-modal-info" });
+    infoDiv.setAttribute("style", "margin: 20px 0; padding: 15px; background: var(--background-secondary); border-radius: 6px;");
     
-    infoDiv.createEl("p", { text: `${getTranslation(this.language, "modal.titleLabel")} ${this.pattern.title}` });
-    infoDiv.createEl("p", { text: `${getTranslation(this.language, "modal.dateLabel")} ${this.pattern.date}` });
-    infoDiv.createEl("p", { text: `${getTranslation(this.language, "modal.timeLabel")} ${this.pattern.time}` });
-    infoDiv.createEl("p", { text: `${getTranslation(this.language, "modal.messageLabel")} ${this.pattern.message}` });
+    const titleP = infoDiv.createEl("p", { text: `${getTranslation(this.language, "modal.titleLabel")} ${this.pattern.title}` });
+    titleP.setAttribute("style", "margin: 8px 0; font-weight: 500;");
+    
+    const dateP = infoDiv.createEl("p", { text: `${getTranslation(this.language, "modal.dateLabel")} ${this.pattern.date}` });
+    dateP.setAttribute("style", "margin: 8px 0;");
+    
+    const timeP = infoDiv.createEl("p", { text: `${getTranslation(this.language, "modal.timeLabel")} ${this.pattern.time}` });
+    timeP.setAttribute("style", "margin: 8px 0;");
+    
+    const messageP = infoDiv.createEl("p", { text: `${getTranslation(this.language, "modal.messageLabel")} ${this.pattern.message}` });
+    messageP.setAttribute("style", "margin: 8px 0;");
 
-    // Botones
+    // Botones con mejor espaciado
     const buttonContainer = contentEl.createEl("div", { cls: "notelert-modal-buttons" });
+    buttonContainer.setAttribute("style", "display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;");
     
-    const confirmButton = buttonContainer.createEl("button", { 
-      text: getTranslation(this.language, "modal.confirmButton"),
-      cls: "mod-cta"
-    });
-    confirmButton.addEventListener("click", () => {
-      this.onConfirm(this.pattern);
-      this.close();
-    });
-
     const cancelButton = buttonContainer.createEl("button", { 
       text: getTranslation(this.language, "modal.cancelButton"),
       cls: "mod-secondary"
     });
     cancelButton.addEventListener("click", () => {
       this.onCancel();
+      this.close();
+    });
+
+    const confirmButton = buttonContainer.createEl("button", { 
+      text: getTranslation(this.language, "modal.confirmButton"),
+      cls: "mod-cta"
+    });
+    confirmButton.addEventListener("click", () => {
+      this.onConfirm(this.pattern);
       this.close();
     });
   }
@@ -110,6 +123,8 @@ const DEFAULT_SETTINGS: NotelertSettings = {
   debounceDelay: 3000, // 3 segundos por defecto
   useDebounce: true, // Activar debounce por defecto
   showConfirmationModal: false, // Desactivado por defecto
+  addVisualIndicators: true, // Activar iconos visuales por defecto
+  visualIndicatorIcon: "⏰", // Icono de reloj por defecto
 };
 
 export default class NotelertPlugin extends Plugin {
@@ -263,7 +278,7 @@ export default class NotelertPlugin extends Plugin {
   private async processFile(file: TFile) {
     try {
       const content = await this.app.vault.read(file);
-      const patterns = this.detectPatterns(content);
+      const patterns = this.detectPatterns(content, file.path);
 
       if (patterns.length > 0) {
         this.log(`Encontrados ${patterns.length} patrones en ${file.name}`);
@@ -278,9 +293,15 @@ export default class NotelertPlugin extends Plugin {
           
           // Solo procesar si no se ha procesado antes
           if (!processedForFile.has(notificationId)) {
-            await this.executeNotelertDeepLink(pattern);
-            processedForFile.add(notificationId);
-            newNotificationsCount++;
+            if (this.settings.showConfirmationModal) {
+              // Con modal: no marcar como procesado hasta confirmar
+              await this.executeNotelertDeepLink(pattern);
+            } else {
+              // Sin modal: procesar directamente
+              await this.executeNotelertDeepLink(pattern);
+              processedForFile.add(notificationId);
+              newNotificationsCount++;
+            }
           }
         }
 
@@ -297,7 +318,7 @@ export default class NotelertPlugin extends Plugin {
   }
 
   // Detectar patrones de fecha/hora en el texto
-  private detectPatterns(content: string): DetectedPattern[] {
+  private detectPatterns(content: string, filePath: string): DetectedPattern[] {
     const patterns: DetectedPattern[] = [];
     const lines = content.split('\n');
     const currentLanguage = getLanguageByCode(this.settings.language) || getDefaultLanguage();
@@ -316,6 +337,12 @@ export default class NotelertPlugin extends Plugin {
 
       if (!hasKeyword) continue;
 
+      // Verificar si la línea ya tiene un icono visual (ya fue procesada)
+      if (this.settings.addVisualIndicators && this.hasVisualIndicator(line)) {
+        this.log(`Línea ya procesada (tiene icono): ${line.trim()}`);
+        continue;
+      }
+
       // Detectar fechas y horas
       const dateTimePatterns = this.extractDateTimePatterns(line);
       
@@ -329,6 +356,8 @@ export default class NotelertPlugin extends Plugin {
           fullMatch: line.trim(),
           startIndex: 0,
           endIndex: line.length,
+          filePath: filePath,
+          lineNumber: lineIndex + 1, // Las líneas empiezan en 1
         };
 
         patterns.push(pattern);
@@ -558,7 +587,7 @@ export default class NotelertPlugin extends Plugin {
         this.app,
         pattern,
         this.settings.language,
-        (confirmedPattern) => this.createNotification(confirmedPattern),
+        (confirmedPattern) => this.createNotificationAndMarkProcessed(confirmedPattern),
         () => this.log(`Notificación cancelada: ${pattern.title}`)
       ).open();
     } else {
@@ -582,9 +611,39 @@ export default class NotelertPlugin extends Plugin {
       if (typeof window !== 'undefined') {
         window.location.href = deeplink;
       }
+
+      // Añadir icono visual al archivo si está habilitado
+      if (this.settings.addVisualIndicators && pattern.filePath) {
+        await this.addVisualIndicator(pattern);
+      }
       
     } catch (error) {
       this.log(`Error ejecutando deeplink: ${error}`);
+      new Notice(getTranslation(this.settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
+    }
+  }
+
+  // Crear notificación y marcarla como procesada (para uso con modal)
+  private async createNotificationAndMarkProcessed(pattern: DetectedPattern) {
+    try {
+      // Crear la notificación
+      await this.createNotification(pattern);
+      
+      // Marcar como procesada
+      if (pattern.filePath) {
+        const processedForFile = this.processedNotifications.get(pattern.filePath) || new Set<string>();
+        const notificationId = this.createNotificationId(pattern);
+        processedForFile.add(notificationId);
+        this.processedNotifications.set(pattern.filePath, processedForFile);
+        
+        // Mostrar notificación de éxito
+        new Notice(getTranslation(this.settings.language, "notices.processedNote", { 
+          filename: pattern.filePath.split('/').pop() || 'archivo', 
+          count: 1 
+        }));
+      }
+    } catch (error) {
+      this.log(`Error procesando notificación confirmada: ${error}`);
       new Notice(getTranslation(this.settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
     }
   }
@@ -596,7 +655,14 @@ export default class NotelertPlugin extends Plugin {
     const date = pattern.date;
     const time = pattern.time;
     
-    return `notelert://add?title=${title}&message=${message}&date=${date}&time=${time}`;
+    // Crear deep link de vuelta a Obsidian si tenemos información del archivo
+    let returnLink = '';
+    if (pattern.filePath && pattern.lineNumber) {
+      const obsidianLink = `obsidian://open?vault=${encodeURIComponent(this.app.vault.getName())}&file=${encodeURIComponent(pattern.filePath)}&line=${pattern.lineNumber}`;
+      returnLink = `&returnLink=${encodeURIComponent(obsidianLink)}`;
+    }
+    
+    return `notelert://add?title=${title}&message=${message}&date=${date}&time=${time}${returnLink}`;
   }
 
   // Crear identificador único para una notificación
@@ -616,6 +682,48 @@ export default class NotelertPlugin extends Plugin {
       hash = hash & hash; // Convertir a 32bit integer
     }
     return Math.abs(hash).toString(36);
+  }
+
+  // Verificar si una línea ya tiene un icono visual
+  private hasVisualIndicator(line: string): boolean {
+    // Lista de iconos comunes que podrían indicar que ya fue procesado
+    const visualIndicators = [
+      "⏰", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚", "🕛",
+      "📅", "📆", "🗓️", "⏱️", "⏲️", "⏳", "⌚", "🔔", "✅", "✓", "✔️", "🎯"
+    ];
+    
+    return visualIndicators.some(icon => line.includes(icon));
+  }
+
+  // Añadir icono visual al archivo
+  private async addVisualIndicator(pattern: DetectedPattern) {
+    try {
+      if (!pattern.filePath || !pattern.lineNumber) return;
+
+      const file = this.app.vault.getAbstractFileByPath(pattern.filePath);
+      if (!file || !(file instanceof TFile)) return;
+
+      const content = await this.app.vault.read(file);
+      const lines = content.split('\n');
+      
+      // Verificar que la línea existe y no tiene ya un icono
+      const lineIndex = pattern.lineNumber - 1;
+      if (lineIndex >= 0 && lineIndex < lines.length) {
+        const line = lines[lineIndex];
+        
+        // Solo añadir el icono si no lo tiene ya
+        if (!this.hasVisualIndicator(line)) {
+          // Añadir el icono al final de la línea
+          lines[lineIndex] = line.trim() + ` ${this.settings.visualIndicatorIcon}`;
+          
+          // Escribir el contenido modificado
+          await this.app.vault.modify(file, lines.join('\n'));
+          this.log(`Icono añadido a la línea ${pattern.lineNumber} en ${file.name}`);
+        }
+      }
+    } catch (error) {
+      this.log(`Error añadiendo icono visual: ${error}`);
+    }
   }
 
   // Limpiar historial de procesamiento
@@ -755,6 +863,33 @@ class NotelertSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.showConfirmationModal)
           .onChange(async (value) => {
             this.plugin.settings.showConfirmationModal = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // Iconos visuales
+    new Setting(containerEl)
+      .setName(getTranslation(this.plugin.settings.language, "settings.addVisualIndicators"))
+      .setDesc(getTranslation(this.plugin.settings.language, "settings.addVisualIndicatorsDesc"))
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.addVisualIndicators)
+          .onChange(async (value) => {
+            this.plugin.settings.addVisualIndicators = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // Icono visual personalizado
+    new Setting(containerEl)
+      .setName(getTranslation(this.plugin.settings.language, "settings.visualIndicatorIcon"))
+      .setDesc(getTranslation(this.plugin.settings.language, "settings.visualIndicatorIconDesc"))
+      .addText((text) =>
+        text
+          .setPlaceholder("⏰")
+          .setValue(this.plugin.settings.visualIndicatorIcon)
+          .onChange(async (value) => {
+            this.plugin.settings.visualIndicatorIcon = value || "⏰";
             await this.plugin.saveSettings();
           })
       );
