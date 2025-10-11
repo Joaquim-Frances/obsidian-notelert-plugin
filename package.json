@@ -1,0 +1,34 @@
+{
+  "name": "obsidian-notelert-plugin",
+  "version": "1.0.0",
+  "description": "Automatiza la creación de notificaciones para la app móvil Notelert detectando patrones de fecha/hora en tus notas",
+  "main": "lib/main.js",
+  "license": "MIT",
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "notifications",
+    "notelert",
+    "mobile",
+    "deeplink",
+    "automation"
+  ],
+  "author": "Quim Frances",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tu-usuario/obsidian-notelert-plugin.git"
+  },
+  "scripts": {
+    "build": "obsidian-plugin build src/main.ts",
+    "dev": "obsidian-plugin dev src/main.ts",
+    "watch": "obsidian-plugin dev src/main.ts --watch"
+  },
+  "devDependencies": {
+    "typescript": "^4.1.5",
+    "obsidian-plugin-cli": "^0.4.3",
+    "obsidian": "obsidianmd/obsidian-api"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

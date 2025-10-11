@@ -1,0 +1,8 @@
+{
+  "id": "obsidian-notelert-plugin",
+  "name": "Notelert",
+  "description": "Automatiza la creación de notificaciones para la app móvil Notelert detectando patrones de fecha/hora en tus notas",
+  "author": "Quim Frances",
+  "minAppVersion": "0.15.0",
+  "version": "1.0.0"
+}
