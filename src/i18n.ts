@@ -212,6 +212,10 @@ export const TRANSLATIONS = {
       addVisualIndicatorsDesc: 'Añadir iconos a los recordatorios procesados para identificarlos visualmente',
       visualIndicatorIcon: 'Icono visual',
       visualIndicatorIconDesc: 'Icono a añadir al final de los recordatorios procesados',
+      useNewSyntax: 'Usar nuevo sistema',
+      useNewSyntaxDesc: 'Usar el nuevo formato :@fecha, hora en lugar del sistema anterior',
+      enableDatePicker: 'Activar date picker',
+      enableDatePickerDesc: 'Abrir automáticamente el selector de fecha al escribir :@',
       supportedPatterns: 'Patrones Soportados',
       keywords: 'Palabras clave',
       dates: 'Fechas:',
@@ -239,6 +243,19 @@ export const TRANSLATIONS = {
       messageLabel: 'Mensaje:',
       confirmButton: 'Sí, crear notificación',
       cancelButton: 'Cancelar'
+    },
+    datePicker: {
+      title: 'Seleccionar fecha y hora',
+      dateLabel: 'Fecha:',
+      timeLabel: 'Hora:',
+      quickActions: 'Acciones rápidas:',
+      today: 'Hoy',
+      tomorrow: 'Mañana',
+      in1Hour: 'En 1 hora',
+      in2Hours: 'En 2 horas',
+      confirmButton: 'Confirmar notificación',
+      cancelButton: 'Cancelar',
+      selectDateTime: 'Por favor, selecciona una fecha y hora'
     }
   },
   en: {
@@ -268,6 +285,10 @@ export const TRANSLATIONS = {
       addVisualIndicatorsDesc: 'Add icons to processed reminders to identify them visually',
       visualIndicatorIcon: 'Visual icon',
       visualIndicatorIconDesc: 'Icon to add at the end of processed reminders',
+      useNewSyntax: 'Use new system',
+      useNewSyntaxDesc: 'Use the new :@date, time format instead of the previous system',
+      enableDatePicker: 'Enable date picker',
+      enableDatePickerDesc: 'Automatically open date selector when typing :@',
       supportedPatterns: 'Supported Patterns',
       keywords: 'Keywords',
       dates: 'Dates:',
@@ -295,6 +316,19 @@ export const TRANSLATIONS = {
       messageLabel: 'Message:',
       confirmButton: 'Yes, create notification',
       cancelButton: 'Cancel'
+    },
+    datePicker: {
+      title: 'Select date and time',
+      dateLabel: 'Date:',
+      timeLabel: 'Time:',
+      quickActions: 'Quick actions:',
+      today: 'Today',
+      tomorrow: 'Tomorrow',
+      in1Hour: 'In 1 hour',
+      in2Hours: 'In 2 hours',
+      confirmButton: 'Confirm notification',
+      cancelButton: 'Cancel',
+      selectDateTime: 'Please select a date and time'
     }
   },
   ca: {
@@ -324,6 +358,10 @@ export const TRANSLATIONS = {
       addVisualIndicatorsDesc: 'Afegir icones als recordatoris processats per identificar-los visualment',
       visualIndicatorIcon: 'Icona visual',
       visualIndicatorIconDesc: 'Icona a afegir al final dels recordatoris processats',
+      useNewSyntax: 'Usar nou sistema',
+      useNewSyntaxDesc: 'Usar el nou format :@data, hora en lloc del sistema anterior',
+      enableDatePicker: 'Activar selector de data',
+      enableDatePickerDesc: 'Obrir automàticament el selector de data en escriure :@',
       supportedPatterns: 'Patrons Suportats',
       keywords: 'Paraules clau',
       dates: 'Dates:',
@@ -351,6 +389,19 @@ export const TRANSLATIONS = {
       messageLabel: 'Missatge:',
       confirmButton: 'Sí, crear notificació',
       cancelButton: 'Cancel·lar'
+    },
+    datePicker: {
+      title: 'Seleccionar data i hora',
+      dateLabel: 'Data:',
+      timeLabel: 'Hora:',
+      quickActions: 'Accions ràpides:',
+      today: 'Avui',
+      tomorrow: 'Demà',
+      in1Hour: 'En 1 hora',
+      in2Hours: 'En 2 hores',
+      confirmButton: 'Confirmar notificació',
+      cancelButton: 'Cancel·lar',
+      selectDateTime: 'Si us plau, selecciona una data i hora'
     }
   },
   fr: {

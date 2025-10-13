@@ -7,6 +7,7 @@ import {
   Setting,
   TFile,
   WorkspaceLeaf,
+  SuggestModal,
 } from "obsidian";
 import { 
   SUPPORTED_LANGUAGES, 
@@ -31,6 +32,8 @@ interface NotelertSettings {
   showConfirmationModal: boolean; // Mostrar modal de confirmación antes de crear notificaciones
   addVisualIndicators: boolean; // Añadir iconos visuales a recordatorios procesados
   visualIndicatorIcon: string; // Icono a usar para indicar recordatorios procesados
+  useNewSyntax: boolean; // Usar nuevo sistema de sintaxis {@fecha, hora}
+  enableDatePicker: boolean; // Activar date picker al escribir {@
 }
 
 interface DetectedPattern {
@@ -112,19 +115,251 @@ class NotelertConfirmationModal extends Modal {
   }
 }
 
+// Modal para seleccionar fecha y hora
+class NotelertDatePickerModal extends Modal {
+  private onConfirm: (date: string, time: string) => void;
+  private onCancel: () => void;
+  private language: string;
+  private plugin: NotelertPlugin;
+  private editor: any;
+  private cursor: any;
+  private originalText: string;
+
+  constructor(app: App, plugin: NotelertPlugin, language: string, editor: any, cursor: any, originalText: string, onCancel: () => void) {
+    super(app);
+    this.plugin = plugin;
+    this.language = language;
+    this.editor = editor;
+    this.cursor = cursor;
+    this.originalText = originalText;
+    this.onCancel = onCancel;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+
+    contentEl.createEl("h2", { text: getTranslation(this.language, "datePicker.title") });
+
+    // Contenedor principal
+    const container = contentEl.createEl("div", { cls: "notelert-datepicker-container" });
+    container.setAttribute("style", "margin: 20px 0;");
+
+    // Selector de fecha
+    const dateContainer = container.createEl("div", { cls: "notelert-date-container" });
+    dateContainer.setAttribute("style", "margin-bottom: 15px;");
+    
+    const dateLabel = dateContainer.createEl("label", { text: getTranslation(this.language, "datePicker.dateLabel") });
+    dateLabel.setAttribute("style", "display: block; margin-bottom: 5px; font-weight: 500;");
+    
+    const dateInput = dateContainer.createEl("input", {
+      type: "date",
+      cls: "notelert-date-input"
+    });
+    dateInput.setAttribute("style", "width: 100%; padding: 8px; border: 1px solid var(--background-modifier-border); border-radius: 4px;");
+
+    // Selector de hora
+    const timeContainer = container.createEl("div", { cls: "notelert-time-container" });
+    timeContainer.setAttribute("style", "margin-bottom: 20px;");
+    
+    const timeLabel = timeContainer.createEl("label", { text: getTranslation(this.language, "datePicker.timeLabel") });
+    timeLabel.setAttribute("style", "display: block; margin-bottom: 5px; font-weight: 500;");
+    
+    const timeInput = timeContainer.createEl("input", {
+      type: "time",
+      cls: "notelert-time-input"
+    });
+    timeInput.setAttribute("style", "width: 100%; padding: 8px; border: 1px solid var(--background-modifier-border); border-radius: 4px;");
+
+    // Botones de acción rápida
+    const quickActions = container.createEl("div", { cls: "notelert-quick-actions" });
+    quickActions.setAttribute("style", "margin-bottom: 20px;");
+    
+    const quickActionsTitle = quickActions.createEl("p", { text: getTranslation(this.language, "datePicker.quickActions") });
+    quickActionsTitle.setAttribute("style", "margin-bottom: 10px; font-weight: 500;");
+
+    const quickButtonsContainer = quickActions.createEl("div");
+    quickButtonsContainer.setAttribute("style", "display: flex; gap: 8px; flex-wrap: wrap;");
+
+    // Botones de acciones rápidas
+    const quickActionsData = [
+      { label: getTranslation(this.language, "datePicker.today"), date: this.getToday(), time: "09:00" },
+      { label: getTranslation(this.language, "datePicker.tomorrow"), date: this.getTomorrow(), time: "09:00" },
+      { label: getTranslation(this.language, "datePicker.in1Hour"), date: this.getToday(), time: this.getTimeInHours(1) },
+      { label: getTranslation(this.language, "datePicker.in2Hours"), date: this.getToday(), time: this.getTimeInHours(2) },
+    ];
+
+    quickActionsData.forEach(action => {
+      const button = quickButtonsContainer.createEl("button", {
+        text: action.label,
+        cls: "mod-secondary"
+      });
+      button.setAttribute("style", "padding: 4px 8px; font-size: 12px;");
+      button.addEventListener("click", () => {
+        dateInput.value = action.date;
+        timeInput.value = action.time;
+      });
+    });
+
+    // Botones principales
+    const buttonContainer = container.createEl("div", { cls: "notelert-datepicker-buttons" });
+    buttonContainer.setAttribute("style", "display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;");
+    
+    const cancelButton = buttonContainer.createEl("button", { 
+      text: getTranslation(this.language, "datePicker.cancelButton"),
+      cls: "mod-secondary"
+    });
+    cancelButton.addEventListener("click", () => {
+      this.onCancel();
+      this.close();
+    });
+
+    const confirmButton = buttonContainer.createEl("button", { 
+      text: getTranslation(this.language, "datePicker.confirmButton"),
+      cls: "mod-cta"
+    });
+    confirmButton.addEventListener("click", async () => {
+      const date = dateInput.value;
+      const time = timeInput.value;
+      
+      if (date && time) {
+        // Reemplazar :@ con :@fecha, hora
+        const replacement = `:@${date}, ${time}`;
+        const line = this.editor.getLine(this.cursor.line);
+        const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@
+        const afterCursor = line.substring(this.cursor.ch);
+        const newLine = beforeCursor + replacement + afterCursor;
+        
+        this.editor.setLine(this.cursor.line, newLine);
+        
+        // Mover cursor al final del reemplazo
+        const newCursor = {
+          line: this.cursor.line,
+          ch: beforeCursor.length + replacement.length
+        };
+        this.editor.setCursor(newCursor);
+        
+        // Crear la notificación directamente
+        await this.createNotificationFromDatePicker(date, time, newLine);
+        
+        this.close();
+      } else {
+        new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
+      }
+    });
+
+    // Establecer valores por defecto
+    dateInput.value = this.getToday();
+    timeInput.value = this.getTimeInHours(1);
+  }
+
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+
+  private getToday(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  private getTomorrow(): string {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  }
+
+  private getTimeInHours(hours: number): string {
+    const now = new Date();
+    now.setHours(now.getHours() + hours);
+    return now.toTimeString().slice(0, 5);
+  }
+
+  // Crear notificación directamente desde el date picker
+  private async createNotificationFromDatePicker(date: string, time: string, fullText: string) {
+    try {
+      // Crear el patrón detectado
+      const pattern: DetectedPattern = {
+        text: fullText.trim(),
+        title: this.extractTitleFromText(fullText, `:@${date}, ${time}`),
+        message: fullText.trim(),
+        date: date,
+        time: time,
+        fullMatch: `:@${date}, ${time}`,
+        startIndex: 0,
+        endIndex: fullText.length,
+        filePath: this.plugin.app.workspace.getActiveFile()?.path,
+        lineNumber: this.cursor.line + 1,
+      };
+
+      // Crear la notificación directamente
+      await this.plugin.createNotificationAndMarkProcessed(pattern);
+      
+      // Añadir feedback visual: texto en azul y reemplazar :@ con icono de despertador
+      this.addVisualFeedback(fullText, `:@${date}, ${time}`);
+      
+      this.plugin.log(`Notificación creada desde date picker: ${pattern.title}`);
+    } catch (error) {
+      this.plugin.log(`Error creando notificación desde date picker: ${error}`);
+      new Notice(getTranslation(this.language, "notices.errorCreatingNotification", { title: "Recordatorio" }));
+    }
+  }
+
+  // Extraer título del texto
+  private extractTitleFromText(text: string, match: string): string {
+    // Remover el patrón :@fecha, hora del texto
+    let title = text.replace(match, '').trim();
+    
+    // Limpiar espacios extra
+    title = title.replace(/\s+/g, ' ').trim();
+    
+    // Limitar longitud
+    if (title.length > 50) {
+      title = title.substring(0, 47) + '...';
+    }
+    
+    return title || 'Recordatorio';
+  }
+
+  // Añadir feedback visual: reemplazar :@ con icono de despertador y resaltar solo fecha/hora
+  private addVisualFeedback(fullText: string, match: string) {
+    try {
+      // Extraer fecha y hora del match
+      const matchParts = match.match(/:@([^,]+),\s*([^\s]+)/);
+      if (matchParts) {
+        const date = matchParts[1];
+        const time = matchParts[2];
+        
+        // Crear el texto visual: reemplazar :@ con ⏰ y resaltar solo la parte de fecha/hora
+        const dateTimePart = `⏰${date}, ${time}`;
+        const highlightedDateTime = `==${dateTimePart}==`;
+        const visualText = fullText.replace(match, highlightedDateTime);
+        
+        // Actualizar la línea en el editor con el texto visual
+        this.editor.setLine(this.cursor.line, visualText);
+        
+        this.plugin.log(`Feedback visual añadido: solo ${dateTimePart} resaltado`);
+      }
+    } catch (error) {
+      this.plugin.log(`Error añadiendo feedback visual: ${error}`);
+    }
+  }
+}
+
 const DEFAULT_SETTINGS: NotelertSettings = {
-  autoProcess: true,
-  processOnSave: true,
+  autoProcess: false, // Desactivado - solo a través del date picker
+  processOnSave: false, // Desactivado - solo a través del date picker
   processOnOpen: false,
   debugMode: false,
   language: "es", // Spanish as default
   customPatterns: [],
   excludedFolders: ["Templates", "Archive", "Trash"],
   debounceDelay: 3000, // 3 segundos por defecto
-  useDebounce: true, // Activar debounce por defecto
+  useDebounce: false, // Desactivado - no necesario
   showConfirmationModal: false, // Desactivado por defecto
-  addVisualIndicators: true, // Activar iconos visuales por defecto
+  addVisualIndicators: false, // Desactivado - usamos feedback visual personalizado
   visualIndicatorIcon: "⏰", // Icono de reloj por defecto
+  useNewSyntax: true, // Activar nuevo sistema por defecto
+  enableDatePicker: true, // Activar date picker por defecto
 };
 
 export default class NotelertPlugin extends Plugin {
@@ -189,6 +424,15 @@ export default class NotelertPlugin extends Plugin {
     // Barra de estado
     this.addStatusBarItem().setText("Notelert: Activo");
 
+    // Evento para detectar {@ y abrir date picker
+    if (this.settings.enableDatePicker) {
+      this.registerEvent(
+        this.app.workspace.on("editor-change", (editor, info) => {
+          this.handleEditorChange(editor, info);
+        })
+      );
+    }
+
     console.log("Plugin Notelert cargado correctamente");
   }
 
@@ -220,6 +464,39 @@ export default class NotelertPlugin extends Plugin {
     return !this.settings.excludedFolders.some((folder) =>
       folderPath.includes(folder)
     );
+  }
+
+  // Manejar cambios en el editor para detectar :@
+  private handleEditorChange(editor: any, info: any) {
+    if (!this.settings.enableDatePicker || !this.settings.useNewSyntax) return;
+    
+    const cursor = editor.getCursor();
+    const line = editor.getLine(cursor.line);
+    const beforeCursor = line.substring(0, cursor.ch);
+    
+    // Detectar si se acaba de escribir :@
+    if (beforeCursor.endsWith(':@')) {
+      this.log("Detectado :@ - abriendo date picker");
+      this.openDatePicker(editor, cursor);
+    }
+  }
+
+  // Abrir date picker y reemplazar :@ con la fecha/hora seleccionada
+  private openDatePicker(editor: any, cursor: any) {
+    const line = editor.getLine(cursor.line);
+    const originalText = line;
+    
+    new NotelertDatePickerModal(
+      this.app,
+      this,
+      this.settings.language,
+      editor,
+      cursor,
+      originalText,
+      () => {
+        this.log("Date picker cancelado");
+      }
+    ).open();
   }
 
   // Programar el procesamiento de un archivo con debounce
@@ -321,50 +598,175 @@ export default class NotelertPlugin extends Plugin {
   private detectPatterns(content: string, filePath: string): DetectedPattern[] {
     const patterns: DetectedPattern[] = [];
     const lines = content.split('\n');
-    const currentLanguage = getLanguageByCode(this.settings.language) || getDefaultLanguage();
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex];
       
-      // Verificar si la línea contiene palabras clave del idioma seleccionado
-      const languageKeywords = currentLanguage.keywords;
-      const customKeywords = this.settings.customPatterns;
-      const allKeywords = [...languageKeywords, ...customKeywords];
-      
-      const hasKeyword = allKeywords.some(keyword => 
-        line.toLowerCase().includes(keyword.toLowerCase())
-      );
-
-      if (!hasKeyword) continue;
-
       // Verificar si la línea ya tiene un icono visual (ya fue procesada)
       if (this.settings.addVisualIndicators && this.hasVisualIndicator(line)) {
         this.log(`Línea ya procesada (tiene icono): ${line.trim()}`);
         continue;
       }
 
-      // Detectar fechas y horas
-      const dateTimePatterns = this.extractDateTimePatterns(line);
-      
-      for (const dateTime of dateTimePatterns) {
-        const pattern: DetectedPattern = {
-          text: line.trim(),
-          title: this.extractTitle(line),
-          message: line.trim(),
-          date: dateTime.date,
-          time: dateTime.time,
-          fullMatch: line.trim(),
-          startIndex: 0,
-          endIndex: line.length,
-          filePath: filePath,
-          lineNumber: lineIndex + 1, // Las líneas empiezan en 1
-        };
+      // Detectar nuevo formato {@fecha, hora}
+      if (this.settings.useNewSyntax) {
+        const newSyntaxPatterns = this.extractNewSyntaxPatterns(line);
+        for (const pattern of newSyntaxPatterns) {
+          pattern.filePath = filePath;
+          pattern.lineNumber = lineIndex + 1;
+          patterns.push(pattern);
+        }
+      }
 
-        patterns.push(pattern);
+      // Detectar formato antiguo (solo si no se usa el nuevo sistema)
+      if (!this.settings.useNewSyntax) {
+        const currentLanguage = getLanguageByCode(this.settings.language) || getDefaultLanguage();
+        
+        // Verificar si la línea contiene palabras clave del idioma seleccionado
+        const languageKeywords = currentLanguage.keywords;
+        const customKeywords = this.settings.customPatterns;
+        const allKeywords = [...languageKeywords, ...customKeywords];
+        
+        const hasKeyword = allKeywords.some(keyword => 
+          line.toLowerCase().includes(keyword.toLowerCase())
+        );
+
+        if (!hasKeyword) continue;
+
+        // Detectar fechas y horas
+        const dateTimePatterns = this.extractDateTimePatterns(line);
+        
+        for (const dateTime of dateTimePatterns) {
+          const pattern: DetectedPattern = {
+            text: line.trim(),
+            title: this.extractTitle(line),
+            message: line.trim(),
+            date: dateTime.date,
+            time: dateTime.time,
+            fullMatch: line.trim(),
+            startIndex: 0,
+            endIndex: line.length,
+            filePath: filePath,
+            lineNumber: lineIndex + 1, // Las líneas empiezan en 1
+          };
+
+          patterns.push(pattern);
+        }
       }
     }
 
     return patterns;
+  }
+
+  // Extraer patrones del nuevo formato :@fecha, hora
+  private extractNewSyntaxPatterns(text: string): DetectedPattern[] {
+    const patterns: DetectedPattern[] = [];
+    
+    // Patrón para :@fecha, hora
+    const newSyntaxRegex = /:@([^,\s]+),\s*([^\s]+)/g;
+    let match;
+    
+    while ((match = newSyntaxRegex.exec(text)) !== null) {
+      const dateStr = match[1].trim();
+      const timeStr = match[2].trim();
+      
+      // Parsear fecha y hora
+      const date = this.parseNewSyntaxDate(dateStr);
+      const time = this.parseNewSyntaxTime(timeStr);
+      
+      if (date && time) {
+        const pattern: DetectedPattern = {
+          text: text.trim(),
+          title: this.extractTitleFromNewSyntax(text, match[0]),
+          message: text.trim(),
+          date: date,
+          time: time,
+          fullMatch: match[0],
+          startIndex: match.index,
+          endIndex: match.index + match[0].length,
+        };
+        
+        patterns.push(pattern);
+      }
+    }
+    
+    return patterns;
+  }
+
+  // Parsear fecha del nuevo formato
+  private parseNewSyntaxDate(dateStr: string): string | null {
+    // Formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return dateStr;
+    }
+    
+    // Formato DD/MM/YYYY o DD/MM/YY
+    const dateMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (dateMatch) {
+      let day = parseInt(dateMatch[1]);
+      let month = parseInt(dateMatch[2]);
+      let year = parseInt(dateMatch[3]);
+      
+      if (year < 100) {
+        year += year < 50 ? 2000 : 1900;
+      }
+      
+      return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    }
+    
+    // Fechas relativas - buscar en todos los idiomas soportados
+    const today = new Date();
+    const lowerDateStr = dateStr.toLowerCase();
+    
+    // Buscar en todos los idiomas soportados
+    for (const lang of SUPPORTED_LANGUAGES) {
+      if (lang.datePatterns.today.some(pattern => pattern.toLowerCase() === lowerDateStr)) {
+        return today.toISOString().split('T')[0];
+      }
+      
+      if (lang.datePatterns.tomorrow.some(pattern => pattern.toLowerCase() === lowerDateStr)) {
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow.toISOString().split('T')[0];
+      }
+      
+      if (lang.datePatterns.yesterday.some(pattern => pattern.toLowerCase() === lowerDateStr)) {
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+      }
+    }
+    
+    return null;
+  }
+
+  // Parsear hora del nuevo formato
+  private parseNewSyntaxTime(timeStr: string): string | null {
+    // Formato HH:MM
+    if (/^\d{1,2}:\d{2}$/.test(timeStr)) {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      }
+    }
+    
+    return null;
+  }
+
+  // Extraer título del nuevo formato
+  private extractTitleFromNewSyntax(text: string, match: string): string {
+    // Remover el patrón {@fecha, hora} del texto
+    let title = text.replace(match, '').trim();
+    
+    // Limpiar espacios extra
+    title = title.replace(/\s+/g, ' ').trim();
+    
+    // Limitar longitud
+    if (title.length > 50) {
+      title = title.substring(0, 47) + '...';
+    }
+    
+    return title || 'Recordatorio';
   }
 
   // Extraer patrones de fecha y hora
@@ -624,7 +1026,7 @@ export default class NotelertPlugin extends Plugin {
   }
 
   // Crear notificación y marcarla como procesada (para uso con modal)
-  private async createNotificationAndMarkProcessed(pattern: DetectedPattern) {
+  public async createNotificationAndMarkProcessed(pattern: DetectedPattern) {
     try {
       // Crear la notificación
       await this.createNotification(pattern);
@@ -733,7 +1135,7 @@ export default class NotelertPlugin extends Plugin {
   }
 
   // Función de logging
-  private log(message: string) {
+  public log(message: string) {
     if (this.settings.debugMode) {
       console.log(`[Notelert] ${message}`);
     }
@@ -890,6 +1292,32 @@ class NotelertSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.visualIndicatorIcon)
           .onChange(async (value) => {
             this.plugin.settings.visualIndicatorIcon = value || "⏰";
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // Nuevo sistema de sintaxis
+    new Setting(containerEl)
+      .setName(getTranslation(this.plugin.settings.language, "settings.useNewSyntax"))
+      .setDesc(getTranslation(this.plugin.settings.language, "settings.useNewSyntaxDesc"))
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.useNewSyntax)
+          .onChange(async (value) => {
+            this.plugin.settings.useNewSyntax = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    // Date picker
+    new Setting(containerEl)
+      .setName(getTranslation(this.plugin.settings.language, "settings.enableDatePicker"))
+      .setDesc(getTranslation(this.plugin.settings.language, "settings.enableDatePickerDesc"))
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableDatePicker)
+          .onChange(async (value) => {
+            this.plugin.settings.enableDatePicker = value;
             await this.plugin.saveSettings();
           })
       );
