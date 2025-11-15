@@ -47,6 +47,10 @@ interface DetectedPattern {
   endIndex: number;
   filePath?: string; // Ruta del archivo donde se detectó el patrón
   lineNumber?: number; // Número de línea donde se detectó el patrón
+  location?: string; // Nombre de la ubicación
+  latitude?: number; // Latitud de la ubicación
+  longitude?: number; // Longitud de la ubicación
+  radius?: number; // Radio en metros para la geofence
 }
 
 // Modal de confirmación para notificaciones
@@ -294,10 +298,19 @@ class NotelertDatePickerModal extends Modal {
       // Crear la notificación directamente
       await this.plugin.createNotificationAndMarkProcessed(pattern);
       
-      // Añadir feedback visual: texto en azul y reemplazar :@ con icono de despertador
-      this.addVisualFeedback(fullText, `:@${date}, ${time}`);
+      // TEMPORALMENTE COMENTADO - Debug para identificar el problema del guardado continuo
+      // // Añadir feedback visual con un pequeño delay para evitar conflictos con el guardado
+      // // Esto permite que Obsidian termine de procesar el deeplink antes de modificar el editor
+      // setTimeout(() => {
+      //   try {
+      //     this.addVisualFeedback(fullText, `:@${date}, ${time}`);
+      //   } catch (error) {
+      //     this.plugin.log(`Error añadiendo feedback visual: ${error}`);
+      //   }
+      // }, 500);
       
-      this.plugin.log(`Notificación creada desde date picker: ${pattern.title}`);
+      // TEMPORALMENTE COMENTADO - Debug
+      // this.plugin.log(`Notificación creada desde date picker: ${pattern.title}`);
     } catch (error) {
       this.plugin.log(`Error creando notificación desde date picker: ${error}`);
       new Notice(getTranslation(this.language, "notices.errorCreatingNotification", { title: "Recordatorio" }));
@@ -345,6 +358,170 @@ class NotelertDatePickerModal extends Modal {
   }
 }
 
+// Modal para seleccionar ubicación
+class NotelertLocationPickerModal extends Modal {
+  private plugin: NotelertPlugin;
+  private language: string;
+  private editor: any;
+  private cursor: any;
+  private originalText: string;
+  private onCancel: () => void;
+
+  constructor(
+    app: App,
+    plugin: NotelertPlugin,
+    language: string,
+    editor: any,
+    cursor: any,
+    originalText: string,
+    onCancel: () => void
+  ) {
+    super(app);
+    this.plugin = plugin;
+    this.language = language;
+    this.editor = editor;
+    this.cursor = cursor;
+    this.originalText = originalText;
+    this.onCancel = onCancel;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+
+    contentEl.createEl("h2", { text: getTranslation(this.language, "locationPicker.title") || "Seleccionar Ubicación" });
+
+    // Input para buscar ubicación
+    const searchContainer = contentEl.createEl("div", { cls: "notelert-location-search" });
+    searchContainer.setAttribute("style", "margin: 20px 0;");
+    
+    const searchInput = searchContainer.createEl("input", {
+      type: "text",
+      placeholder: getTranslation(this.language, "locationPicker.searchPlaceholder") || "Buscar ubicación...",
+      cls: "notelert-location-input"
+    });
+    searchInput.setAttribute("style", "width: 100%; padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 4px;");
+
+    // Botones de acción rápida (ubicaciones comunes)
+    const quickActionsContainer = contentEl.createEl("div", { cls: "notelert-location-quick-actions" });
+    quickActionsContainer.setAttribute("style", "margin: 20px 0; display: flex; flex-wrap: wrap; gap: 10px;");
+    
+    const quickLocations = [
+      { name: "Casa", lat: 0, lon: 0, radius: 100 },
+      { name: "Trabajo", lat: 0, lon: 0, radius: 100 },
+      { name: "Supermercado", lat: 0, lon: 0, radius: 200 }
+    ];
+
+    quickLocations.forEach(location => {
+      const button = quickActionsContainer.createEl("button", {
+        text: location.name,
+        cls: "mod-secondary"
+      });
+      button.setAttribute("style", "padding: 8px 16px;");
+      button.addEventListener("click", () => {
+        this.createNotificationFromLocation(location.name, location.lat, location.lon, location.radius);
+        this.close();
+      });
+    });
+
+    // Botones principales
+    const buttonContainer = contentEl.createEl("div", { cls: "notelert-locationpicker-buttons" });
+    buttonContainer.setAttribute("style", "display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;");
+    
+    const cancelButton = buttonContainer.createEl("button", { 
+      text: getTranslation(this.language, "locationPicker.cancelButton") || "Cancelar",
+      cls: "mod-secondary"
+    });
+    cancelButton.addEventListener("click", () => {
+      this.onCancel();
+      this.close();
+    });
+
+    const confirmButton = buttonContainer.createEl("button", { 
+      text: getTranslation(this.language, "locationPicker.confirmButton") || "Confirmar",
+      cls: "mod-cta"
+    });
+    confirmButton.addEventListener("click", () => {
+      const locationName = searchInput.value.trim();
+      if (locationName) {
+        // Por ahora usamos coordenadas por defecto (0,0) - la app móvil deberá geocodificar
+        this.createNotificationFromLocation(locationName, 0, 0, 100);
+        this.close();
+      } else {
+        new Notice(getTranslation(this.language, "locationPicker.selectLocation") || "Por favor, selecciona una ubicación");
+      }
+    });
+  }
+
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
+  }
+
+  // Crear notificación directamente desde el location picker
+  private async createNotificationFromLocation(locationName: string, latitude: number, longitude: number, radius: number) {
+    try {
+      // Reemplazar :# con :#nombreUbicacion
+      const replacement = `:#${locationName}`;
+      const line = this.editor.getLine(this.cursor.line);
+      const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :#
+      const afterCursor = line.substring(this.cursor.ch);
+      const newLine = beforeCursor + replacement + afterCursor;
+      
+      this.editor.setLine(this.cursor.line, newLine);
+      
+      // Mover cursor al final del reemplazo
+      const newCursor = {
+        line: this.cursor.line,
+        ch: beforeCursor.length + replacement.length
+      };
+      this.editor.setCursor(newCursor);
+
+      // Crear el patrón detectado
+      const pattern: DetectedPattern = {
+        text: newLine.trim(),
+        title: this.extractTitleFromText(newLine, replacement),
+        message: newLine.trim(),
+        date: new Date().toISOString().split('T')[0], // Fecha actual por defecto
+        time: "00:00", // Hora por defecto para recordatorios de ubicación
+        fullMatch: replacement,
+        startIndex: 0,
+        endIndex: newLine.length,
+        filePath: this.plugin.app.workspace.getActiveFile()?.path,
+        lineNumber: this.cursor.line + 1,
+        location: locationName,
+        latitude: latitude,
+        longitude: longitude,
+        radius: radius
+      };
+
+      // Crear la notificación directamente
+      await this.plugin.createNotificationAndMarkProcessed(pattern);
+      
+      this.plugin.log(`Notificación de ubicación creada: ${pattern.title} en ${locationName}`);
+    } catch (error) {
+      this.plugin.log(`Error creando notificación de ubicación: ${error}`);
+      new Notice(getTranslation(this.language, "notices.errorCreatingNotification", { title: "Recordatorio de ubicación" }));
+    }
+  }
+
+  // Extraer título del texto
+  private extractTitleFromText(text: string, match: string): string {
+    // Remover el patrón :#ubicación del texto
+    let title = text.replace(match, '').trim();
+    
+    // Limpiar espacios extra
+    title = title.replace(/\s+/g, ' ').trim();
+    
+    // Limitar longitud
+    if (title.length > 50) {
+      title = title.substring(0, 47) + '...';
+    }
+    
+    return title || 'Recordatorio de ubicación';
+  }
+}
+
 const DEFAULT_SETTINGS: NotelertSettings = {
   autoProcess: false, // Desactivado - solo a través del date picker
   processOnSave: false, // Desactivado - solo a través del date picker
@@ -364,62 +541,17 @@ const DEFAULT_SETTINGS: NotelertSettings = {
 
 export default class NotelertPlugin extends Plugin {
   settings: NotelertSettings;
-  private processedNotifications: Map<string, Set<string>> = new Map();
-  private debounceTimers: Map<string, number> = new Map();
 
   async onload() {
     console.log("Cargando plugin Notelert...");
     await this.loadSettings();
 
-    // Comando para procesar la nota actual
-    this.addCommand({
-      id: "process-current-note",
-      name: getTranslation(this.settings.language, "commands.processCurrentNote"),
-      callback: () => this.processCurrentNote(),
-    });
-
-    // Comando para procesar todas las notas
-    this.addCommand({
-      id: "process-all-notes",
-      name: getTranslation(this.settings.language, "commands.processAllNotes"),
-      callback: () => this.processAllNotes(),
-    });
-
-    // Comando para limpiar historial de procesamiento
-    this.addCommand({
-      id: "clear-processed-history",
-      name: getTranslation(this.settings.language, "commands.clearProcessedHistory"),
-      callback: () => this.clearProcessedHistory(),
-    });
+    // Comandos de procesamiento desactivados - solo funciona con :@
 
     // Configuración del plugin
     this.addSettingTab(new NotelertSettingTab(this.app, this));
 
-    // Eventos automáticos
-    if (this.settings.processOnSave) {
-      this.registerEvent(
-        this.app.vault.on("modify", (file) => {
-          if (file instanceof TFile && this.shouldProcessFile(file)) {
-            this.scheduleFileProcessing(file);
-          }
-        })
-      );
-    }
-
-    if (this.settings.processOnOpen) {
-      this.registerEvent(
-        this.app.workspace.on("file-open", (file) => {
-          if (file instanceof TFile && this.shouldProcessFile(file)) {
-            this.processFile(file);
-          }
-        })
-      );
-    }
-
-    // Icono en la barra de herramientas
-    this.addRibbonIcon("bell", "Procesar nota actual", () => {
-      this.processCurrentNote();
-    });
+    // Procesamiento automático desactivado - solo funciona con :@
 
     // Barra de estado
     this.addStatusBarItem().setText("Notelert: Activo");
@@ -438,12 +570,6 @@ export default class NotelertPlugin extends Plugin {
 
   onunload() {
     console.log("Descargando plugin Notelert...");
-    
-    // Limpiar todos los timers de debounce
-    this.debounceTimers.forEach((timer) => {
-      clearTimeout(timer);
-    });
-    this.debounceTimers.clear();
   }
 
   async loadSettings() {
@@ -454,19 +580,7 @@ export default class NotelertPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  // Verificar si un archivo debe ser procesado
-  private shouldProcessFile(file: TFile): boolean {
-    if (!this.settings.autoProcess) return false;
-    if (file.extension !== "md") return false;
-
-    // Verificar si está en una carpeta excluida
-    const folderPath = file.parent?.path || "";
-    return !this.settings.excludedFolders.some((folder) =>
-      folderPath.includes(folder)
-    );
-  }
-
-  // Manejar cambios en el editor para detectar :@
+  // Manejar cambios en el editor para detectar :@ y :#
   private handleEditorChange(editor: any, info: any) {
     if (!this.settings.enableDatePicker || !this.settings.useNewSyntax) return;
     
@@ -478,6 +592,13 @@ export default class NotelertPlugin extends Plugin {
     if (beforeCursor.endsWith(':@')) {
       this.log("Detectado :@ - abriendo date picker");
       this.openDatePicker(editor, cursor);
+      return;
+    }
+    
+    // Detectar si se acaba de escribir :#
+    if (beforeCursor.endsWith(':#')) {
+      this.log("Detectado :# - abriendo location picker");
+      this.openLocationPicker(editor, cursor);
     }
   }
 
@@ -499,504 +620,25 @@ export default class NotelertPlugin extends Plugin {
     ).open();
   }
 
-  // Programar el procesamiento de un archivo con debounce
-  private scheduleFileProcessing(file: TFile) {
-    const filePath = file.path;
+  // Abrir location picker y reemplazar :# con la ubicación seleccionada
+  private openLocationPicker(editor: any, cursor: any) {
+    const line = editor.getLine(cursor.line);
+    const originalText = line;
     
-    // Si no se usa debounce, procesar inmediatamente
-    if (!this.settings.useDebounce) {
-      this.processFile(file);
-      return;
-    }
-
-    // Cancelar el timer anterior si existe
-    const existingTimer = this.debounceTimers.get(filePath);
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    // Crear un nuevo timer
-    const timer = setTimeout(() => {
-      this.log(`Procesando archivo después del debounce: ${file.name}`);
-      this.processFile(file);
-      this.debounceTimers.delete(filePath);
-    }, this.settings.debounceDelay);
-
-    this.debounceTimers.set(filePath, timer);
-    this.log(`Programado procesamiento de ${file.name} en ${this.settings.debounceDelay}ms`);
+    new NotelertLocationPickerModal(
+      this.app,
+      this,
+      this.settings.language,
+      editor,
+      cursor,
+      originalText,
+      () => {
+        this.log("Location picker cancelado");
+      }
+    ).open();
   }
 
-  // Procesar la nota actual
-  private async processCurrentNote() {
-    const activeFile = this.app.workspace.getActiveFile();
-    if (activeFile && activeFile instanceof TFile) {
-      await this.processFile(activeFile);
-    } else {
-      new Notice(getTranslation(this.settings.language, "notices.noActiveNote"));
-    }
-  }
-
-  // Procesar todas las notas
-  private async processAllNotes() {
-    const markdownFiles = this.app.vault.getMarkdownFiles();
-    let processedCount = 0;
-
-    for (const file of markdownFiles) {
-      if (this.shouldProcessFile(file)) {
-        await this.processFile(file);
-        processedCount++;
-      }
-    }
-
-    new Notice(getTranslation(this.settings.language, "notices.processedNotes", { count: processedCount }));
-  }
-
-  // Procesar un archivo específico
-  private async processFile(file: TFile) {
-    try {
-      const content = await this.app.vault.read(file);
-      const patterns = this.detectPatterns(content, file.path);
-
-      if (patterns.length > 0) {
-        this.log(`Encontrados ${patterns.length} patrones en ${file.name}`);
-        
-        // Obtener notificaciones ya procesadas para este archivo
-        const processedForFile = this.processedNotifications.get(file.path) || new Set<string>();
-        let newNotificationsCount = 0;
-        
-        for (const pattern of patterns) {
-          // Crear un identificador único para esta notificación
-          const notificationId = this.createNotificationId(pattern);
-          
-          // Solo procesar si no se ha procesado antes
-          if (!processedForFile.has(notificationId)) {
-            if (this.settings.showConfirmationModal) {
-              // Con modal: no marcar como procesado hasta confirmar
-              await this.executeNotelertDeepLink(pattern);
-            } else {
-              // Sin modal: procesar directamente
-              await this.executeNotelertDeepLink(pattern);
-              processedForFile.add(notificationId);
-              newNotificationsCount++;
-            }
-          }
-        }
-
-        // Actualizar el registro de notificaciones procesadas
-        this.processedNotifications.set(file.path, processedForFile);
-        
-        if (newNotificationsCount > 0) {
-          new Notice(getTranslation(this.settings.language, "notices.processedNote", { filename: file.name, count: newNotificationsCount }));
-        }
-      }
-    } catch (error) {
-      this.log(`Error procesando ${file.name}: ${error}`);
-    }
-  }
-
-  // Detectar patrones de fecha/hora en el texto
-  private detectPatterns(content: string, filePath: string): DetectedPattern[] {
-    const patterns: DetectedPattern[] = [];
-    const lines = content.split('\n');
-
-    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-      const line = lines[lineIndex];
-      
-      // Verificar si la línea ya tiene un icono visual (ya fue procesada)
-      if (this.settings.addVisualIndicators && this.hasVisualIndicator(line)) {
-        this.log(`Línea ya procesada (tiene icono): ${line.trim()}`);
-        continue;
-      }
-
-      // Detectar nuevo formato {@fecha, hora}
-      if (this.settings.useNewSyntax) {
-        const newSyntaxPatterns = this.extractNewSyntaxPatterns(line);
-        for (const pattern of newSyntaxPatterns) {
-          pattern.filePath = filePath;
-          pattern.lineNumber = lineIndex + 1;
-          patterns.push(pattern);
-        }
-      }
-
-      // Detectar formato antiguo (solo si no se usa el nuevo sistema)
-      if (!this.settings.useNewSyntax) {
-        const currentLanguage = getLanguageByCode(this.settings.language) || getDefaultLanguage();
-        
-        // Verificar si la línea contiene palabras clave del idioma seleccionado
-        const languageKeywords = currentLanguage.keywords;
-        const customKeywords = this.settings.customPatterns;
-        const allKeywords = [...languageKeywords, ...customKeywords];
-        
-        const hasKeyword = allKeywords.some(keyword => 
-          line.toLowerCase().includes(keyword.toLowerCase())
-        );
-
-        if (!hasKeyword) continue;
-
-        // Detectar fechas y horas
-        const dateTimePatterns = this.extractDateTimePatterns(line);
-        
-        for (const dateTime of dateTimePatterns) {
-          const pattern: DetectedPattern = {
-            text: line.trim(),
-            title: this.extractTitle(line),
-            message: line.trim(),
-            date: dateTime.date,
-            time: dateTime.time,
-            fullMatch: line.trim(),
-            startIndex: 0,
-            endIndex: line.length,
-            filePath: filePath,
-            lineNumber: lineIndex + 1, // Las líneas empiezan en 1
-          };
-
-          patterns.push(pattern);
-        }
-      }
-    }
-
-    return patterns;
-  }
-
-  // Extraer patrones del nuevo formato :@fecha, hora
-  private extractNewSyntaxPatterns(text: string): DetectedPattern[] {
-    const patterns: DetectedPattern[] = [];
-    
-    // Patrón para :@fecha, hora
-    const newSyntaxRegex = /:@([^,\s]+),\s*([^\s]+)/g;
-    let match;
-    
-    while ((match = newSyntaxRegex.exec(text)) !== null) {
-      const dateStr = match[1].trim();
-      const timeStr = match[2].trim();
-      
-      // Parsear fecha y hora
-      const date = this.parseNewSyntaxDate(dateStr);
-      const time = this.parseNewSyntaxTime(timeStr);
-      
-      if (date && time) {
-        const pattern: DetectedPattern = {
-          text: text.trim(),
-          title: this.extractTitleFromNewSyntax(text, match[0]),
-          message: text.trim(),
-          date: date,
-          time: time,
-          fullMatch: match[0],
-          startIndex: match.index,
-          endIndex: match.index + match[0].length,
-        };
-        
-        patterns.push(pattern);
-      }
-    }
-    
-    return patterns;
-  }
-
-  // Parsear fecha del nuevo formato
-  private parseNewSyntaxDate(dateStr: string): string | null {
-    // Formato YYYY-MM-DD
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-      return dateStr;
-    }
-    
-    // Formato DD/MM/YYYY o DD/MM/YY
-    const dateMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-    if (dateMatch) {
-      let day = parseInt(dateMatch[1]);
-      let month = parseInt(dateMatch[2]);
-      let year = parseInt(dateMatch[3]);
-      
-      if (year < 100) {
-        year += year < 50 ? 2000 : 1900;
-      }
-      
-      return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-    }
-    
-    // Fechas relativas - buscar en todos los idiomas soportados
-    const today = new Date();
-    const lowerDateStr = dateStr.toLowerCase();
-    
-    // Buscar en todos los idiomas soportados
-    for (const lang of SUPPORTED_LANGUAGES) {
-      if (lang.datePatterns.today.some(pattern => pattern.toLowerCase() === lowerDateStr)) {
-        return today.toISOString().split('T')[0];
-      }
-      
-      if (lang.datePatterns.tomorrow.some(pattern => pattern.toLowerCase() === lowerDateStr)) {
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        return tomorrow.toISOString().split('T')[0];
-      }
-      
-      if (lang.datePatterns.yesterday.some(pattern => pattern.toLowerCase() === lowerDateStr)) {
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        return yesterday.toISOString().split('T')[0];
-      }
-    }
-    
-    return null;
-  }
-
-  // Parsear hora del nuevo formato
-  private parseNewSyntaxTime(timeStr: string): string | null {
-    // Formato HH:MM
-    if (/^\d{1,2}:\d{2}$/.test(timeStr)) {
-      const [hours, minutes] = timeStr.split(':').map(Number);
-      if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-      }
-    }
-    
-    return null;
-  }
-
-  // Extraer título del nuevo formato
-  private extractTitleFromNewSyntax(text: string, match: string): string {
-    // Remover el patrón {@fecha, hora} del texto
-    let title = text.replace(match, '').trim();
-    
-    // Limpiar espacios extra
-    title = title.replace(/\s+/g, ' ').trim();
-    
-    // Limitar longitud
-    if (title.length > 50) {
-      title = title.substring(0, 47) + '...';
-    }
-    
-    return title || 'Recordatorio';
-  }
-
-  // Extraer patrones de fecha y hora
-  private extractDateTimePatterns(text: string): { date: string; time: string }[] {
-    const patterns: { date: string; time: string }[] = [];
-    const currentLanguage = getLanguageByCode(this.settings.language) || getDefaultLanguage();
-    
-    // Patrones de fecha
-    const datePatterns = [
-      // Fechas absolutas: DD/MM/YYYY, DD/MM/YY, DD-MM-YYYY, etc.
-      /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/g,
-      // Fechas relativas del idioma seleccionado
-      new RegExp(`\\b(${currentLanguage.datePatterns.today.join('|')}|${currentLanguage.datePatterns.tomorrow.join('|')}|${currentLanguage.datePatterns.yesterday.join('|')})\\b`, 'gi'),
-    ];
-
-    // Patrones de hora
-    const timePatterns = [
-      // HH:MM, H:MM
-      /(\d{1,2}):(\d{2})/g,
-      // HH.MM, H.MM
-      /(\d{1,2})\.(\d{2})/g,
-    ];
-
-    // Primero, buscar fechas y sus horas asociadas
-    for (const datePattern of datePatterns) {
-      let dateMatch;
-      while ((dateMatch = datePattern.exec(text)) !== null) {
-        // Buscar horas en la misma línea
-        const timePattern = timePatterns[0];
-        let timeMatch;
-        const timeMatches: RegExpExecArray[] = [];
-        
-        // Reset regex
-        timePattern.lastIndex = 0;
-        while ((timeMatch = timePattern.exec(text)) !== null) {
-          timeMatches.push(timeMatch);
-        }
-        
-        if (timeMatches.length > 0) {
-          for (const timeMatch of timeMatches) {
-            const date = this.parseDate(dateMatch[0]);
-            const time = this.parseTime(timeMatch[0]);
-            
-            if (date && time) {
-              patterns.push({ date, time });
-            }
-          }
-        } else {
-          // Solo fecha, usar hora por defecto
-          const date = this.parseDate(dateMatch[0]);
-          if (date) {
-            patterns.push({ date, time: "09:00" });
-          }
-        }
-      }
-    }
-
-    // Buscar horas que no están asociadas a fechas explícitas
-    // pero que pueden estar cerca de fechas relativas
-    const timePattern = timePatterns[0];
-    let timeMatch;
-    timePattern.lastIndex = 0;
-    
-    while ((timeMatch = timePattern.exec(text)) !== null) {
-      const time = this.parseTime(timeMatch[0]);
-      if (time) {
-        // Verificar si ya se procesó esta hora con una fecha
-        const alreadyProcessed = patterns.some(p => p.time === time);
-        if (!alreadyProcessed) {
-          // Buscar fechas relativas cerca de esta hora
-          const timeIndex = timeMatch.index;
-          const contextStart = Math.max(0, timeIndex - 50);
-          const contextEnd = Math.min(text.length, timeIndex + 50);
-          const context = text.substring(contextStart, contextEnd).toLowerCase();
-          
-          let dateForTime: string | null = null;
-          
-          // Buscar fechas relativas en el contexto
-          if (currentLanguage.datePatterns.tomorrow.some(pattern => 
-            new RegExp(pattern, 'i').test(context)
-          )) {
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            dateForTime = tomorrow.toISOString().split('T')[0];
-          } else if (currentLanguage.datePatterns.yesterday.some(pattern => 
-            new RegExp(pattern, 'i').test(context)
-          )) {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            dateForTime = yesterday.toISOString().split('T')[0];
-          } else if (currentLanguage.datePatterns.today.some(pattern => 
-            new RegExp(pattern, 'i').test(context)
-          )) {
-            const today = new Date();
-            dateForTime = today.toISOString().split('T')[0];
-          } else {
-            // Si no hay fecha relativa, asumir hoy
-            const today = new Date();
-            dateForTime = today.toISOString().split('T')[0];
-          }
-          
-          if (dateForTime) {
-            patterns.push({ date: dateForTime, time });
-          }
-        }
-      }
-    }
-
-    return patterns;
-  }
-
-  // Parsear fecha
-  private parseDate(dateStr: string): string | null {
-    const today = new Date();
-    const currentLanguage = getLanguageByCode(this.settings.language) || getDefaultLanguage();
-    
-    // Fechas relativas del idioma seleccionado
-    if (currentLanguage.datePatterns.today.some(pattern => 
-      new RegExp(pattern, 'i').test(dateStr)
-    )) {
-      return today.toISOString().split('T')[0];
-    }
-    
-    if (currentLanguage.datePatterns.tomorrow.some(pattern => 
-      new RegExp(pattern, 'i').test(dateStr)
-    )) {
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return tomorrow.toISOString().split('T')[0];
-    }
-    
-    if (currentLanguage.datePatterns.yesterday.some(pattern => 
-      new RegExp(pattern, 'i').test(dateStr)
-    )) {
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      return yesterday.toISOString().split('T')[0];
-    }
-
-    // Fechas absolutas
-    const dateMatch = dateStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-    if (dateMatch) {
-      let day = parseInt(dateMatch[1]);
-      let month = parseInt(dateMatch[2]);
-      let year = parseInt(dateMatch[3]);
-
-      // Ajustar año si es de 2 dígitos
-      if (year < 100) {
-        year += year < 50 ? 2000 : 1900;
-      }
-
-      // Crear fecha (mes - 1 porque Date usa 0-indexado)
-      const date = new Date(year, month - 1, day);
-      
-      // Verificar que la fecha es válida
-      if (date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
-        return date.toISOString().split('T')[0];
-      }
-    }
-
-    return null;
-  }
-
-  // Parsear hora
-  private parseTime(timeStr: string): string | null {
-    const timeMatch = timeStr.match(/(\d{1,2})[:\.](\d{2})/);
-    if (timeMatch) {
-      const hours = parseInt(timeMatch[1]);
-      const minutes = parseInt(timeMatch[2]);
-      
-      if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-      }
-    }
-    
-    return null;
-  }
-
-  // Extraer título del texto
-  private extractTitle(text: string): string {
-    const currentLanguage = getLanguageByCode(this.settings.language) || getDefaultLanguage();
-    
-    // Remover palabras clave del idioma seleccionado
-    let title = text;
-    const allKeywords = [...currentLanguage.keywords, ...this.settings.customPatterns];
-    for (const keyword of allKeywords) {
-      title = title.replace(new RegExp(keyword, 'gi'), '').trim();
-    }
-    
-    // Remover fechas y horas
-    title = title.replace(/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/g, '');
-    title = title.replace(/\d{1,2}[:\.]\d{2}/g, '');
-    
-    // Remover fechas relativas del idioma seleccionado
-    const relativeDates = [
-      ...currentLanguage.datePatterns.today,
-      ...currentLanguage.datePatterns.tomorrow,
-      ...currentLanguage.datePatterns.yesterday
-    ];
-    for (const datePattern of relativeDates) {
-      title = title.replace(new RegExp(`\\b${datePattern}\\b`, 'gi'), '');
-    }
-    
-    // Limpiar espacios extra
-    title = title.replace(/\s+/g, ' ').trim();
-    
-    // Limitar longitud
-    if (title.length > 50) {
-      title = title.substring(0, 47) + '...';
-    }
-    
-    return title || getTranslation(this.settings.language, 'notices.defaultTitle');
-  }
-
-  // Ejecutar deeplink de Notelert
-  private async executeNotelertDeepLink(pattern: DetectedPattern) {
-    // Si está activado el modal de confirmación, mostrarlo
-    if (this.settings.showConfirmationModal) {
-      new NotelertConfirmationModal(
-        this.app,
-        pattern,
-        this.settings.language,
-        (confirmedPattern) => this.createNotificationAndMarkProcessed(confirmedPattern),
-        () => this.log(`Notificación cancelada: ${pattern.title}`)
-      ).open();
-    } else {
-      // Crear notificación directamente
-      this.createNotification(pattern);
-    }
-  }
+  // Métodos de escaneo automático eliminados - solo funciona con :@
 
   // Crear la notificación (función separada para reutilizar)
   private async createNotification(pattern: DetectedPattern) {
@@ -1004,20 +646,14 @@ export default class NotelertPlugin extends Plugin {
       const deeplink = this.generateDeepLink(pattern);
       this.log(`Ejecutando deeplink: ${deeplink}`);
       
-      // En un entorno de escritorio, intentar abrir el deeplink
-      if (typeof window !== 'undefined' && window.open) {
-        window.open(deeplink, '_self');
-      }
-      
-      // También intentar con location.href como fallback
+      // Método simplificado para abrir el deeplink sin causar problemas de guardado
+      // Usar location.href directamente es más simple y menos propenso a causar conflictos
       if (typeof window !== 'undefined') {
         window.location.href = deeplink;
       }
 
-      // Añadir icono visual al archivo si está habilitado
-      if (this.settings.addVisualIndicators && pattern.filePath) {
-        await this.addVisualIndicator(pattern);
-      }
+      // No modificamos el archivo aquí para evitar conflictos
+      // El feedback visual ya se maneja en addVisualFeedback del DatePickerModal
       
     } catch (error) {
       this.log(`Error ejecutando deeplink: ${error}`);
@@ -1031,22 +667,13 @@ export default class NotelertPlugin extends Plugin {
       // Crear la notificación
       await this.createNotification(pattern);
       
-      // Marcar como procesada
-      if (pattern.filePath) {
-        const processedForFile = this.processedNotifications.get(pattern.filePath) || new Set<string>();
-        const notificationId = this.createNotificationId(pattern);
-        processedForFile.add(notificationId);
-        this.processedNotifications.set(pattern.filePath, processedForFile);
-        
-        // Mostrar notificación de éxito
-        new Notice(getTranslation(this.settings.language, "notices.processedNote", { 
-          filename: pattern.filePath.split('/').pop() || 'archivo', 
-          count: 1 
-        }));
-      }
+      // TEMPORALMENTE COMENTADO - Debug para identificar el problema del guardado continuo
+      // // Mostrar notificación de éxito
+      // new Notice(getTranslation(this.settings.language, "notices.notificationCreated", { title: pattern.title }));
     } catch (error) {
       this.log(`Error procesando notificación confirmada: ${error}`);
-      new Notice(getTranslation(this.settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
+      // TEMPORALMENTE COMENTADO - Debug
+      // new Notice(getTranslation(this.settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
     }
   }
 
@@ -1057,6 +684,18 @@ export default class NotelertPlugin extends Plugin {
     const date = pattern.date;
     const time = pattern.time;
     
+    // Parámetros de ubicación si están disponibles
+    let locationParams = '';
+    if (pattern.location) {
+      locationParams = `&location=${encodeURIComponent(pattern.location)}`;
+      if (pattern.latitude !== undefined && pattern.longitude !== undefined) {
+        locationParams += `&latitude=${pattern.latitude}&longitude=${pattern.longitude}`;
+      }
+      if (pattern.radius !== undefined) {
+        locationParams += `&radius=${pattern.radius}`;
+      }
+    }
+    
     // Crear deep link de vuelta a Obsidian si tenemos información del archivo
     let returnLink = '';
     if (pattern.filePath && pattern.lineNumber) {
@@ -1064,7 +703,7 @@ export default class NotelertPlugin extends Plugin {
       returnLink = `&returnLink=${encodeURIComponent(obsidianLink)}`;
     }
     
-    return `notelert://add?title=${title}&message=${message}&date=${date}&time=${time}${returnLink}`;
+    return `notelert://add?title=${title}&message=${message}&date=${date}&time=${time}${locationParams}${returnLink}`;
   }
 
   // Crear identificador único para una notificación
@@ -1128,11 +767,7 @@ export default class NotelertPlugin extends Plugin {
     }
   }
 
-  // Limpiar historial de procesamiento
-  private clearProcessedHistory() {
-    this.processedNotifications.clear();
-    new Notice(getTranslation(this.settings.language, "notices.clearedHistory"));
-  }
+  // Limpiar historial de procesamiento - eliminado (ya no hay escaneo automático)
 
   // Función de logging
   public log(message: string) {
