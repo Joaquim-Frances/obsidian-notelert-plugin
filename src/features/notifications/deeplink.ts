@@ -1,0 +1,53 @@
+import { App, Notice } from "obsidian";
+import { DetectedPattern, NotelertSettings } from "../../core/types";
+import { getTranslation } from "../../i18n";
+
+export function generateDeepLink(pattern: DetectedPattern, app: App): string {
+  const title = encodeURIComponent(pattern.title);
+  const message = encodeURIComponent(pattern.message);
+  const date = pattern.date;
+  const time = pattern.time;
+  
+  // Parámetros de ubicación si están disponibles
+  let locationParams = '';
+  if (pattern.location) {
+    locationParams = `&location=${encodeURIComponent(pattern.location)}`;
+    if (pattern.latitude !== undefined && pattern.longitude !== undefined) {
+      locationParams += `&latitude=${pattern.latitude}&longitude=${pattern.longitude}`;
+    }
+    if (pattern.radius !== undefined) {
+      locationParams += `&radius=${pattern.radius}`;
+    }
+  }
+  
+  // Crear deep link de vuelta a Obsidian si tenemos información del archivo
+  let returnLink = '';
+  if (pattern.filePath && pattern.lineNumber) {
+    const obsidianLink = `obsidian://open?vault=${encodeURIComponent(app.vault.getName())}&file=${encodeURIComponent(pattern.filePath)}&line=${pattern.lineNumber}`;
+    returnLink = `&returnLink=${encodeURIComponent(obsidianLink)}`;
+  }
+  
+  return `notelert://add?title=${title}&message=${message}&date=${date}&time=${time}${locationParams}${returnLink}`;
+}
+
+export async function createNotification(
+  pattern: DetectedPattern,
+  app: App,
+  settings: NotelertSettings,
+  log: (message: string) => void
+): Promise<void> {
+  try {
+    const deeplink = generateDeepLink(pattern, app);
+    log(`Ejecutando deeplink: ${deeplink}`);
+    
+    // Método simplificado para abrir el deeplink sin causar problemas de guardado
+    // Usar location.href directamente es más simple y menos propenso a causar conflictos
+    if (typeof window !== 'undefined') {
+      window.location.href = deeplink;
+    }
+  } catch (error) {
+    log(`Error ejecutando deeplink: ${error}`);
+    new Notice(getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
+  }
+}
+
