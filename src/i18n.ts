@@ -256,6 +256,28 @@ export const TRANSLATIONS = {
       confirmButton: 'Confirmar notificación',
       cancelButton: 'Cancelar',
       selectDateTime: 'Por favor, selecciona una fecha y hora'
+    },
+    locationPicker: {
+      title: 'Seleccionar Ubicación',
+      searchPlaceholder: 'Buscar dirección o lugar...',
+      radius: 'Radio (metros):',
+      favorites: 'Ubicaciones Favoritas',
+      cancelButton: 'Cancelar',
+      confirmButton: 'Confirmar',
+      noFavorites: 'No hay ubicaciones guardadas',
+      selectButton: 'Seleccionar',
+      deleteButton: 'Eliminar',
+      saveFavorite: '⭐ Guardar',
+      saved: '✓ Guardado',
+      searching: 'Buscando...',
+      noResults: 'No se encontraron resultados',
+      error: 'Error al buscar ubicaciones',
+      connectionError: 'Error de conexión. Verifica tu conexión a internet.',
+      rateLimit: 'Demasiadas solicitudes. Espera un momento antes de buscar de nuevo.',
+      apiKeyError: 'Error: API key no configurada o inválida. Verifica la configuración.',
+      selectLocation: 'Selecciona una ubicación de los resultados o de tus favoritas',
+      locationSelected: 'Ubicación seleccionada',
+      loadingMap: 'Cargando mapa...'
     }
   },
   en: {
@@ -329,6 +351,28 @@ export const TRANSLATIONS = {
       confirmButton: 'Confirm notification',
       cancelButton: 'Cancel',
       selectDateTime: 'Please select a date and time'
+    },
+    locationPicker: {
+      title: 'Select Location',
+      searchPlaceholder: 'Search address or place...',
+      radius: 'Radius (meters):',
+      favorites: 'Favorite Locations',
+      cancelButton: 'Cancel',
+      confirmButton: 'Confirm',
+      noFavorites: 'No saved locations',
+      selectButton: 'Select',
+      deleteButton: 'Delete',
+      saveFavorite: '⭐ Save',
+      saved: '✓ Saved',
+      searching: 'Searching...',
+      noResults: 'No results found',
+      error: 'Error searching locations',
+      connectionError: 'Connection error. Check your internet connection.',
+      rateLimit: 'Too many requests. Wait a moment before searching again.',
+      apiKeyError: 'Error: API key not configured or invalid. Check your settings.',
+      selectLocation: 'Select a location from results or your favorites',
+      locationSelected: 'Location selected',
+      loadingMap: 'Loading map...'
     }
   },
   ca: {
@@ -402,6 +446,28 @@ export const TRANSLATIONS = {
       confirmButton: 'Confirmar notificació',
       cancelButton: 'Cancel·lar',
       selectDateTime: 'Si us plau, selecciona una data i hora'
+    },
+    locationPicker: {
+      title: 'Seleccionar Ubicació',
+      searchPlaceholder: 'Buscar adreça o lloc...',
+      radius: 'Radi (metres):',
+      favorites: 'Ubicacions Favorites',
+      cancelButton: 'Cancel·lar',
+      confirmButton: 'Confirmar',
+      noFavorites: 'No hi ha ubicacions guardades',
+      selectButton: 'Seleccionar',
+      deleteButton: 'Eliminar',
+      saveFavorite: '⭐ Guardar',
+      saved: '✓ Guardat',
+      searching: 'Buscant...',
+      noResults: 'No s\'han trobat resultats',
+      error: 'Error en buscar ubicacions',
+      connectionError: 'Error de connexió. Verifica la teva connexió a internet.',
+      rateLimit: 'Massa sol·licituds. Espera un moment abans de buscar de nou.',
+      apiKeyError: 'Error: API key no configurada o invàlida. Verifica la configuració.',
+      selectLocation: 'Selecciona una ubicació dels resultats o de les teves favorites',
+      locationSelected: 'Ubicació seleccionada',
+      loadingMap: 'Carregant mapa...'
     }
   },
   fr: {

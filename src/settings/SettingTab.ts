@@ -181,6 +181,152 @@ export class NotelertSettingTab extends PluginSettingTab {
           })
       );
 
+    // Sección de Geocodificación
+    containerEl.createEl("h3", { text: "Geocodificación de Ubicaciones" });
+
+    // Proveedor de geocodificación
+    new Setting(containerEl)
+      .setName("Proveedor de Geocodificación")
+      .setDesc("Selecciona el servicio para buscar ubicaciones. Nominatim es gratis, otros requieren API key.")
+      .addDropdown((dropdown) => {
+        dropdown
+          .addOption("nominatim", "Nominatim (OpenStreetMap) - Gratis")
+          .addOption("google", "Google Maps - Requiere API Key")
+          .addOption("mapbox", "Mapbox - Requiere API Key")
+          .addOption("locationiq", "LocationIQ - Requiere API Key")
+          .addOption("opencage", "OpenCage - Requiere API Key")
+          .addOption("algolia", "Algolia Places - Requiere API Key");
+        dropdown.setValue(this.plugin.settings.geocodingProvider || "nominatim");
+        dropdown.onChange(async (value) => {
+          this.plugin.settings.geocodingProvider = value as any;
+          await this.plugin.saveSettings();
+          this.display(); // Recargar para mostrar/ocultar campos de API key
+        });
+      });
+
+    // API Key de Google Maps
+    if (this.plugin.settings.geocodingProvider === "google") {
+      new Setting(containerEl)
+        .setName("Google Maps API Key")
+        .setDesc("Opcional: Si está vacía, se usará la API key del plugin. Si quieres usar tu propia key, pégala aquí.")
+        .addText((text) =>
+          text
+            .setPlaceholder("Dejar vacío para usar la del plugin")
+            .setValue(this.plugin.settings.googleMapsApiKey || "")
+            .onChange(async (value) => {
+              this.plugin.settings.googleMapsApiKey = value;
+              await this.plugin.saveSettings();
+            })
+        );
+
+      // Opción para usar Firebase Proxy
+      new Setting(containerEl)
+        .setName("Usar Firebase Functions (Proxy)")
+        .setDesc("Usar Firebase Functions como proxy para mayor seguridad. La API key se mantiene en el servidor.")
+        .addToggle((toggle) =>
+          toggle
+            .setValue(this.plugin.settings.useFirebaseProxy || false)
+            .onChange(async (value) => {
+              this.plugin.settings.useFirebaseProxy = value;
+              await this.plugin.saveSettings();
+              this.display(); // Recargar para mostrar/ocultar campo de URL
+            })
+        );
+
+      // URL de Firebase Function
+      if (this.plugin.settings.useFirebaseProxy) {
+        new Setting(containerEl)
+          .setName("URL de Firebase Function")
+          .setDesc("URL de tu Firebase Function para geocodificación (ej: https://us-central1-tu-proyecto.cloudfunctions.net/geocode)")
+          .addText((text) =>
+            text
+              .setPlaceholder("https://...")
+              .setValue(this.plugin.settings.firebaseGeocodingUrl || "")
+              .onChange(async (value) => {
+                this.plugin.settings.firebaseGeocodingUrl = value;
+                await this.plugin.saveSettings();
+              })
+          );
+      }
+    }
+
+    // API Key de Mapbox
+    if (this.plugin.settings.geocodingProvider === "mapbox") {
+      new Setting(containerEl)
+        .setName("Mapbox API Key")
+        .setDesc("Obtén tu API key en: https://account.mapbox.com/access-tokens/")
+        .addText((text) =>
+          text
+            .setPlaceholder("pk...")
+            .setValue(this.plugin.settings.mapboxApiKey || "")
+            .onChange(async (value) => {
+              this.plugin.settings.mapboxApiKey = value;
+              await this.plugin.saveSettings();
+            })
+        );
+    }
+
+    // API Key de LocationIQ
+    if (this.plugin.settings.geocodingProvider === "locationiq") {
+      new Setting(containerEl)
+        .setName("LocationIQ API Key")
+        .setDesc("Obtén tu API key en: https://locationiq.com/dashboard")
+        .addText((text) =>
+          text
+            .setPlaceholder("pk...")
+            .setValue(this.plugin.settings.locationiqApiKey || "")
+            .onChange(async (value) => {
+              this.plugin.settings.locationiqApiKey = value;
+              await this.plugin.saveSettings();
+            })
+        );
+    }
+
+    // API Key de OpenCage
+    if (this.plugin.settings.geocodingProvider === "opencage") {
+      new Setting(containerEl)
+        .setName("OpenCage API Key")
+        .setDesc("Obtén tu API key en: https://opencagedata.com/api")
+        .addText((text) =>
+          text
+            .setPlaceholder("...")
+            .setValue(this.plugin.settings.opencageApiKey || "")
+            .onChange(async (value) => {
+              this.plugin.settings.opencageApiKey = value;
+              await this.plugin.saveSettings();
+            })
+        );
+    }
+
+    // API Key de Algolia Places
+    if (this.plugin.settings.geocodingProvider === "algolia") {
+      new Setting(containerEl)
+        .setName("Algolia App ID")
+        .setDesc("Obtén tu App ID en: https://www.algolia.com/dashboard")
+        .addText((text) =>
+          text
+            .setPlaceholder("...")
+            .setValue(this.plugin.settings.algoliaAppId || "")
+            .onChange(async (value) => {
+              this.plugin.settings.algoliaAppId = value;
+              await this.plugin.saveSettings();
+            })
+        );
+      
+      new Setting(containerEl)
+        .setName("Algolia API Key")
+        .setDesc("API Key de Algolia Places")
+        .addText((text) =>
+          text
+            .setPlaceholder("...")
+            .setValue(this.plugin.settings.algoliaApiKey || "")
+            .onChange(async (value) => {
+              this.plugin.settings.algoliaApiKey = value;
+              await this.plugin.saveSettings();
+            })
+        );
+    }
+
     // Carpetas excluidas
     new Setting(containerEl)
       .setName(getTranslation(this.plugin.settings.language, "settings.excludedFolders"))

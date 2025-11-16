@@ -20,6 +20,14 @@ export const DEFAULT_SETTINGS: NotelertSettings = {
     { name: "Trabajo", latitude: 0, longitude: 0, radius: 100 },
     { name: "Supermercado", latitude: 0, longitude: 0, radius: 200 }
   ], // Ubicaciones favoritas por defecto
-  googleMapsApiKey: "", // API key opcional
+  geocodingProvider: 'google', // Proveedor por defecto: Google Maps (con API key del plugin)
+  googleMapsApiKey: "", // API key opcional de Google Maps (si está vacía, usa la del plugin)
+  useFirebaseProxy: false, // Usar Firebase Functions como proxy (más seguro)
+  firebaseGeocodingUrl: "", // URL de Firebase Function para geocodificación
+  mapboxApiKey: "", // API key opcional de Mapbox
+  locationiqApiKey: "", // API key opcional de LocationIQ
+  opencageApiKey: "", // API key opcional de OpenCage
+  algoliaApiKey: "", // API key opcional de Algolia Places
+  algoliaAppId: "", // App ID opcional de Algolia Places
 };
 

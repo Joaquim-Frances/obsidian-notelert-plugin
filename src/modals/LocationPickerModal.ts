@@ -2,6 +2,7 @@ import { App, Modal, Notice } from "obsidian";
 import { DetectedPattern, SavedLocation } from "../core/types";
 import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
+import { searchLocations, GeocodingResult } from "../features/location/geocode";
 
 export class NotelertLocationPickerModal extends Modal {
   private plugin: INotelertPlugin;
@@ -13,6 +14,9 @@ export class NotelertLocationPickerModal extends Modal {
   private selectedLocation: { name: string; latitude: number; longitude: number; radius: number; address?: string } | null = null;
   private searchTimeout: number | null = null;
   private searchResults: any[] = [];
+  private map: any = null; // Google Maps instance
+  private mapMarker: any = null; // Marker on map
+  private mapLoaded: boolean = false;
 
   constructor(
     app: App,
@@ -35,71 +39,175 @@ export class NotelertLocationPickerModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.setAttribute("style", "min-width: 500px;");
+    
+    // Estilos responsive mejorados - modal más compacto
+    contentEl.setAttribute("style", `
+      min-width: 320px; 
+      max-width: 600px; 
+      width: 90vw;
+      max-height: 85vh; 
+      overflow-y: auto;
+      padding: 20px;
+      box-sizing: border-box;
+    `);
 
-    contentEl.createEl("h2", { text: getTranslation(this.language, "locationPicker.title") || "Seleccionar Ubicación" });
+    // Título
+    const title = contentEl.createEl("h2", { 
+      text: getTranslation(this.language, "locationPicker.title") || "Seleccionar Ubicación",
+      attr: { style: "margin: 0 0 15px 0; font-size: 20px; font-weight: 600;" }
+    });
 
-    // Input para buscar dirección
+    // Instrucción para el usuario
+    const instruction = contentEl.createEl("p", {
+      text: getTranslation(this.language, "locationPicker.selectLocation") || "Busca una dirección o haz clic en el mapa para seleccionar una ubicación",
+      attr: { style: "color: var(--text-muted); font-size: 13px; margin-bottom: 15px; font-style: italic; line-height: 1.4;" }
+    });
+
+    // Input para buscar dirección con contenedor relativo para el desplegable
     const searchContainer = contentEl.createEl("div", { cls: "notelert-location-search" });
-    searchContainer.setAttribute("style", "margin: 20px 0;");
+    searchContainer.setAttribute("style", `
+      margin-bottom: 15px; 
+      position: relative;
+      z-index: 1000;
+    `);
     
     const searchInput = searchContainer.createEl("input", {
       type: "text",
       placeholder: getTranslation(this.language, "locationPicker.searchPlaceholder") || "Buscar dirección...",
       cls: "notelert-location-input"
     });
-    searchInput.setAttribute("style", "width: 100%; padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 4px;");
+    searchInput.setAttribute("style", `
+      width: 100%; 
+      padding: 12px; 
+      border: 1px solid var(--background-modifier-border); 
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: var(--background-primary);
+      color: var(--text-normal);
+    `);
 
-    // Contenedor para resultados de búsqueda
-    const resultsContainer = contentEl.createEl("div", { cls: "notelert-location-results" });
-    resultsContainer.setAttribute("style", "max-height: 300px; overflow-y: auto; margin: 15px 0; border: 1px solid var(--background-modifier-border); border-radius: 4px; display: none;");
+    // Contenedor para resultados de búsqueda - posicionado absolutamente DENTRO del searchContainer
+    const resultsContainer = searchContainer.createEl("div", { cls: "notelert-location-results" });
+    resultsContainer.setAttribute("style", `
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      max-height: 200px; 
+      overflow-y: auto; 
+      border: 1px solid var(--background-modifier-border); 
+      border-radius: 6px; 
+      display: none;
+      background: var(--background-primary);
+      z-index: 1001;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    `);
     resultsContainer.id = "location-results-container";
+
+    // Contenedor para el mapa interactivo - más compacto
+    const mapContainer = contentEl.createEl("div", { cls: "notelert-map-container" });
+    mapContainer.setAttribute("style", `
+      width: 100%;
+      height: 250px;
+      min-height: 200px;
+      margin: 15px 0;
+      border: 1px solid var(--background-modifier-border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--background-secondary);
+      position: relative;
+    `);
+    mapContainer.id = "notelert-map-container";
+
+    // Mensaje de carga/error del mapa
+    const mapLoading = mapContainer.createEl("div", {
+      text: getTranslation(this.language, "locationPicker.loadingMap") || "Cargando mapa...",
+      attr: { 
+        style: `
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: var(--text-muted);
+          font-size: 14px;
+          z-index: 1;
+          text-align: center;
+          padding: 10px;
+        `
+      }
+    });
+    mapLoading.id = "map-loading";
 
     // Contenedor para ubicación seleccionada
     const selectedContainer = contentEl.createEl("div", { cls: "notelert-location-selected" });
-    selectedContainer.setAttribute("style", "margin: 15px 0; padding: 15px; background: var(--background-secondary); border-radius: 4px; display: none;");
+    selectedContainer.setAttribute("style", `
+      margin: 15px 0; 
+      padding: 15px; 
+      background: var(--background-secondary); 
+      border-radius: 6px; 
+      display: none; 
+      word-wrap: break-word;
+      border: 2px solid var(--interactive-accent);
+    `);
     selectedContainer.id = "location-selected-container";
 
-    // Input para radio de geofence
-    const radiusContainer = contentEl.createEl("div", { cls: "notelert-location-radius" });
-    radiusContainer.setAttribute("style", "margin: 15px 0; display: flex; align-items: center; gap: 10px;");
-    
-    radiusContainer.createEl("label", { 
-      text: getTranslation(this.language, "locationPicker.radius") || "Radio (metros):",
-      attr: { style: "font-size: 14px;" }
-    });
-    
-    const radiusInput = radiusContainer.createEl("input", {
-      type: "number",
-      value: "100"
-    });
-    radiusInput.setAttribute("min", "50");
-    radiusInput.setAttribute("max", "1000");
-    radiusInput.setAttribute("step", "50");
-    radiusInput.setAttribute("style", "width: 100px; padding: 6px; border: 1px solid var(--background-modifier-border); border-radius: 4px;");
-
-    // Sección de favoritas
+    // Sección de favoritas (colapsable en móvil)
     const favoritesSection = contentEl.createEl("div", { cls: "notelert-location-favorites" });
-    favoritesSection.setAttribute("style", "margin: 20px 0;");
+    favoritesSection.setAttribute("style", "margin: 15px 0;");
     
-    favoritesSection.createEl("h3", { 
+    const favoritesHeader = favoritesSection.createEl("div", {
+      attr: { 
+        style: `
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 10px;
+          cursor: pointer;
+        `
+      }
+    });
+    
+    favoritesHeader.createEl("h3", { 
       text: getTranslation(this.language, "locationPicker.favorites") || "Ubicaciones Favoritas",
-      attr: { style: "font-size: 16px; font-weight: 500; margin-bottom: 10px;" }
+      attr: { style: "font-size: 16px; font-weight: 500; margin: 0;" }
     });
 
     const favoritesList = favoritesSection.createEl("div", { cls: "notelert-location-favorites-list" });
-    favoritesList.setAttribute("style", "max-height: 200px; overflow-y: auto;");
+    favoritesList.setAttribute("style", `
+      max-height: 150px; 
+      overflow-y: auto;
+      margin-top: 10px;
+    `);
 
     this.renderFavorites(favoritesList);
 
-    // Botones principales
+    // Botones principales (mejorados para móvil)
     const buttonContainer = contentEl.createEl("div", { cls: "notelert-locationpicker-buttons" });
-    buttonContainer.setAttribute("style", "display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;");
+    buttonContainer.setAttribute("style", `
+      display: flex; 
+      gap: 10px; 
+      justify-content: flex-end; 
+      margin-top: 20px; 
+      flex-wrap: wrap;
+      position: sticky;
+      bottom: 0;
+      background: var(--background-primary);
+      padding-top: 10px;
+      z-index: 10;
+    `);
     
     const cancelButton = buttonContainer.createEl("button", { 
       text: getTranslation(this.language, "locationPicker.cancelButton") || "Cancelar",
       cls: "mod-secondary"
     });
+    cancelButton.setAttribute("style", `
+      flex: 1; 
+      min-width: 100px; 
+      padding: 10px 20px;
+      font-size: 14px;
+      border-radius: 6px;
+    `);
     cancelButton.addEventListener("click", () => {
       this.onCancel();
       this.close();
@@ -111,13 +219,22 @@ export class NotelertLocationPickerModal extends Modal {
     });
     confirmButton.id = "confirm-location-button";
     confirmButton.setAttribute("disabled", "true");
+    confirmButton.setAttribute("style", `
+      flex: 1; 
+      min-width: 100px; 
+      padding: 10px 20px;
+      font-size: 14px;
+      border-radius: 6px;
+      opacity: 0.5;
+      cursor: not-allowed;
+    `);
     confirmButton.addEventListener("click", () => {
       if (this.selectedLocation) {
         this.createNotificationFromLocation(
           this.selectedLocation.name,
           this.selectedLocation.latitude,
           this.selectedLocation.longitude,
-          parseInt(radiusInput.value) || 100
+          100 // Radio fijo de 100 metros
         );
         this.close();
       }
@@ -134,6 +251,11 @@ export class NotelertLocationPickerModal extends Modal {
 
       if (query.length < 3) {
         resultsContainer.style.display = "none";
+        // Asegurar que el contenedor de búsqueda tiene posición relativa
+        const searchContainer = searchInput.parentElement;
+        if (searchContainer && searchContainer.style.position !== 'relative') {
+          searchContainer.style.position = 'relative';
+        }
         return;
       }
 
@@ -142,6 +264,219 @@ export class NotelertLocationPickerModal extends Modal {
         this.searchLocations(query, resultsContainer);
       }, 500);
     });
+
+    // Cargar el mapa interactivo
+    this.loadGoogleMap();
+  }
+
+  // Cargar Google Maps dinámicamente
+  private loadGoogleMap() {
+    // Verificar si Google Maps ya está cargado globalmente
+    if ((window as any).google && (window as any).google.maps) {
+      this.mapLoaded = true;
+      // Pequeño delay para asegurar que el DOM está listo
+      setTimeout(() => this.initMap(), 100);
+      return;
+    }
+
+    // Verificar si el script ya está siendo cargado
+    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+      // Esperar a que se cargue
+      const checkInterval = setInterval(() => {
+        if ((window as any).google && (window as any).google.maps) {
+          clearInterval(checkInterval);
+          this.mapLoaded = true;
+          setTimeout(() => this.initMap(), 100);
+        }
+      }, 100);
+      return;
+    }
+
+    // Crear callback único para esta instancia
+    const callbackName = `initNotelertMap_${Date.now()}`;
+    
+    // Cargar el script de Google Maps
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBwR-GmihN8Xic-npwi6p4wTUwJ67ueWvk&libraries=places&callback=${callbackName}`;
+    script.async = true;
+    script.defer = true;
+    
+    // Manejo de errores del script
+    script.onerror = () => {
+      this.plugin.log('Error cargando Google Maps script');
+      this.showMapError('Error al cargar Google Maps. Verifica tu conexión a internet.');
+      delete (window as any)[callbackName];
+    };
+    
+    // Callback global temporal para cuando el mapa esté listo
+    (window as any)[callbackName] = () => {
+      this.mapLoaded = true;
+      // Limpiar el callback después de usarlo
+      delete (window as any)[callbackName];
+      setTimeout(() => this.initMap(), 100);
+    };
+
+    document.head.appendChild(script);
+    
+    // Timeout de seguridad (10 segundos)
+    setTimeout(() => {
+      if (!this.mapLoaded && !this.map) {
+        this.plugin.log('Timeout cargando Google Maps');
+        this.showMapError('Timeout cargando el mapa. Intenta recargar.');
+      }
+    }, 10000);
+  }
+
+  // Mostrar error en el mapa
+  private showMapError(message: string) {
+    const loading = document.getElementById('map-loading');
+    if (loading) {
+      loading.innerHTML = `
+        <div style="color: var(--text-error); font-weight: 500; margin-bottom: 8px;">⚠️ Error</div>
+        <div style="color: var(--text-muted); font-size: 12px;">${message}</div>
+      `;
+    }
+  }
+
+  // Inicializar el mapa
+  private initMap() {
+    try {
+      const mapContainer = document.getElementById('notelert-map-container');
+      if (!mapContainer) {
+        this.plugin.log('Contenedor del mapa no encontrado');
+        return;
+      }
+
+      // Verificar que Google Maps está disponible
+      if (!(window as any).google || !(window as any).google.maps) {
+        this.plugin.log('Google Maps API no disponible');
+        this.showMapError('Google Maps no está disponible. Recarga la página.');
+        return;
+      }
+
+      // Ocultar mensaje de carga
+      const loading = document.getElementById('map-loading');
+      if (loading) loading.style.display = 'none';
+
+      // Coordenadas por defecto (centro del mundo o última ubicación seleccionada)
+      const defaultCenter = this.selectedLocation 
+        ? { lat: this.selectedLocation.latitude, lng: this.selectedLocation.longitude }
+        : { lat: 40.4168, lng: -3.7038 }; // Madrid por defecto
+
+      // Crear el mapa
+      this.map = new (window as any).google.maps.Map(mapContainer, {
+        center: defaultCenter,
+        zoom: 13,
+        mapTypeControl: true,
+        streetViewControl: false, // Desactivado para ahorrar espacio
+        fullscreenControl: false, // Desactivado para ahorrar espacio
+        zoomControl: true,
+        mapTypeControlOptions: {
+          style: (window as any).google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+          position: (window as any).google.maps.ControlPosition.TOP_RIGHT
+        }
+      });
+
+      // Listener para errores del mapa
+      this.map.addListener('error', () => {
+        this.plugin.log('Error en el mapa de Google Maps');
+        this.showMapError('Error al cargar el mapa. Verifica tu conexión.');
+      });
+
+      // Listener para clics en el mapa
+      this.map.addListener('click', (e: any) => {
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
+        
+        // Geocodificación inversa para obtener la dirección
+        this.reverseGeocode(lat, lng);
+      });
+
+      // Si hay una ubicación seleccionada, mostrarla
+      if (this.selectedLocation) {
+        this.updateMapMarker(this.selectedLocation.latitude, this.selectedLocation.longitude);
+      }
+
+      this.plugin.log('Mapa inicializado correctamente');
+    } catch (error: any) {
+      this.plugin.log(`Error inicializando mapa: ${error?.message || error}`);
+      this.showMapError(`Error: ${error?.message || 'Error desconocido'}`);
+    }
+  }
+
+  // Geocodificación inversa (de coordenadas a dirección)
+  private async reverseGeocode(lat: number, lng: number) {
+    try {
+      const geocoder = new (window as any).google.maps.Geocoder();
+      
+      geocoder.geocode({ location: { lat, lng } }, (results: any[], status: string) => {
+        if (status === 'OK' && results[0]) {
+          const result = results[0];
+          const address = result.formatted_address;
+          const shortName = result.address_components[0]?.long_name || 
+                           result.address_components[1]?.long_name || 
+                           'Ubicación seleccionada';
+          
+          this.selectLocation({
+            name: shortName,
+            latitude: lat,
+            longitude: lng,
+            radius: 100,
+            address: address
+          });
+
+          // Actualizar marcador en el mapa
+          this.updateMapMarker(lat, lng);
+        } else {
+          // Si falla la geocodificación, usar coordenadas directamente
+          this.selectLocation({
+            name: `Ubicación (${lat.toFixed(6)}, ${lng.toFixed(6)})`,
+            latitude: lat,
+            longitude: lng,
+            radius: 100
+          });
+          this.updateMapMarker(lat, lng);
+        }
+      });
+    } catch (error) {
+      this.plugin.log(`Error en geocodificación inversa: ${error}`);
+      // Usar coordenadas directamente si falla
+      this.selectLocation({
+        name: `Ubicación (${lat.toFixed(6)}, ${lng.toFixed(6)})`,
+        latitude: lat,
+        longitude: lng,
+        radius: 100
+      });
+      this.updateMapMarker(lat, lng);
+    }
+  }
+
+  // Actualizar marcador en el mapa
+  private updateMapMarker(lat: number, lng: number) {
+    if (!this.map) return;
+
+    // Eliminar marcador anterior
+    if (this.mapMarker) {
+      this.mapMarker.setMap(null);
+    }
+
+    // Crear nuevo marcador
+    this.mapMarker = new (window as any).google.maps.Marker({
+      position: { lat, lng },
+      map: this.map,
+      draggable: true,
+      animation: (window as any).google.maps.Animation.DROP
+    });
+
+    // Listener para cuando se arrastra el marcador
+    this.mapMarker.addListener('dragend', (e: any) => {
+      const newLat = e.latLng.lat();
+      const newLng = e.latLng.lng();
+      this.reverseGeocode(newLat, newLng);
+    });
+
+    // Centrar el mapa en la nueva ubicación
+    this.map.setCenter({ lat, lng });
   }
 
   onClose() {
@@ -150,74 +485,102 @@ export class NotelertLocationPickerModal extends Modal {
     if (this.searchTimeout) {
       clearTimeout(this.searchTimeout);
     }
+    // Limpiar mapa
+    if (this.mapMarker) {
+      this.mapMarker.setMap(null);
+      this.mapMarker = null;
+    }
+    this.map = null;
+    this.mapLoaded = false;
   }
 
-  // Buscar ubicaciones usando Nominatim (OpenStreetMap)
+  // Buscar ubicaciones usando el proveedor configurado
   private async searchLocations(query: string, resultsContainer: HTMLElement) {
     try {
       resultsContainer.style.display = "block";
-      resultsContainer.innerHTML = "<div style='padding: 20px; text-align: center; color: var(--text-muted);'>Buscando...</div>";
+      resultsContainer.innerHTML = `<div style='padding: 20px; text-align: center; color: var(--text-muted);'>${getTranslation(this.language, "locationPicker.searching") || "Buscando..."}</div>`;
 
-      // Usar Nominatim API de OpenStreetMap (gratuita, no requiere API key)
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`;
+      this.plugin.log(`Buscando ubicaciones: ${query}`);
       
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Notelert-Obsidian-Plugin' // Nominatim requiere User-Agent
-        }
-      });
+      // Usar el sistema de geocodificación modular
+      const results = await searchLocations(
+        query,
+        this.plugin.settings,
+        this.language || 'es',
+        (msg) => this.plugin.log(msg)
+      );
 
-      if (!response.ok) {
-        throw new Error('Error en la búsqueda');
-      }
+      this.plugin.log(`Resultados encontrados: ${results.length}`);
 
-      const data = await response.json();
-      this.searchResults = data;
-
-      if (data.length === 0) {
-        resultsContainer.innerHTML = "<div style='padding: 20px; text-align: center; color: var(--text-muted);'>No se encontraron resultados</div>";
+      if (results.length === 0) {
+        resultsContainer.innerHTML = `<div style='padding: 20px; text-align: center; color: var(--text-muted);'>${getTranslation(this.language, "locationPicker.noResults") || "No se encontraron resultados"}</div>`;
         return;
       }
 
       // Mostrar resultados
       resultsContainer.innerHTML = "";
-      data.forEach((result: any) => {
-        const resultItem = resultsContainer.createEl("div", { cls: "notelert-location-result-item" });
-        resultItem.setAttribute("style", "padding: 12px; margin: 5px 0; border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; transition: background 0.2s;");
-        
-        resultItem.addEventListener("mouseenter", () => {
-          resultItem.style.background = "var(--background-modifier-hover)";
-        });
-        resultItem.addEventListener("mouseleave", () => {
-          resultItem.style.background = "";
-        });
-
-        const displayName = result.display_name || result.name || "Ubicación sin nombre";
-        const address = result.address || {};
-        const shortName = address.road || address.city || address.town || address.village || displayName.split(',')[0];
-
-        resultItem.createEl("div", { 
-          text: shortName,
-          attr: { style: "font-weight: 500; margin-bottom: 4px;" }
-        });
-        resultItem.createEl("div", { 
-          text: displayName.length > 80 ? displayName.substring(0, 80) + "..." : displayName,
-          attr: { style: "font-size: 11px; color: var(--text-muted);" }
-        });
-
-        resultItem.addEventListener("click", () => {
-          this.selectLocation({
-            name: shortName,
-            latitude: parseFloat(result.lat),
-            longitude: parseFloat(result.lon),
-            radius: 100,
-            address: displayName
+      results.forEach((result: GeocodingResult) => {
+        try {
+          const resultItem = resultsContainer.createEl("div", { cls: "notelert-location-result-item" });
+          resultItem.setAttribute("style", "padding: 12px; margin: 5px 0; border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; transition: background 0.2s; word-wrap: break-word;");
+          
+          resultItem.addEventListener("mouseenter", () => {
+            resultItem.style.background = "var(--background-modifier-hover)";
           });
-        });
+          resultItem.addEventListener("mouseleave", () => {
+            resultItem.style.background = "";
+          });
+
+          resultItem.createEl("div", { 
+            text: result.name,
+            attr: { style: "font-weight: 500; margin-bottom: 4px;" }
+          });
+          resultItem.createEl("div", { 
+            text: result.displayName.length > 80 ? result.displayName.substring(0, 80) + "..." : result.displayName,
+            attr: { style: "font-size: 11px; color: var(--text-muted);" }
+          });
+
+          resultItem.addEventListener("click", () => {
+            if (isNaN(result.latitude) || isNaN(result.longitude)) {
+              this.plugin.log(`Coordenadas inválidas: lat=${result.latitude}, lon=${result.longitude}`);
+              new Notice(getTranslation(this.language, "locationPicker.error") || "Error: Coordenadas inválidas");
+              return;
+            }
+            
+            this.selectLocation({
+              name: result.name,
+              latitude: result.latitude,
+              longitude: result.longitude,
+              radius: 100,
+              address: result.displayName
+            });
+
+            // Actualizar mapa con la ubicación seleccionada
+            if (this.map) {
+              this.updateMapMarker(result.latitude, result.longitude);
+            }
+          });
+        } catch (itemError) {
+          this.plugin.log(`Error procesando resultado: ${itemError}`);
+        }
       });
-    } catch (error) {
-      this.plugin.log(`Error buscando ubicaciones: ${error}`);
-      resultsContainer.innerHTML = "<div style='padding: 20px; text-align: center; color: var(--text-error);'>Error al buscar ubicaciones</div>";
+    } catch (error: any) {
+      const errorMessage = error?.message || String(error);
+      this.plugin.log(`Error buscando ubicaciones: ${errorMessage}`);
+      this.plugin.log(`Stack: ${error?.stack || 'No stack trace'}`);
+      
+      let errorDisplay = getTranslation(this.language, "locationPicker.error") || "Error al buscar ubicaciones";
+      if (errorMessage.includes("CORS") || errorMessage.includes("Failed to fetch")) {
+        errorDisplay = getTranslation(this.language, "locationPicker.connectionError") || "Error de conexión. Verifica tu conexión a internet.";
+      } else if (errorMessage.includes("429")) {
+        errorDisplay = getTranslation(this.language, "locationPicker.rateLimit") || "Demasiadas solicitudes. Espera un momento antes de buscar de nuevo.";
+      } else if (errorMessage.includes("API key")) {
+        errorDisplay = getTranslation(this.language, "locationPicker.apiKeyError") || "Error: API key no configurada o inválida. Verifica la configuración.";
+      } else if (errorMessage) {
+        errorDisplay = `${getTranslation(this.language, "locationPicker.error") || "Error"}: ${errorMessage}`;
+      }
+      
+      resultsContainer.innerHTML = `<div style='padding: 20px; text-align: center; color: var(--text-error);'>${errorDisplay}</div>`;
     }
   }
 
@@ -231,14 +594,18 @@ export class NotelertLocationPickerModal extends Modal {
     
     if (selectedContainer && confirmButton) {
       selectedContainer.style.display = "block";
+      const saveFavoriteText = getTranslation(this.language, "locationPicker.saveFavorite") || "⭐ Guardar";
       selectedContainer.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: start;">
-          <div>
-            <strong>${location.name}</strong><br>
-            <small style="color: var(--text-muted);">${location.address || ''}</small><br>
+        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 10px;">
+          <div style="flex: 1; min-width: 200px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <span style="font-size: 18px;">📍</span>
+              <strong style="word-wrap: break-word; font-size: 15px;">${location.name}</strong>
+            </div>
+            <small style="color: var(--text-muted); word-wrap: break-word; display: block; margin-bottom: 4px;">${location.address || ''}</small>
             <small style="color: var(--text-muted); font-size: 10px;">Lat: ${location.latitude.toFixed(6)}, Lon: ${location.longitude.toFixed(6)}</small>
           </div>
-          <button id="save-favorite-btn" class="mod-secondary" style="padding: 4px 8px; font-size: 12px;">⭐ Guardar</button>
+          <button id="save-favorite-btn" class="mod-secondary" style="padding: 4px 8px; font-size: 12px; white-space: nowrap; flex-shrink: 0;">${saveFavoriteText}</button>
         </div>
       `;
 
@@ -247,16 +614,23 @@ export class NotelertLocationPickerModal extends Modal {
       if (saveFavoriteBtn) {
         saveFavoriteBtn.addEventListener("click", async () => {
           await this.saveAsFavorite(location);
-          saveFavoriteBtn.textContent = "✓ Guardado";
+          saveFavoriteBtn.textContent = getTranslation(this.language, "locationPicker.saved") || "✓ Guardado";
           saveFavoriteBtn.setAttribute("disabled", "true");
         });
       }
 
       confirmButton.removeAttribute("disabled");
+      confirmButton.style.opacity = "1";
+      confirmButton.style.cursor = "pointer";
     }
 
     if (resultsContainer) {
       resultsContainer.style.display = "none";
+    }
+
+    // Actualizar mapa si está cargado
+    if (this.map) {
+      this.updateMapMarker(location.latitude, location.longitude);
     }
   }
 
@@ -287,6 +661,21 @@ export class NotelertLocationPickerModal extends Modal {
     }
   }
 
+  // Eliminar ubicación favorita
+  private async deleteFavorite(location: SavedLocation) {
+    const index = this.plugin.settings.savedLocations.findIndex(
+      loc => loc.name === location.name && 
+            loc.latitude === location.latitude && 
+            loc.longitude === location.longitude
+    );
+
+    if (index !== -1) {
+      this.plugin.settings.savedLocations.splice(index, 1);
+      await this.plugin.saveSettings();
+      this.plugin.log(`Ubicación favorita eliminada: ${location.name}`);
+    }
+  }
+
   // Renderizar lista de favoritas
   private renderFavorites(container: HTMLElement) {
     container.innerHTML = "";
@@ -298,9 +687,9 @@ export class NotelertLocationPickerModal extends Modal {
         attr: { style: "color: var(--text-muted); font-size: 12px; padding: 10px; text-align: center;" }
       });
     } else {
-      savedLocations.forEach((location) => {
+      savedLocations.forEach((location, index) => {
         const locationItem = container.createEl("div", { cls: "notelert-location-favorite-item" });
-        locationItem.setAttribute("style", "padding: 10px; margin: 5px 0; border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;");
+        locationItem.setAttribute("style", "padding: 10px; margin: 5px 0; border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; flex-wrap: wrap; gap: 8px;");
         
         locationItem.addEventListener("mouseenter", () => {
           locationItem.style.background = "var(--background-modifier-hover)";
@@ -310,22 +699,27 @@ export class NotelertLocationPickerModal extends Modal {
         });
 
         const locationInfo = locationItem.createEl("div");
+        locationInfo.setAttribute("style", "flex: 1; min-width: 0; margin-right: 10px;");
         locationInfo.createEl("div", { 
           text: location.name,
-          attr: { style: "font-weight: 500; margin-bottom: 4px;" }
+          attr: { style: "font-weight: 500; margin-bottom: 4px; word-wrap: break-word;" }
         });
         if (location.address) {
           locationInfo.createEl("div", { 
             text: location.address.length > 50 ? location.address.substring(0, 50) + "..." : location.address,
-            attr: { style: "font-size: 11px; color: var(--text-muted);" }
+            attr: { style: "font-size: 11px; color: var(--text-muted); word-wrap: break-word;" }
           });
         }
 
-        const selectButton = locationItem.createEl("button", {
-          text: "Seleccionar",
+        // Contenedor para botones
+        const buttonsContainer = locationItem.createEl("div");
+        buttonsContainer.setAttribute("style", "display: flex; gap: 6px; flex-shrink: 0;");
+
+        const selectButton = buttonsContainer.createEl("button", {
+          text: getTranslation(this.language, "locationPicker.selectButton") || "Seleccionar",
           cls: "mod-secondary"
         });
-        selectButton.setAttribute("style", "padding: 4px 12px; font-size: 12px;");
+        selectButton.setAttribute("style", "padding: 4px 12px; font-size: 12px; white-space: nowrap;");
         selectButton.addEventListener("click", (e) => {
           e.stopPropagation();
           this.selectLocation({
@@ -335,6 +729,23 @@ export class NotelertLocationPickerModal extends Modal {
             radius: location.radius,
             address: location.address
           });
+
+          // Actualizar mapa
+          if (this.map) {
+            this.updateMapMarker(location.latitude, location.longitude);
+          }
+        });
+
+        // Botón para eliminar favorita
+        const deleteButton = buttonsContainer.createEl("button", {
+          text: "🗑️",
+          title: getTranslation(this.language, "locationPicker.deleteButton") || "Eliminar"
+        });
+        deleteButton.setAttribute("style", "padding: 4px 8px; font-size: 14px; background: var(--background-modifier-border); border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; color: var(--text-error);");
+        deleteButton.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          await this.deleteFavorite(location);
+          this.renderFavorites(container);
         });
       });
     }
