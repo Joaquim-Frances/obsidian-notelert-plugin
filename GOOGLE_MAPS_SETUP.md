@@ -10,13 +10,26 @@
    - Nombre: `Notelert` (o el que prefieras)
    - Clic en "CREAR"
 
-## Paso 2: Habilitar la Geocoding API
+## Paso 2: Habilitar las APIs necesarias
+
+⚠️ **IMPORTANTE**: Necesitas habilitar **DOS APIs** para que el plugin funcione completamente:
+
+### 2.1: Habilitar Geocoding API (para búsqueda de direcciones)
 
 1. En el menú lateral, ve a **"APIs y servicios"** > **"Biblioteca"**
 2. Busca "**Geocoding API**"
 3. Haz clic en el resultado
 4. Clic en **"HABILITAR"**
 5. Espera a que se habilite (puede tardar unos segundos)
+
+### 2.2: Habilitar Maps JavaScript API (para el mapa interactivo) ⚠️ CRÍTICO
+
+1. En la misma biblioteca, busca "**Maps JavaScript API**"
+2. Haz clic en el resultado
+3. Clic en **"HABILITAR"**
+4. Espera a que se habilite
+
+**⚠️ Sin esta API, el mapa interactivo NO funcionará** y verás el error "Esta pantalla no ha cargado google maps correctamente"
 
 ## Paso 3: Crear API Key
 
@@ -54,8 +67,9 @@ Cuando aparezca el modal "Protect your API key":
 3. **Después de crear la clave**, edítala para añadir restricciones de API (IMPORTANTE para seguridad):
    - En la lista de credenciales, haz clic en tu API key
    - En **"Restricciones de API"**, selecciona **"Restringir clave"**
-   - En la lista, marca solo:
-     - ✅ **Geocoding API**
+   - En la lista, marca:
+     - ✅ **Geocoding API** (para búsqueda de direcciones)
+     - ✅ **Maps JavaScript API** (para el mapa interactivo) ⚠️ **OBLIGATORIO**
      - ✅ **Places API** (opcional, si quieres usar autocompletado en el futuro)
    - Clic en **"GUARDAR"**
    
@@ -74,11 +88,11 @@ Si ya creaste la clave sin restricciones:
 ### ¿Qué restricciones usar para Obsidian?
 
 **Para desarrollo/pruebas:**
-- ✅ Restricción de API: Solo **Geocoding API**
+- ✅ Restricción de API: **Geocoding API** + **Maps JavaScript API**
 - ✅ Restricción de aplicación: **Direcciones IP** con lista vacía (o tu IP actual)
 
 **Para producción/uso personal:**
-- ✅ Restricción de API: Solo **Geocoding API**
+- ✅ Restricción de API: **Geocoding API** + **Maps JavaScript API**
 - ✅ Restricción de aplicación: **Direcciones IP** con tu IP actual (aunque sea dinámica, funcionará mientras no cambie)
 - Si tu IP cambia y deja de funcionar, puedes editar la clave y actualizar la IP o quitar la restricción de IPs
 
@@ -98,18 +112,23 @@ Si ya creaste la clave sin restricciones:
 1. Abre una nota en Obsidian
 2. Escribe `:#` para abrir el selector de ubicaciones
 3. Busca una dirección (ej: "Madrid, Spain")
-4. Si funciona correctamente, verás resultados de Google Maps
+4. Si funciona correctamente, verás:
+   - Resultados de búsqueda de Google Maps
+   - Un mapa interactivo donde puedes hacer clic para seleccionar ubicaciones
 5. Si hay error, revisa:
    - Que la API key esté correctamente copiada
-   - Que la Geocoding API esté habilitada
+   - Que **Geocoding API** esté habilitada
+   - Que **Maps JavaScript API** esté habilitada ⚠️ **CRÍTICO**
+   - Que la API key tenga permisos para ambas APIs
    - Que no hayas excedido los límites
 
 ## Límites y Costos
 
 ### Tier Gratuito:
 - **$200 USD de crédito mensual** (equivalente a ~40,000 requests)
-- **10,000 requests/mes gratis** para Geocoding API
-- Después: **$5 USD por cada 1,000 requests adicionales**
+- **Geocoding API**: 10,000 requests/mes gratis, después $5 USD por cada 1,000 requests adicionales
+- **Maps JavaScript API**: 28,000 map loads/mes gratis, después $7 USD por cada 1,000 map loads adicionales
+- **Places API** (opcional): 1,000 requests/mes gratis
 
 ### Monitoreo de uso:
 1. Ve a **"APIs y servicios"** > **"Panel"**
@@ -132,8 +151,15 @@ Si ya creaste la clave sin restricciones:
 - Revisa las restricciones de la API key
 
 ### Error: "This API project is not authorized"
-- Verifica que la Geocoding API esté habilitada en tu proyecto
-- Espera unos minutos después de habilitarla
+- Verifica que **Geocoding API** esté habilitada en tu proyecto
+- Verifica que **Maps JavaScript API** esté habilitada en tu proyecto ⚠️
+- Espera unos minutos después de habilitarlas
+
+### Error: "Esta pantalla no ha cargado google maps correctamente"
+- ⚠️ **Este error indica que falta habilitar Maps JavaScript API**
+- Ve a Google Cloud Console > APIs y servicios > Bibliotecas
+- Busca "Maps JavaScript API" y habilítala
+- Verifica que tu API key tenga permisos para Maps JavaScript API en las restricciones
 
 ### Error: "You have exceeded your quota"
 - Has excedido los 10,000 requests/mes gratis

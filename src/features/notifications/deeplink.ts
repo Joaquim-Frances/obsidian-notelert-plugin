@@ -7,6 +7,7 @@ export function generateDeepLink(pattern: DetectedPattern, app: App): string {
   const message = encodeURIComponent(pattern.message);
   const date = pattern.date;
   const time = pattern.time;
+  const type = pattern.type || (pattern.location ? 'location' : 'time'); // Tipo: 'time' o 'location'
   
   // Parámetros de ubicación si están disponibles
   let locationParams = '';
@@ -27,7 +28,7 @@ export function generateDeepLink(pattern: DetectedPattern, app: App): string {
     returnLink = `&returnLink=${encodeURIComponent(obsidianLink)}`;
   }
   
-  return `notelert://add?title=${title}&message=${message}&date=${date}&time=${time}${locationParams}${returnLink}`;
+  return `notelert://add?title=${title}&message=${message}&date=${date}&time=${time}&type=${type}${locationParams}${returnLink}`;
 }
 
 export async function createNotification(

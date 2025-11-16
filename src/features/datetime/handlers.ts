@@ -20,10 +20,10 @@ export function handleEditorChange(
     return;
   }
   
-  // Detectar si se acaba de escribir :#
+  // Detectar si se acaba de escribir :# (ahora abre date picker, igual que :@)
   if (beforeCursor.endsWith(':#')) {
-    plugin.log("Detectado :# - abriendo location picker");
-    openLocationPicker(editor, cursor, plugin);
+    plugin.log("Detectado :# - abriendo date picker");
+    openDatePicker(editor, cursor, plugin);
   }
 }
 

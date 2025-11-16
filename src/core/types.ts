@@ -47,5 +47,6 @@ export interface DetectedPattern {
   latitude?: number; // Latitud de la ubicación
   longitude?: number; // Longitud de la ubicación
   radius?: number; // Radio en metros para la geofence
+  type?: 'time' | 'location'; // Tipo de notificación: tiempo o ubicación
 }
 

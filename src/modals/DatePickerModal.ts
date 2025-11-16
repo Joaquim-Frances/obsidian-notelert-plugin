@@ -10,6 +10,7 @@ export class NotelertDatePickerModal extends Modal {
   private editor: any;
   private cursor: any;
   private originalText: string;
+  private notificationType: 'time' | 'location' = 'time'; // Tipo de notificación
 
   constructor(app: App, plugin: INotelertPlugin, language: string, editor: any, cursor: any, originalText: string, onCancel: () => void) {
     super(app);
@@ -57,9 +58,61 @@ export class NotelertDatePickerModal extends Modal {
     });
     timeInput.setAttribute("style", "width: 100%; padding: 8px; border: 1px solid var(--background-modifier-border); border-radius: 4px;");
 
-    // Botones de acción rápida
+    // Selector de tipo de notificación
+    const typeContainer = container.createEl("div", { cls: "notelert-type-container" });
+    typeContainer.setAttribute("style", "margin-bottom: 20px; padding: 12px; background: var(--background-secondary); border-radius: 6px;");
+    
+    const typeLabel = typeContainer.createEl("label", { 
+      text: getTranslation(this.language, "datePicker.notificationType") || "Tipo de notificación:",
+      attr: { style: "display: block; margin-bottom: 8px; font-weight: 500;" }
+    });
+    
+    const typeButtonsContainer = typeContainer.createEl("div");
+    typeButtonsContainer.setAttribute("style", "display: flex; gap: 8px;");
+    
+    const timeButton = typeButtonsContainer.createEl("button", {
+      text: "⏰ " + (getTranslation(this.language, "datePicker.timeNotification") || "Tiempo"),
+      cls: "mod-cta"
+    });
+    timeButton.setAttribute("style", "flex: 1; padding: 8px;");
+    timeButton.id = "notification-type-time";
+    
+    const locationButton = typeButtonsContainer.createEl("button", {
+      text: "📍 " + (getTranslation(this.language, "datePicker.locationNotification") || "Ubicación"),
+      cls: "mod-secondary"
+    });
+    locationButton.setAttribute("style", "flex: 1; padding: 8px;");
+    locationButton.id = "notification-type-location";
+    
+    // Actualizar estilos según el tipo seleccionado
+    const updateTypeButtons = () => {
+      if (this.notificationType === 'time') {
+        timeButton.className = "mod-cta";
+        locationButton.className = "mod-secondary";
+      } else {
+        timeButton.className = "mod-secondary";
+        locationButton.className = "mod-cta";
+      }
+    };
+    
+    timeButton.addEventListener("click", () => {
+      this.notificationType = 'time';
+      updateTypeButtons();
+      this.updateModalContent(container, dateInput, timeInput);
+    });
+    
+    locationButton.addEventListener("click", () => {
+      this.notificationType = 'location';
+      updateTypeButtons();
+      this.updateModalContent(container, dateInput, timeInput);
+    });
+    
+    updateTypeButtons();
+
+    // Botones de acción rápida (solo para tipo 'time')
     const quickActions = container.createEl("div", { cls: "notelert-quick-actions" });
     quickActions.setAttribute("style", "margin-bottom: 20px;");
+    quickActions.id = "quick-actions-container";
     
     const quickActionsTitle = quickActions.createEl("p", { text: getTranslation(this.language, "datePicker.quickActions") });
     quickActionsTitle.setAttribute("style", "margin-bottom: 10px; font-weight: 500;");
@@ -105,32 +158,42 @@ export class NotelertDatePickerModal extends Modal {
       cls: "mod-cta"
     });
     confirmButton.addEventListener("click", async () => {
-      const date = dateInput.value;
-      const time = timeInput.value;
-      
-      if (date && time) {
-        // Reemplazar :@ con :@fecha, hora
-        const replacement = `:@${date}, ${time}`;
-        const line = this.editor.getLine(this.cursor.line);
-        const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@
-        const afterCursor = line.substring(this.cursor.ch);
-        const newLine = beforeCursor + replacement + afterCursor;
-        
-        this.editor.setLine(this.cursor.line, newLine);
-        
-        // Mover cursor al final del reemplazo
-        const newCursor = {
-          line: this.cursor.line,
-          ch: beforeCursor.length + replacement.length
-        };
-        this.editor.setCursor(newCursor);
-        
-        // Crear la notificación directamente
-        await this.createNotificationFromDatePicker(date, time, newLine);
-        
-        this.close();
+      if (this.notificationType === 'location') {
+        // Para ubicación, mostrar lista de ubicaciones guardadas
+        const selectedLocation = await this.selectLocationFromSaved();
+        if (selectedLocation) {
+          await this.createNotificationFromLocation(selectedLocation);
+          this.close();
+        }
       } else {
-        new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
+        // Para tiempo, usar fecha y hora
+        const date = dateInput.value;
+        const time = timeInput.value;
+        
+        if (date && time) {
+          // Reemplazar :@ o :# con :@fecha, hora
+          const replacement = `:@${date}, ${time}`;
+          const line = this.editor.getLine(this.cursor.line);
+          const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
+          const afterCursor = line.substring(this.cursor.ch);
+          const newLine = beforeCursor + replacement + afterCursor;
+          
+          this.editor.setLine(this.cursor.line, newLine);
+          
+          // Mover cursor al final del reemplazo
+          const newCursor = {
+            line: this.cursor.line,
+            ch: beforeCursor.length + replacement.length
+          };
+          this.editor.setCursor(newCursor);
+          
+          // Crear la notificación directamente
+          await this.createNotificationFromDatePicker(date, time, newLine);
+          
+          this.close();
+        } else {
+          new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
+        }
       }
     });
 
@@ -175,6 +238,7 @@ export class NotelertDatePickerModal extends Modal {
         endIndex: fullText.length,
         filePath: this.plugin.app.workspace.getActiveFile()?.path,
         lineNumber: this.cursor.line + 1,
+        type: 'time'
       };
 
       // Crear la notificación directamente
@@ -213,6 +277,134 @@ export class NotelertDatePickerModal extends Modal {
     }
     
     return title || 'Recordatorio';
+  }
+
+  // Actualizar contenido del modal según el tipo de notificación
+  private updateModalContent(container: HTMLElement, dateInput: HTMLInputElement, timeInput: HTMLInputElement) {
+    const dateContainer = container.querySelector('.notelert-date-container');
+    const timeContainer = container.querySelector('.notelert-time-container');
+    const quickActions = container.querySelector('#quick-actions-container');
+    
+    if (this.notificationType === 'location') {
+      // Ocultar fecha, hora y acciones rápidas para ubicación
+      if (dateContainer) (dateContainer as HTMLElement).style.display = 'none';
+      if (timeContainer) (timeContainer as HTMLElement).style.display = 'none';
+      if (quickActions) (quickActions as HTMLElement).style.display = 'none';
+    } else {
+      // Mostrar fecha, hora y acciones rápidas para tiempo
+      if (dateContainer) (dateContainer as HTMLElement).style.display = 'block';
+      if (timeContainer) (timeContainer as HTMLElement).style.display = 'block';
+      if (quickActions) (quickActions as HTMLElement).style.display = 'block';
+    }
+  }
+
+  // Seleccionar ubicación de las guardadas
+  private async selectLocationFromSaved(): Promise<any> {
+    return new Promise((resolve) => {
+      const locations = this.plugin.settings.savedLocations || [];
+      
+      if (locations.length === 0) {
+        new Notice(getTranslation(this.language, "datePicker.noSavedLocations") || "No hay ubicaciones guardadas. Ve a Settings para añadir ubicaciones.");
+        resolve(null);
+        return;
+      }
+
+      // Crear modal simple para seleccionar ubicación
+      const modal = new Modal(this.app);
+      modal.titleEl.setText(getTranslation(this.language, "datePicker.selectSavedLocation") || "Seleccionar Ubicación");
+      
+      const { contentEl } = modal;
+      contentEl.empty();
+      
+      locations.forEach((location) => {
+        const locationItem = contentEl.createEl("div", {
+          attr: {
+            style: `
+              padding: 12px;
+              margin: 8px 0;
+              border: 1px solid var(--background-modifier-border);
+              border-radius: 6px;
+              cursor: pointer;
+              transition: background 0.2s;
+            `
+          }
+        });
+        
+        locationItem.addEventListener("mouseenter", () => {
+          locationItem.style.background = "var(--background-modifier-hover)";
+        });
+        locationItem.addEventListener("mouseleave", () => {
+          locationItem.style.background = "";
+        });
+        
+        locationItem.createEl("div", {
+          text: location.name,
+          attr: { style: "font-weight: 500; margin-bottom: 4px;" }
+        });
+        
+        if (location.address) {
+          locationItem.createEl("div", {
+            text: location.address,
+            attr: { style: "font-size: 12px; color: var(--text-muted);" }
+          });
+        }
+        
+        locationItem.addEventListener("click", () => {
+          modal.close();
+          resolve(location);
+        });
+      });
+      
+      modal.open();
+    });
+  }
+
+  // Crear notificación desde ubicación guardada
+  private async createNotificationFromLocation(location: any) {
+    try {
+      // Reemplazar :@ o :# con :#nombreUbicacion
+      const replacement = `:#${location.name}`;
+      const line = this.editor.getLine(this.cursor.line);
+      const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
+      const afterCursor = line.substring(this.cursor.ch);
+      const newLine = beforeCursor + replacement + afterCursor;
+      
+      this.editor.setLine(this.cursor.line, newLine);
+      
+      // Mover cursor al final del reemplazo
+      const newCursor = {
+        line: this.cursor.line,
+        ch: beforeCursor.length + replacement.length
+      };
+      this.editor.setCursor(newCursor);
+
+      // Crear el patrón detectado
+      const pattern: DetectedPattern = {
+        text: newLine.trim(),
+        title: this.extractTitleFromText(newLine, replacement),
+        message: newLine.trim(),
+        date: new Date().toISOString().split('T')[0],
+        time: "00:00",
+        fullMatch: replacement,
+        startIndex: 0,
+        endIndex: newLine.length,
+        filePath: this.plugin.app.workspace.getActiveFile()?.path,
+        lineNumber: this.cursor.line + 1,
+        location: location.name,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        radius: location.radius,
+        type: 'location'
+      };
+
+      // Crear la notificación directamente
+      await this.plugin.createNotificationAndMarkProcessed(pattern);
+      
+      this.plugin.log(`Notificación de ubicación creada: ${pattern.title} en ${location.name}`);
+    } catch (error) {
+      this.plugin.log(`Error creando notificación de ubicación: ${error}`);
+      new Notice(getTranslation(this.language, "notices.errorCreatingNotification", { title: "Recordatorio de ubicación" }));
+    }
   }
 
   // Añadir feedback visual: reemplazar :@ con icono de despertador y resaltar solo fecha/hora
