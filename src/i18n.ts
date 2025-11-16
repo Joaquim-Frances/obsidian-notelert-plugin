@@ -255,7 +255,12 @@ export const TRANSLATIONS = {
       in2Hours: 'En 2 horas',
       confirmButton: 'Confirmar notificación',
       cancelButton: 'Cancelar',
-      selectDateTime: 'Por favor, selecciona una fecha y hora'
+      selectDateTime: 'Por favor, selecciona una fecha y hora',
+      notificationType: 'Tipo de notificación:',
+      timeNotification: 'Tiempo',
+      locationNotification: 'Ubicación',
+      noSavedLocations: 'No hay ubicaciones guardadas. Ve a Settings para añadir ubicaciones.',
+      selectSavedLocation: 'Seleccionar Ubicación Guardada'
     },
     locationPicker: {
       title: 'Seleccionar Ubicación',
@@ -348,10 +353,15 @@ export const TRANSLATIONS = {
       tomorrow: 'Tomorrow',
       in1Hour: 'In 1 hour',
       in2Hours: 'In 2 hours',
-      confirmButton: 'Confirm notification',
-      cancelButton: 'Cancel',
-      selectDateTime: 'Please select a date and time'
-    },
+          confirmButton: 'Confirm notification',
+          cancelButton: 'Cancel',
+          selectDateTime: 'Please select a date and time',
+          notificationType: 'Notification type:',
+          timeNotification: 'Time',
+          locationNotification: 'Location',
+          noSavedLocations: 'No saved locations. Go to Settings to add locations.',
+          selectSavedLocation: 'Select Saved Location'
+        },
     locationPicker: {
       title: 'Select Location',
       searchPlaceholder: 'Search address or place...',
@@ -445,7 +455,12 @@ export const TRANSLATIONS = {
       in2Hours: 'En 2 hores',
       confirmButton: 'Confirmar notificació',
       cancelButton: 'Cancel·lar',
-      selectDateTime: 'Si us plau, selecciona una data i hora'
+      selectDateTime: 'Si us plau, selecciona una data i hora',
+      notificationType: 'Tipus de notificació:',
+      timeNotification: 'Temps',
+      locationNotification: 'Ubicació',
+      noSavedLocations: 'No hi ha ubicacions guardades. Ves a Settings per afegir ubicacions.',
+      selectSavedLocation: 'Seleccionar Ubicació Guardada'
     },
     locationPicker: {
       title: 'Seleccionar Ubicació',
