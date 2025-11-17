@@ -4,7 +4,17 @@ import { getTranslation } from "../../i18n";
 
 export function generateDeepLink(pattern: DetectedPattern, app: App): string {
   const title = encodeURIComponent(pattern.title);
-  const message = encodeURIComponent(pattern.message);
+  
+  // Limpiar el mensaje de los patrones :@fecha, hora y :#ubicacion
+  let cleanMessage = pattern.message;
+  // Eliminar patrones :@fecha, hora (ej: :@2024-01-15, 14:30)
+  cleanMessage = cleanMessage.replace(/:@[^,\s]+,\s*[^\s]+/g, '');
+  // Eliminar patrones :#ubicacion (ej: :#Supermercado)
+  cleanMessage = cleanMessage.replace(/:#[^\s]+/g, '');
+  // Limpiar espacios extra
+  cleanMessage = cleanMessage.trim().replace(/\s+/g, ' ');
+  
+  const message = encodeURIComponent(cleanMessage);
   const date = pattern.date;
   const time = pattern.time;
   const type = pattern.type || (pattern.location ? 'location' : 'time'); // Tipo: 'time' o 'location'

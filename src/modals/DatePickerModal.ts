@@ -289,17 +289,25 @@ export class NotelertDatePickerModal extends Modal {
   // Crear notificación directamente desde el date picker
   private async createNotificationFromDatePicker(date: string, time: string, fullText: string) {
     try {
+      // Obtener el título de la nota (nombre del archivo sin extensión)
+      const activeFile = this.plugin.app.workspace.getActiveFile();
+      const noteTitle = activeFile ? activeFile.basename : 'Nota';
+      
+      // Obtener la línea actual y limpiarla de los patrones :@fecha, hora
+      const currentLine = this.editor.getLine(this.cursor.line);
+      const cleanMessage = currentLine.replace(/:@[^,\s]+,\s*[^\s]+/g, '').trim();
+      
       // Crear el patrón detectado
       const pattern: DetectedPattern = {
         text: fullText.trim(),
-        title: this.extractTitleFromText(fullText, `:@${date}, ${time}`),
-        message: fullText.trim(),
+        title: noteTitle,
+        message: cleanMessage,
         date: date,
         time: time,
         fullMatch: `:@${date}, ${time}`,
         startIndex: 0,
         endIndex: fullText.length,
-        filePath: this.plugin.app.workspace.getActiveFile()?.path,
+        filePath: activeFile?.path,
         lineNumber: this.cursor.line + 1,
         type: 'time'
       };
@@ -790,17 +798,25 @@ export class NotelertDatePickerModal extends Modal {
       };
       this.editor.setCursor(newCursor);
 
+      // Obtener el título de la nota (nombre del archivo sin extensión)
+      const activeFile = this.plugin.app.workspace.getActiveFile();
+      const noteTitle = activeFile ? activeFile.basename : 'Nota';
+      
+      // Obtener la línea actual y limpiarla de los patrones :#ubicacion
+      const currentLine = this.editor.getLine(this.cursor.line);
+      const cleanMessage = currentLine.replace(/:#[^\s]+/g, '').trim();
+
       // Crear el patrón detectado
       const pattern: DetectedPattern = {
         text: newLine.trim(),
-        title: this.extractTitleFromText(newLine, replacement),
-        message: newLine.trim(),
+        title: noteTitle,
+        message: cleanMessage,
         date: new Date().toISOString().split('T')[0],
         time: "00:00",
         fullMatch: replacement,
         startIndex: 0,
         endIndex: newLine.length,
-        filePath: this.plugin.app.workspace.getActiveFile()?.path,
+        filePath: activeFile?.path,
         lineNumber: this.cursor.line + 1,
         location: location.name,
         latitude: location.latitude,
