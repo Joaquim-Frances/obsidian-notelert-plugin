@@ -1,4 +1,4 @@
-import { App, Modal, Notice } from "obsidian";
+import { App, Modal, Notice, Platform } from "obsidian";
 import { DetectedPattern } from "../core/types";
 import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
@@ -63,6 +63,13 @@ export class NotelertDatePickerModal extends Modal {
     const container = scrollContainer.createEl("div", { cls: "notelert-datepicker-container" });
     container.setAttribute("style", "margin: 0; width: 100%;");
 
+    const isDesktop = !Platform.isMobile;
+    
+    // En desktop, forzar tipo 'time' (no hay ubicaciones)
+    if (isDesktop) {
+      this.notificationType = 'time';
+    }
+
     // Selector de fecha
     const dateContainer = container.createEl("div", { cls: "notelert-date-container" });
     dateContainer.setAttribute("style", "margin-bottom: 15px;");
@@ -89,9 +96,9 @@ export class NotelertDatePickerModal extends Modal {
     });
     timeInput.setAttribute("style", "width: 100%; padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 6px; box-sizing: border-box; font-size: 14px;");
 
-    // Selector de tipo de notificación
+    // Selector de tipo de notificación (solo en móvil)
     const typeContainer = container.createEl("div", { cls: "notelert-type-container" });
-    typeContainer.setAttribute("style", "margin-bottom: 20px; padding: 15px; background: var(--background-secondary); border-radius: 6px; width: 100%; box-sizing: border-box;");
+    typeContainer.setAttribute("style", `margin-bottom: 20px; padding: 15px; background: var(--background-secondary); border-radius: 6px; width: 100%; box-sizing: border-box; ${isDesktop ? 'display: none;' : ''}`);
     
     const typeLabel = typeContainer.createEl("label", { 
       text: getTranslation(this.language, "datePicker.notificationType"),

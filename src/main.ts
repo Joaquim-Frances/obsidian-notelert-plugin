@@ -44,7 +44,20 @@ export class NotelertPlugin extends Plugin {
 
   // Crear la notificación (función separada para reutilizar)
   private async createNotificationInternal(pattern: DetectedPattern) {
-    await createNotification(pattern, this.app, this.settings, (msg) => this.log(msg));
+    await createNotification(
+      pattern, 
+      this.app, 
+      this.settings, 
+      (msg) => this.log(msg),
+      // Callback para guardar email programado (solo desktop)
+      async (email) => {
+        if (!this.settings.scheduledEmails) {
+          this.settings.scheduledEmails = [];
+        }
+        this.settings.scheduledEmails.push(email);
+        await this.saveSettings();
+      }
+    );
   }
 
   // Crear notificación y marcarla como procesada (para uso con modal)

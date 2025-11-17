@@ -7,6 +7,14 @@ export interface SavedLocation {
   address?: string;
 }
 
+export interface ScheduledEmail {
+  notificationId: string;
+  title: string;
+  message: string;
+  scheduledDate: string; // ISO 8601 format
+  createdAt: string; // ISO 8601 format
+}
+
 export interface NotelertSettings {
   autoProcess: boolean;
   processOnSave: boolean;
@@ -22,7 +30,7 @@ export interface NotelertSettings {
   visualIndicatorIcon: string; // Icono a usar para indicar recordatorios procesados
   useNewSyntax: boolean; // Usar nuevo sistema de sintaxis {@fecha, hora}
   enableDatePicker: boolean; // Activar date picker al escribir {@
-  savedLocations: SavedLocation[]; // Ubicaciones favoritas guardadas
+  savedLocations: SavedLocation[]; // Ubicaciones favoritas guardadas (solo móvil)
   geocodingProvider?: 'nominatim' | 'google' | 'mapbox' | 'locationiq' | 'opencage' | 'algolia'; // Proveedor de geocodificación
   googleMapsApiKey?: string; // API key de Google Maps (opcional, para mejor funcionalidad)
   mapboxApiKey?: string; // API key de Mapbox (opcional)
@@ -30,6 +38,10 @@ export interface NotelertSettings {
   opencageApiKey?: string; // API key de OpenCage (opcional)
   algoliaApiKey?: string; // API key de Algolia Places (opcional)
   algoliaAppId?: string; // App ID de Algolia Places (opcional)
+  // Configuración para Desktop (emails)
+  userEmail?: string; // Email del usuario para recibir notificaciones (requerido en desktop)
+  notelertApiKey?: string; // API Key de Notelert para autenticación (requerido en desktop)
+  scheduledEmails: ScheduledEmail[]; // Lista de emails programados
 }
 
 export interface DetectedPattern {

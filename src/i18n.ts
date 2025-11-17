@@ -233,7 +233,10 @@ export const TRANSLATIONS = {
       processedNote: 'Procesada: {filename} ({count} notificaciones)',
       clearedHistory: 'Historial de procesamiento limpiado',
       errorCreatingNotification: 'Error creando notificación: {title}',
-      defaultTitle: 'Recordatorio'
+      defaultTitle: 'Recordatorio',
+      desktopConfigRequired: '❌ Configura tu email y API Key en Settings para usar Notelert en desktop',
+      locationNotSupportedDesktop: '❌ Las notificaciones de ubicación solo están disponibles en móvil',
+      emailScheduled: '✅ Email programado correctamente'
     },
     modal: {
       title: '¿Crear notificación en Notelert?',
@@ -333,7 +336,10 @@ export const TRANSLATIONS = {
       processedNote: 'Processed: {filename} ({count} notifications)',
       clearedHistory: 'Processing history cleared',
       errorCreatingNotification: 'Error creating notification: {title}',
-      defaultTitle: 'Reminder'
+      defaultTitle: 'Reminder',
+      desktopConfigRequired: '❌ Configure your email and API Key in Settings to use Notelert on desktop',
+      locationNotSupportedDesktop: '❌ Location notifications are only available on mobile',
+      emailScheduled: '✅ Email scheduled successfully'
     },
     modal: {
       title: 'Create notification in Notelert?',
@@ -433,7 +439,10 @@ export const TRANSLATIONS = {
       processedNote: 'Processada: {filename} ({count} notificacions)',
       clearedHistory: 'Historial de processament netejat',
       errorCreatingNotification: 'Error creant notificació: {title}',
-      defaultTitle: 'Recordatori'
+      defaultTitle: 'Recordatori',
+      desktopConfigRequired: '❌ Configura el teu email i API Key a Settings per usar Notelert a desktop',
+      locationNotSupportedDesktop: '❌ Les notificacions d\'ubicació només estan disponibles a mòbil',
+      emailScheduled: '✅ Email programat correctament'
     },
     modal: {
       title: 'Crear notificació a Notelert?',

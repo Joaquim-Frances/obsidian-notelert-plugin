@@ -1,4 +1,5 @@
 import { NotelertSettings } from "./types";
+import { DEFAULT_NOTELERT_API_KEY } from "./config";
 
 export const DEFAULT_SETTINGS: NotelertSettings = {
   autoProcess: false, // Desactivado - solo a través del date picker
@@ -19,7 +20,7 @@ export const DEFAULT_SETTINGS: NotelertSettings = {
     { name: "Casa", latitude: 0, longitude: 0, radius: 100 },
     { name: "Trabajo", latitude: 0, longitude: 0, radius: 100 },
     { name: "Supermercado", latitude: 0, longitude: 0, radius: 200 }
-  ], // Ubicaciones favoritas por defecto
+  ], // Ubicaciones favoritas por defecto (solo móvil)
   geocodingProvider: 'google', // Proveedor por defecto: Google Maps (con API key del plugin)
   googleMapsApiKey: "", // API key opcional de Google Maps (si está vacía, usa la del plugin)
   useFirebaseProxy: false, // Usar Firebase Functions como proxy (más seguro)
@@ -29,5 +30,9 @@ export const DEFAULT_SETTINGS: NotelertSettings = {
   opencageApiKey: "", // API key opcional de OpenCage
   algoliaApiKey: "", // API key opcional de Algolia Places
   algoliaAppId: "", // App ID opcional de Algolia Places
+  // Configuración Desktop
+  userEmail: "", // Email del usuario (requerido en desktop)
+  notelertApiKey: DEFAULT_NOTELERT_API_KEY, // API Key de Notelert (por defecto desde config, el usuario puede cambiarla)
+  scheduledEmails: [], // Lista de emails programados
 };
 
