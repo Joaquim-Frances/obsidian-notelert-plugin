@@ -17,6 +17,9 @@ export interface CancelEmailResult {
   error?: string;
 }
 
+// Timeout recomendado: 10 segundos
+const REQUEST_TIMEOUT = 10000;
+
 /**
  * Programar un email de recordatorio usando Firebase Functions
  */
@@ -29,25 +32,63 @@ export async function scheduleEmailReminder(
   apiKey: string,
   userId?: string
 ): Promise<ScheduleEmailResult> {
+  // Crear AbortController para timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
   try {
+    const requestBody = {
+      to: userEmail,
+      title: title,
+      message: message,
+      scheduledDate: scheduledDate.toISOString(), // Formato ISO 8601
+      notificationId: notificationId,
+      userId: userId || null,
+    };
+
+    console.log('[Notelert] Enviando request a:', SCHEDULE_EMAIL_URL);
+    console.log('[Notelert] Body:', JSON.stringify(requestBody, null, 2));
+    console.log('[Notelert] API Key presente:', !!apiKey);
+
     const response = await fetch(SCHEDULE_EMAIL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': apiKey,
+        'X-API-Key': apiKey, // Puede ser X-API-Key o x-api-key (ambas funcionan)
       },
-      body: JSON.stringify({
-        to: userEmail,
-        title: title,
-        message: message,
-        scheduledDate: scheduledDate.toISOString(), // Formato ISO 8601
-        notificationId: notificationId,
-        userId: userId || null,
-      }),
+      body: JSON.stringify(requestBody),
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
+
+    console.log('[Notelert] Response status:', response.status);
+    console.log('[Notelert] Response ok:', response.ok);
+
     if (!response.ok) {
-      const errorData = await response.json();
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+      }
+      console.error('[Notelert] Error response:', errorData);
+      
+      // Manejar errores específicos
+      if (response.status === 401) {
+        return {
+          success: false,
+          error: errorData.error || errorData.message || 'API Key inválida o faltante',
+        };
+      }
+      
+      if (response.status === 429) {
+        return {
+          success: false,
+          error: errorData.error || errorData.message || 'Límite de emails alcanzado (máximo 100)',
+        };
+      }
+      
       return {
         success: false,
         error: errorData.error || errorData.message || `HTTP ${response.status}`,
@@ -55,11 +96,25 @@ export async function scheduleEmailReminder(
     }
 
     const result = await response.json();
+    console.log('[Notelert] Success response:', result);
     return { 
       success: true,
       notificationId: result.notificationId || notificationId
     };
   } catch (error: any) {
+    clearTimeout(timeoutId);
+    
+    if (error.name === 'AbortError') {
+      console.error('[Notelert] Timeout: El servidor no respondió en 10 segundos');
+      return {
+        success: false,
+        error: 'Timeout: El servidor no respondió en 10 segundos',
+      };
+    }
+    
+    console.error('[Notelert] Fetch error:', error);
+    console.error('[Notelert] Error message:', error.message);
+    console.error('[Notelert] Error stack:', error.stack);
     return {
       success: false,
       error: error.message || 'Error de red al programar email',
@@ -75,6 +130,9 @@ export async function cancelScheduledEmail(
   apiKey: string,
   userId?: string
 ): Promise<CancelEmailResult> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
   try {
     const response = await fetch(CANCEL_EMAIL_URL, {
       method: 'POST',
@@ -86,10 +144,33 @@ export async function cancelScheduledEmail(
         notificationId: notificationId,
         userId: userId || null,
       }),
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      const errorData = await response.json();
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (e) {
+        errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+      }
+      
+      if (response.status === 401) {
+        return {
+          success: false,
+          error: errorData.error || errorData.message || 'API Key inválida o faltante',
+        };
+      }
+      
+      if (response.status === 404) {
+        return {
+          success: false,
+          error: errorData.error || errorData.message || 'Email programado no encontrado',
+        };
+      }
+      
       return {
         success: false,
         error: errorData.error || errorData.message || `HTTP ${response.status}`,
@@ -98,6 +179,15 @@ export async function cancelScheduledEmail(
 
     return { success: true };
   } catch (error: any) {
+    clearTimeout(timeoutId);
+    
+    if (error.name === 'AbortError') {
+      return {
+        success: false,
+        error: 'Timeout: El servidor no respondió en 10 segundos',
+      };
+    }
+    
     return {
       success: false,
       error: error.message || 'Error de red al cancelar email',

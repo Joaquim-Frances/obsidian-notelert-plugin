@@ -106,21 +106,6 @@ export class NotelertSettingTab extends PluginSettingTab {
             });
         });
 
-      // API Key de Notelert (opcional - ya viene configurada por defecto)
-      new Setting(containerEl)
-        .setName("API Key de Notelert (Opcional)")
-        .setDesc("API Key para autenticación. Ya viene configurada por defecto, solo cambia esto si es necesario.")
-        .addText((text) => {
-          text
-            .setPlaceholder(DEFAULT_NOTELERT_API_KEY ? "API Key configurada" : "Introduce tu API Key")
-            .setValue(this.plugin.settings.notelertApiKey || "")
-            .inputEl.type = "password"; // Ocultar la API key
-          text.onChange(async (value) => {
-            this.plugin.settings.notelertApiKey = value;
-            await this.plugin.saveSettings();
-          });
-        });
-
       // Lista de emails programados
       containerEl.createEl("h4", { text: "📧 Emails Programados" });
       

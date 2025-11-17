@@ -77,12 +77,26 @@ export async function createNotification(
       }
 
       // Convertir fecha y hora a Date
-      const scheduledDate = new Date(`${pattern.date}T${pattern.time}:00`);
+      // Usar formato ISO para evitar problemas de zona horaria
+      const dateTimeString = `${pattern.date}T${pattern.time}:00`;
+      const scheduledDate = new Date(dateTimeString);
+      
+      // Validar que la fecha sea válida
+      if (isNaN(scheduledDate.getTime())) {
+        new Notice(`❌ Fecha inválida: ${dateTimeString}`);
+        log(`Error: Fecha inválida - ${dateTimeString}`);
+        return;
+      }
       
       // Generar ID único
       const notificationId = generateNotificationId();
       
-      log(`Programando email para desktop: ${pattern.title} - ${scheduledDate.toISOString()}`);
+      log(`Programando email para desktop:`);
+      log(`  - Título: ${pattern.title}`);
+      log(`  - Mensaje: ${pattern.message}`);
+      log(`  - Email: ${settings.userEmail}`);
+      log(`  - Fecha: ${scheduledDate.toISOString()}`);
+      log(`  - Notification ID: ${notificationId}`);
       
       // Programar email
       const result = await scheduleEmailReminder(

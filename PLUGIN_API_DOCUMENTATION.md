@@ -6,9 +6,20 @@ El plugin de Obsidian puede usar directamente los endpoints de Firebase Function
 
 ## 🔒 Autenticación
 
-**IMPORTANTE:** Todos los endpoints requieren una **API Key** para autenticación. Debes incluirla en el header `X-API-Key` en cada request.
+**IMPORTANTE:** Todos los endpoints requieren una **API Key** para autenticación. Debes incluirla en el header `X-API-Key` (o `x-api-key` en minúsculas) en cada request.
 
 La API Key se proporciona al configurar el plugin. **No la compartas públicamente**.
+
+### Configuración de la API Key
+
+1. Obtén la API Key del administrador de Notelert
+2. Guárdala en la configuración del plugin (campo de texto oculto/encriptado)
+3. Inclúyela en el header `X-API-Key` en cada request
+
+**⚠️ NUNCA:**
+- Hardcodees la API Key en el código
+- La compartas públicamente
+- La subas a repositorios públicos
 
 ## 🎯 Lógica de Decisión
 
@@ -40,7 +51,10 @@ https://us-central1-notalert-2a44a.cloudfunctions.net/scheduleEmailReminder
 **Headers:**
 ```
 Content-Type: application/json
+X-API-Key: tu-api-key-aqui
 ```
+
+**Nota:** El header puede ser `X-API-Key` (mayúsculas) o `x-api-key` (minúsculas). Ambos funcionan.
 
 **Body (JSON):**
 ```json
@@ -106,6 +120,14 @@ Content-Type: application/json
 }
 ```
 
+**500 - Error del servidor:**
+```json
+{
+  "error": "Internal server error",
+  "details": "Descripción del error"
+}
+```
+
 ---
 
 ### 2. Cancelar Email Programado
@@ -120,6 +142,7 @@ https://us-central1-notalert-2a44a.cloudfunctions.net/cancelScheduledEmail
 **Headers:**
 ```
 Content-Type: application/json
+X-API-Key: tu-api-key-aqui
 ```
 
 **Body (JSON):**
@@ -144,7 +167,17 @@ Content-Type: application/json
 }
 ```
 
-**Ejemplo de Error (404):**
+**Ejemplos de Errores:**
+
+**401 - No autorizado:**
+```json
+{
+  "error": "Unauthorized",
+  "message": "API key inválida o faltante. Proporciona una API key válida en el header X-API-Key."
+}
+```
+
+**404 - No encontrado:**
 ```json
 {
   "error": "Email programado no encontrado"
@@ -155,13 +188,21 @@ Content-Type: application/json
 
 ## 💻 Ejemplo de Implementación (TypeScript/JavaScript)
 
+### Configuración Base
+
 ```typescript
 // Configuración
 const FIREBASE_FUNCTION_BASE_URL = 'https://us-central1-notalert-2a44a.cloudfunctions.net';
 const SCHEDULE_EMAIL_URL = `${FIREBASE_FUNCTION_BASE_URL}/scheduleEmailReminder`;
 const CANCEL_EMAIL_URL = `${FIREBASE_FUNCTION_BASE_URL}/cancelScheduledEmail`;
 
-// Función para programar email
+// Timeout recomendado: 10 segundos
+const REQUEST_TIMEOUT = 10000;
+```
+
+### Función para Programar Email
+
+```typescript
 async function scheduleEmailReminder(
   userEmail: string,
   title: string,
@@ -170,13 +211,17 @@ async function scheduleEmailReminder(
   notificationId: string,
   apiKey: string, // API Key requerida
   userId?: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; notificationId?: string }> {
+  // Crear AbortController para timeout
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
   try {
     const response = await fetch(SCHEDULE_EMAIL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': apiKey, // 🔒 API Key en header
+        'X-API-Key': apiKey, // 🔒 API Key en header (puede ser minúsculas también)
       },
       body: JSON.stringify({
         to: userEmail,
@@ -186,10 +231,16 @@ async function scheduleEmailReminder(
         notificationId: notificationId,
         userId: userId || null,
       }),
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({ 
+        error: `HTTP ${response.status}` 
+      }));
+      
       return {
         success: false,
         error: errorData.error || errorData.message || `HTTP ${response.status}`,
@@ -197,21 +248,39 @@ async function scheduleEmailReminder(
     }
 
     const result = await response.json();
-    return { success: true };
+    return { 
+      success: true,
+      notificationId: result.notificationId || notificationId
+    };
   } catch (error: any) {
+    clearTimeout(timeoutId);
+    
+    if (error.name === 'AbortError') {
+      return {
+        success: false,
+        error: 'Timeout: El servidor no respondió en 10 segundos',
+      };
+    }
+    
     return {
       success: false,
       error: error.message || 'Error de red al programar email',
     };
   }
 }
+```
 
-// Función para cancelar email
+### Función para Cancelar Email
+
+```typescript
 async function cancelScheduledEmail(
   notificationId: string,
   apiKey: string, // API Key requerida
   userId?: string
 ): Promise<{ success: boolean; error?: string }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
   try {
     const response = await fetch(CANCEL_EMAIL_URL, {
       method: 'POST',
@@ -223,10 +292,16 @@ async function cancelScheduledEmail(
         notificationId: notificationId,
         userId: userId || null,
       }),
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({ 
+        error: `HTTP ${response.status}` 
+      }));
+      
       return {
         success: false,
         error: errorData.error || errorData.message || `HTTP ${response.status}`,
@@ -236,36 +311,58 @@ async function cancelScheduledEmail(
     const result = await response.json();
     return { success: true };
   } catch (error: any) {
+    clearTimeout(timeoutId);
+    
+    if (error.name === 'AbortError') {
+      return {
+        success: false,
+        error: 'Timeout: El servidor no respondió en 10 segundos',
+      };
+    }
+    
     return {
       success: false,
       error: error.message || 'Error de red al cancelar email',
     };
   }
 }
+```
 
-// Ejemplo de uso
+### Ejemplo de Uso Completo
+
+```typescript
+// Ejemplo de uso en el plugin
 async function createReminderFromObsidian() {
-  const userEmail = 'usuario@email.com'; // Obtener de configuración del plugin
-  const apiKey = 'tu-api-key-secreta'; // Obtener de configuración del plugin (NUNCA hardcodear)
+  // Obtener configuración del plugin
+  const userEmail = settings.userEmail; // De configuración del plugin
+  const apiKey = settings.apiKey; // De configuración del plugin (NUNCA hardcodear)
+  const userId = settings.userId; // Opcional: ID de Google del usuario
+  
+  // Datos del recordatorio
   const title = 'Reunión importante'; // Título de la nota en Obsidian
   const message = 'Línea actual donde se añade el recordatorio'; // Contenido de la línea
   const scheduledDate = new Date('2024-01-15T14:30:00'); // Fecha/hora del recordatorio
-  const notificationId = `obsidian-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`; // ID único
   
+  // Generar ID único
+  const notificationId = `obsidian-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Programar email
   const result = await scheduleEmailReminder(
     userEmail,
     title,
     message,
     scheduledDate,
     notificationId,
-    apiKey // 🔒 API Key requerida
+    apiKey, // 🔒 API Key requerida
+    userId
   );
 
   if (result.success) {
-    console.log('✅ Email programado correctamente');
-    // Guardar notificationId en el plugin para poder cancelarlo después si es necesario
+    new Notice('✅ Recordatorio por email programado correctamente');
+    // Opcional: Guardar notificationId para poder cancelarlo después
+    saveNotificationId(notificationId);
   } else {
-    console.error('❌ Error:', result.error);
+    new Notice(`❌ Error: ${result.error}`);
   }
 }
 ```
@@ -279,9 +376,7 @@ async function createReminderFromObsidian() {
 ```typescript
 function isDesktop(): boolean {
   // En Obsidian, puedes usar:
-  // - app.isMobile === false
-  // - o detectar el entorno de Node.js
-  return !app.isMobile; // Ejemplo para Obsidian
+  return !app.isMobile; // app.isMobile está disponible en Obsidian
 }
 ```
 
@@ -292,26 +387,26 @@ async function createReminder(
   title: string,
   message: string,
   date: Date,
-  userEmail: string,
-  userId?: string
+  settings: PluginSettings
 ) {
   const notificationId = generateUniqueId();
   
   if (isDesktop()) {
     // Desktop: Llamar directamente a Firebase Functions
     const result = await scheduleEmailReminder(
-      userEmail,
+      settings.userEmail,
       title,
       message,
       date,
       notificationId,
-      userId
+      settings.apiKey, // 🔒 API Key desde configuración
+      settings.userId
     );
     
     if (result.success) {
-      showNotice('✅ Recordatorio por email programado correctamente');
+      new Notice('✅ Recordatorio por email programado correctamente');
     } else {
-      showNotice(`❌ Error: ${result.error}`);
+      new Notice(`❌ Error: ${result.error}`);
     }
   } else {
     // Móvil: Usar deep link
@@ -325,13 +420,13 @@ async function createReminder(
 
 ```typescript
 function generateUniqueId(): string {
-  // Opción 1: Timestamp + random
+  // Opción 1: Timestamp + random (recomendado)
   return `obsidian-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
   // Opción 2: UUID (si tienes una librería)
   // return uuidv4();
   
-  // Opción 3: Basado en contenido de la nota
+  // Opción 3: Basado en contenido de la nota (menos recomendado)
   // return `obsidian-${hash(title + message + date)}`;
 }
 ```
@@ -343,28 +438,36 @@ function generateUniqueId(): string {
 ### 1. Formato de Fecha
 - **Siempre usar ISO 8601 en UTC**: `"2024-01-15T14:30:00.000Z"`
 - Ejemplo en JavaScript: `new Date().toISOString()`
+- **Importante:** La fecha debe ser futura. Si es pasada, el email se enviará inmediatamente.
 
 ### 2. Límites
 - **Máximo 100 emails programados por usuario** (si se proporciona `userId`)
 - Si se alcanza el límite, se retorna error 429
+- El límite se aplica por usuario, no globalmente
 
 ### 3. Validaciones del Backend
-- El email debe tener formato válido
-- La fecha debe ser futura (si es pasada, se envía inmediatamente)
+- El email debe tener formato válido (regex básico)
+- La fecha debe estar en formato ISO 8601
 - Todos los campos requeridos deben estar presentes
+- El `notificationId` debe ser único
 
 ### 4. Manejo de Errores
 - Siempre verificar `response.ok` antes de procesar
 - Leer el cuerpo de error con `await response.json()`
+- Manejar timeouts (recomendado: 10 segundos)
 - Mostrar mensajes claros al usuario
+- Manejar especialmente el error 401 (API Key inválida)
 
 ### 5. CORS
 - Los endpoints tienen CORS habilitado (`Access-Control-Allow-Origin: *`)
+- Se aceptan headers `X-API-Key` y `x-api-key` (ambas variantes)
+- El preflight OPTIONS está configurado correctamente
 - No se requieren headers especiales adicionales
 
 ### 6. Timeouts
-- Recomendado: timeout de 10 segundos para las requests
+- **Recomendado:** timeout de 10 segundos para las requests
 - Si el servidor no responde, mostrar error al usuario
+- Usar `AbortController` para cancelar requests lentas
 
 ---
 
@@ -379,6 +482,13 @@ function generateUniqueId(): string {
 ### Rate Limiting:
 - El backend valida límites por usuario
 - Si un usuario intenta crear más de 100 emails, recibirá error 429
+- El límite se aplica solo si se proporciona `userId`
+
+### API Key:
+- **NUNCA** hardcodees la API Key en el código
+- Guárdala en la configuración del plugin (encriptada si es posible)
+- No la compartas públicamente
+- Si se filtra, contacta inmediatamente para rotarla
 
 ---
 
@@ -388,6 +498,7 @@ function generateUniqueId(): string {
 // settings.ts (configuración del plugin)
 export interface NotelertSettings {
   userEmail: string;
+  apiKey: string; // 🔒 API Key (campo oculto/encriptado)
   userId?: string; // Opcional: ID de Google del usuario
   useDirectAPI: boolean; // true para desktop, false para móvil
 }
@@ -396,6 +507,7 @@ export interface NotelertSettings {
 import { Notice } from 'obsidian';
 
 const FIREBASE_FUNCTION_BASE_URL = 'https://us-central1-notalert-2a44a.cloudfunctions.net';
+const REQUEST_TIMEOUT = 10000;
 
 export async function createNotelertReminder(
   settings: NotelertSettings,
@@ -410,12 +522,18 @@ export async function createNotelertReminder(
     // Usar API directa
     const notificationId = `obsidian-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+    
     try {
       const response = await fetch(
         `${FIREBASE_FUNCTION_BASE_URL}/scheduleEmailReminder`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': settings.apiKey, // 🔒 API Key desde configuración
+          },
           body: JSON.stringify({
             to: settings.userEmail,
             title: title,
@@ -424,19 +542,33 @@ export async function createNotelertReminder(
             notificationId: notificationId,
             userId: settings.userId || null,
           }),
+          signal: controller.signal,
         }
       );
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        const error = await response.json();
-        new Notice(`❌ Error: ${error.error || error.message}`);
+        const error = await response.json().catch(() => ({ 
+          error: `HTTP ${response.status}` 
+        }));
+        new Notice(`❌ Error: ${error.error || error.message || `HTTP ${response.status}`}`);
         return;
       }
 
       const result = await response.json();
       new Notice('✅ Recordatorio por email programado correctamente');
+      
+      // Opcional: Guardar notificationId para poder cancelarlo después
+      // saveNotificationId(notificationId);
     } catch (error: any) {
-      new Notice(`❌ Error de conexión: ${error.message}`);
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        new Notice('❌ Error: Timeout - El servidor no respondió en 10 segundos');
+      } else {
+        new Notice(`❌ Error de conexión: ${error.message}`);
+      }
     }
   } else {
     // Usar deep link (móvil o si useDirectAPI está deshabilitado)
@@ -469,9 +601,10 @@ function buildNotelertDeepLink(
 ### Probar con curl:
 
 ```bash
-# Programar email
+# Programar email (reemplaza YOUR_API_KEY con tu API key real)
 curl -X POST https://us-central1-notalert-2a44a.cloudfunctions.net/scheduleEmailReminder \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
   -d '{
     "to": "test@example.com",
     "title": "Test Reminder",
@@ -483,34 +616,86 @@ curl -X POST https://us-central1-notalert-2a44a.cloudfunctions.net/scheduleEmail
 # Cancelar email
 curl -X POST https://us-central1-notalert-2a44a.cloudfunctions.net/cancelScheduledEmail \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
   -d '{
     "notificationId": "test-12345"
   }'
 ```
 
+### Probar desde el navegador (consola):
+
+```javascript
+// Programar email
+fetch('https://us-central1-notalert-2a44a.cloudfunctions.net/scheduleEmailReminder', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'YOUR_API_KEY'
+  },
+  body: JSON.stringify({
+    to: 'test@example.com',
+    title: 'Test Reminder',
+    message: 'This is a test',
+    scheduledDate: new Date('2024-12-31T23:59:00').toISOString(),
+    notificationId: 'test-' + Date.now()
+  })
+})
+.then(r => r.json())
+.then(console.log)
+.catch(console.error);
+```
+
 ---
 
-## 📞 Soporte
+## 📞 Soporte y Troubleshooting
 
-Si tienes problemas con la API:
-1. Verifica que la URL base sea correcta
-2. Verifica el formato de la fecha (ISO 8601)
-3. Verifica que todos los campos requeridos estén presentes
-4. Revisa los logs de Firebase Functions: `firebase functions:log`
+### Problemas Comunes
+
+1. **Error 401 (Unauthorized)**
+   - Verifica que la API Key esté correcta
+   - Verifica que el header `X-API-Key` esté presente
+   - Verifica que la API Key no tenga espacios extra
+
+2. **Error de CORS**
+   - Los endpoints tienen CORS habilitado
+   - Verifica que estés usando el header correcto (`X-API-Key` o `x-api-key`)
+   - Si persiste, verifica que el preflight OPTIONS esté funcionando
+
+3. **Error 400 (Bad Request)**
+   - Verifica que todos los campos requeridos estén presentes
+   - Verifica el formato de la fecha (ISO 8601)
+   - Verifica el formato del email
+
+4. **Error 429 (Too Many Requests)**
+   - Has alcanzado el límite de 100 emails programados
+   - Cancela algunos emails antes de crear nuevos
+
+5. **Timeout**
+   - El servidor no respondió en 10 segundos
+   - Verifica tu conexión a internet
+   - Intenta de nuevo más tarde
+
+### Verificar Logs
+
+Si tienes acceso a Firebase, puedes ver los logs:
+```bash
+firebase functions:log
+```
 
 ---
 
 ## ✅ Checklist de Implementación
 
-- [ ] **Configurar API Key** en la configuración del plugin (campo de texto oculto)
-- [ ] Detectar si estamos en desktop vs móvil
+- [ ] **Configurar API Key** en la configuración del plugin (campo de texto oculto/encriptado)
+- [ ] Detectar si estamos en desktop vs móvil (`app.isMobile`)
 - [ ] Obtener email del usuario desde configuración del plugin
 - [ ] Obtener API Key desde configuración del plugin
 - [ ] Generar `notificationId` único para cada recordatorio
-- [ ] Formatear fecha correctamente (ISO 8601)
+- [ ] Formatear fecha correctamente (ISO 8601 con `.toISOString()`)
 - [ ] Implementar llamada a `scheduleEmailReminder` con header `X-API-Key`
-- [ ] Manejar errores (especialmente 401 Unauthorized)
-- [ ] Mostrar mensajes claros al usuario
+- [ ] Implementar timeout de 10 segundos con `AbortController`
+- [ ] Manejar errores (especialmente 401 Unauthorized, 429 Too Many Requests)
+- [ ] Mostrar mensajes claros al usuario con `Notice`
 - [ ] (Opcional) Implementar cancelación de emails programados
 - [ ] (Opcional) Guardar `notificationId` para poder cancelar después
 
@@ -528,3 +713,4 @@ La API Key se configura en Firebase Secrets. Contacta al administrador de Notele
 
 **Última actualización:** 2024-01-15
 
+**Versión de la API:** 1.0.1

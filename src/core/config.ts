@@ -9,7 +9,7 @@
 
 // API Key de Notelert por defecto
 // TODO: Reemplazar con la API Key real cuando esté disponible
-export const DEFAULT_NOTELERT_API_KEY = "";
+export const DEFAULT_NOTELERT_API_KEY = "c7e9a30b62db94f5b8478619c98953a03474c072d31a25ee3e00e213f918ed9c";
 
 // URL base de Firebase Functions
 export const FIREBASE_FUNCTION_BASE_URL = 'https://us-central1-notalert-2a44a.cloudfunctions.net';
