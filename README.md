@@ -1,222 +1,229 @@
-# 🔔 Notelert Plugin para Obsidian
+# Notelert
 
-Un plugin que automatiza la creación de notificaciones para la app móvil **Notelert** detectando patrones de fecha/hora en tus notas de Obsidian.
+Automates the creation of notifications for the **Notelert** mobile app by detecting date/time patterns in your Obsidian notes. Write reminders in your notes and the plugin will automatically convert them into scheduled notifications.
 
-## 📱 ¿Qué es Notelert?
+## Features
 
-Notelert es una app móvil que recibe deeplinks con formato:
-```
-notelert://add?title=TÍTULO&message=MENSAJE&date=YYYY-MM-DD&time=HH:MM
-```
+- ✅ **Automatic detection** of date/time patterns using `{@date, time}` syntax
+- ✅ **Interactive date picker** - Type `{@` to open a visual date and time selector
+- ✅ **Location selector** - Type `{#` to create location-based reminders (geofencing)
+- ✅ **Multi-language support** - 10 popular languages with native keywords
+- ✅ **Relative dates** - Supports "today", "tomorrow", "yesterday" in multiple languages
+- ✅ **Absolute dates** - Formats DD/MM, DD/MM/YYYY, DD-MM-YYYY
+- ✅ **Multiple time formats** - HH:MM, H:MM, HH.MM, H.MM
+- ✅ **Email notifications** - On desktop, schedule emails directly without needing the mobile app
+- ✅ **Notelert integration** - On mobile, automatically opens the Notelert app
+- ✅ **Geocoding** - Support for multiple providers (Google Maps, Nominatim, Mapbox, etc.)
+- ✅ **Flexible configuration** - Customize keywords, excluded folders, and more
 
-## 🎯 Características
+## Installation
 
-- ✅ **Detección automática** de patrones de fecha/hora
-- ✅ **Generación automática** de deeplinks para Notelert
-- ✅ **Procesamiento en tiempo real** al guardar notas
-- ✅ **Soporte multiidioma** (10 idiomas populares)
-- ✅ **Soporte para fechas relativas** (hoy, mañana, ayer)
-- ✅ **Soporte para fechas absolutas** (12/10, 15/10/2025)
-- ✅ **Soporte para horas** (15:30, 9:00, 18.45)
-- ✅ **Configuración personalizable**
-- ✅ **Comandos manuales** para procesar notas
-- ✅ **Modo debug** para desarrollo
-- ✅ **Interfaz traducida** en múltiples idiomas
+### From Obsidian (Recommended)
 
-## 🚀 Instalación
+1. Open **Settings** → **Community plugins**
+2. Search for "Notelert"
+3. Click **Install** and then **Enable**
 
-### Método 1: Instalación Manual
+### Manual Installation
 
-1. Descarga el archivo `main.js` y `manifest.json` del plugin
-2. Copia los archivos a tu carpeta de plugins de Obsidian:
+1. Download the latest version from [GitHub Releases](https://github.com/tu-usuario/obsidian-notelert-plugin/releases)
+2. Extract the `main.js` and `manifest.json` files to your plugins folder:
    ```
    .obsidian/plugins/obsidian-notelert-plugin/
    ```
-3. Activa el plugin en Configuración → Plugins de la comunidad
+3. Restart Obsidian and enable the plugin in **Settings** → **Community plugins**
 
-### Método 2: Desarrollo
+## Usage
 
-1. Clona el repositorio:
-   ```bash
-   git clone https://github.com/tu-usuario/obsidian-notelert-plugin.git
-   cd obsidian-notelert-plugin
-   ```
+### Basic Syntax
 
-2. Instala dependencias:
-   ```bash
-   npm install
-   ```
+The plugin detects patterns using the `{@date, time}` syntax:
 
-3. Compila el plugin:
-   ```bash
-   npm run build
-   ```
-
-4. Copia los archivos generados a tu carpeta de plugins
-
-## 📝 Patrones Soportados
-
-### 🌍 Idiomas Soportados
-El plugin soporta **10 idiomas populares**:
-
-- 🇪🇸 **Español**: `Recordar:`, `Notificar:`, `Alerta:`, `Recordatorio:`, `Aviso:`
-- 🇺🇸 **English**: `Remember:`, `Notify:`, `Alert:`, `Reminder:`, `Notice:`
-- 🇫🇷 **Français**: `Rappeler:`, `Notifier:`, `Alerte:`, `Rappel:`, `Avis:`
-- 🇩🇪 **Deutsch**: `Erinnern:`, `Benachrichtigen:`, `Alarm:`, `Erinnerung:`, `Hinweis:`
-- 🇮🇹 **Italiano**: `Ricordare:`, `Notificare:`, `Allerta:`, `Promemoria:`, `Avviso:`
-- 🇵🇹 **Português**: `Lembrar:`, `Notificar:`, `Alerta:`, `Lembrete:`, `Aviso:`
-- 🇷🇺 **Русский**: `Напомнить:`, `Уведомить:`, `Тревога:`, `Напоминание:`, `Уведомление:`
-- 🇯🇵 **日本語**: `覚えて:`, `通知:`, `アラート:`, `リマインダー:`, `お知らせ:`
-- 🇨🇳 **中文**: `记住:`, `通知:`, `警报:`, `提醒:`, `注意:`
-- 🇸🇦 **العربية**: `تذكر:`, `إشعار:`, `تنبيه:`, `تذكير:`, `تنبيه:`
-
-### Palabras Clave por Idioma
-Cada idioma tiene sus propias palabras clave nativas que el plugin detecta automáticamente.
-
-### Fechas
-
-#### Fechas Relativas (por idioma)
-- 🇪🇸 **Español**: `hoy`, `mañana`, `ayer`
-- 🇺🇸 **English**: `today`, `tomorrow`, `yesterday`
-- 🇫🇷 **Français**: `aujourd'hui`, `demain`, `hier`
-- 🇩🇪 **Deutsch**: `heute`, `morgen`, `gestern`
-- 🇮🇹 **Italiano**: `oggi`, `domani`, `ieri`
-- 🇵🇹 **Português**: `hoje`, `amanhã`, `ontem`
-- 🇷🇺 **Русский**: `сегодня`, `завтра`, `вчера`
-- 🇯🇵 **日本語**: `今日`, `明日`, `昨日`
-- 🇨🇳 **中文**: `今天`, `明天`, `昨天`
-- 🇸🇦 **العربية**: `اليوم`, `غداً`, `أمس`
-
-#### Fechas Absolutas
-- `12/10` - 12 de octubre (año actual)
-- `15/10/2025` - 15 de octubre de 2025
-- `12-10-2025` - 12 de octubre de 2025 (con guiones)
-
-### Horas
-
-#### Formato 24 Horas
-- `15:30` - 3:30 PM
-- `9:00` - 9:00 AM
-- `18:45` - 6:45 PM
-
-#### Formato con Punto
-- `15.30` - 3:30 PM
-- `9.00` - 9:00 AM
-
-## 💡 Ejemplos de Uso
-
-### 🇪🇸 Ejemplos en Español
 ```
-Recordar: Reunión importante a las 15:30
-Notificar: Llamar al doctor mañana a las 09:00
-Alerta: Comprar regalos el 12/10 a las 18:00
-Recordatorio: Cita médica el 15/10/2025 a las 14:30
-Aviso: Revisar emails hoy a las 16:00
+{@tomorrow, 10:00} Important team meeting
+{@15/12/2025, 14:30} Doctor's appointment
+{@today, 18:00} Buy Christmas gifts
 ```
 
-### 🇺🇸 Examples in English
+### Interactive Date Picker
+
+1. Type `{@` in any note
+2. A date and time selector will automatically open
+3. Select the desired date and time
+4. The plugin will automatically create the notification
+
+### Location Selector
+
+1. Type `{#` in any note
+2. A location selector with an interactive map will open
+3. Search for an address or click on the map
+4. Configure the geofence radius
+5. The plugin will create a location-based reminder
+
+### Examples
+
+#### Relative Dates
 ```
-Remember: Important meeting at 15:30
-Notify: Call doctor tomorrow at 09:00
-Alert: Buy gifts on 12/10 at 18:00
-Reminder: Medical appointment on 15/10/2025 at 14:30
-Notice: Check emails today at 16:00
-```
-
-### 🇫🇷 Exemples en Français
-```
-Rappeler: Réunion importante à 15:30
-Notifier: Appeler le médecin demain à 09:00
-Alerte: Acheter des cadeaux le 12/10 à 18:00
-Rappel: Rendez-vous médical le 15/10/2025 à 14:30
-Avis: Vérifier les emails aujourd'hui à 16:00
-```
-
-### 🌍 Más Ejemplos Multiidioma
-Consulta el archivo `ejemplos-multiidioma.md` para ejemplos completos en todos los idiomas soportados.
-
-## ⚙️ Configuración
-
-### Configuración Automática
-- **Procesamiento automático**: Activa/desactiva el procesamiento
-- **Procesar al guardar**: Procesa automáticamente al guardar notas
-- **Procesar al abrir**: Procesa automáticamente al abrir notas
-- **Modo debug**: Muestra mensajes de debug en la consola
-
-### Configuración Personalizada
-- **Idioma**: Selecciona el idioma para detección de patrones
-- **Carpetas excluidas**: Carpetas que no se procesarán
-- **Palabras clave personalizadas**: Añade tus propias palabras clave
-
-### Comandos Disponibles
-
-1. **Procesar nota actual**: Procesa la nota que tienes abierta
-2. **Procesar todas las notas**: Procesa todas las notas del vault
-3. **Limpiar historial**: Limpia el historial de procesamiento
-
-## 🔧 Funcionamiento Técnico
-
-### Flujo de Procesamiento
-
-1. **Detección**: El plugin escanea el texto buscando patrones
-2. **Parsing**: Extrae fechas, horas y títulos del texto
-3. **Generación**: Crea deeplinks con formato Notelert
-4. **Ejecución**: Abre automáticamente los deeplinks
-5. **Notificación**: La app móvil procesa y se cierra
-
-### Formato de Deeplink
-```
-notelert://add?title=Reunión&message=Recordar: Reunión a las 15:30&date=2025-10-11&time=15:30
+{@today, 16:00} Review pending emails
+{@tomorrow, 09:00} Call the client
+{@yesterday, 20:00} Review meeting notes
 ```
 
-## 🐛 Solución de Problemas
+#### Absolute Dates
+```
+{@12/10, 18:00} Buy birthday gifts
+{@15/10/2025, 14:30} Important doctor's appointment
+{@31-12-2025, 23:59} New Year's celebration
+```
 
-### La app no se abre
-- Verifica que Notelert esté instalada en tu dispositivo
-- Comprueba que el deeplink sea correcto
-- Activa el modo debug para ver los deeplinks generados
+#### With Location
+```
+{#Home, 100m} Arrive home and take medication
+{#Work, 50m} Team meeting at the office
+{#Supermarket, 200m} Buy ingredients for dinner
+```
 
-### No se detectan patrones
-- Verifica que uses las palabras clave correctas
-- Comprueba el formato de fecha/hora
-- Revisa la configuración de carpetas excluidas
+## Configuration
 
-### Errores de fecha
-- Usa el formato correcto: DD/MM/YYYY o DD/MM
-- Verifica que la fecha sea válida
-- Para fechas relativas, usa: hoy, mañana, ayer
+Access settings from **Settings** → **Community plugins** → **Notelert**
 
-## 📋 Requisitos
+### General Settings
 
-- **Obsidian**: Versión 0.15.0 o superior
-- **Notelert**: App móvil instalada en tu dispositivo
-- **Sistema**: Windows, macOS o Linux
+- **Enable date picker** - Enable/disable the picker when typing `{@`
+- **Debug mode** - Show debug messages in the console
+- **Language** - Select the language for pattern detection (10 languages available)
 
-## 🤝 Contribuir
+### Desktop Settings (Email)
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+- **User email** - Your email to receive scheduled notifications
+- **Notelert API Key** - API key for authentication (included by default)
 
-## 📄 Licencia
+### Location Settings
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+- **Geocoding provider** - Choose between Google Maps, Nominatim, Mapbox, etc.
+- **API Keys** - Configure optional API keys for premium providers
+- **Saved locations** - Manage your favorite locations
 
-## 👨‍💻 Autor
+### Excluded Folders
+
+By default, these folders are not processed:
+- `Templates`
+- `Archive`
+- `Trash`
+
+You can add more folders in the settings.
+
+## Supported Languages
+
+The plugin supports pattern detection in 10 languages:
+
+- 🇪🇸 **Spanish** - `Recordar:`, `Notificar:`, `Alerta:`, etc.
+- 🇺🇸 **English** - `Remember:`, `Notify:`, `Alert:`, etc.
+- 🇫🇷 **French** - `Rappeler:`, `Notifier:`, `Alerte:`, etc.
+- 🇩🇪 **German** - `Erinnern:`, `Benachrichtigen:`, `Alarm:`, etc.
+- 🇮🇹 **Italian** - `Ricordare:`, `Notificare:`, `Allerta:`, etc.
+- 🇵🇹 **Portuguese** - `Lembrar:`, `Notificar:`, `Alerta:`, etc.
+- 🇷🇺 **Russian** - `Напомнить:`, `Уведомить:`, `Тревога:`, etc.
+- 🇯🇵 **Japanese** - `覚えて:`, `通知:`, `アラート:`, etc.
+- 🇨🇳 **Chinese** - `记住:`, `通知:`, `警报:`, etc.
+- 🇸🇦 **Arabic** - `تذكر:`, `إشعار:`, `تنبيه:`, etc.
+
+Each language has its own native keywords and support for relative dates.
+
+## Requirements
+
+- **Obsidian**: Version 0.15.0 or higher
+- **Operating systems**: Windows, macOS, Linux
+- **Notelert** (optional): Mobile app installed for push notifications on mobile devices
+
+## Platforms
+
+### Desktop (Windows, macOS, Linux)
+
+On desktop, the plugin schedules **email** notifications directly using the Notelert API. You don't need the mobile app installed.
+
+### Mobile (Android/iOS)
+
+On mobile devices, the plugin automatically opens the **Notelert** app using deeplinks to create push notifications.
+
+## Troubleshooting
+
+### Date picker doesn't open
+
+- Verify that "Enable date picker" is enabled in settings
+- Make sure you type exactly `{@` (no spaces)
+- Restart Obsidian if the problem persists
+
+### Notifications are not created
+
+- **On desktop**: Verify that your email is configured correctly
+- **On mobile**: Make sure the Notelert app is installed
+- Enable debug mode to see detailed messages in the console
+
+### Geocoding errors
+
+- Verify that your API key is configured correctly (if using a premium provider)
+- Consider switching to Nominatim (free, no API key required)
+- Check the logs in the console with debug mode enabled
+
+## Development
+
+### Build from source
+
+```bash
+# Clone the repository
+git clone https://github.com/tu-usuario/obsidian-notelert-plugin.git
+cd obsidian-notelert-plugin
+
+# Install dependencies
+npm install
+
+# Compile the plugin
+npm run build
+```
+
+### Project Structure
+
+```
+obsidian-notelert-plugin/
+├── src/
+│   ├── main.ts              # Plugin entry point
+│   ├── core/                # Configuration and types
+│   ├── features/            # Main features
+│   ├── modals/              # Interface modals
+│   └── settings/            # Settings panel
+├── manifest.json            # Plugin manifest
+└── package.json             # Dependencies and scripts
+```
+
+## Contributing
+
+Contributions are welcome. Please:
+
+1. Fork the project
+2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+## Author
 
 **Quim Frances**
+
 - GitHub: [@tu-usuario](https://github.com/tu-usuario)
 
-## 🙏 Agradecimientos
+## Acknowledgments
 
-- Equipo de Obsidian por la excelente API
-- Comunidad de desarrolladores de plugins
-- Usuarios que reportan bugs y sugieren mejoras
+- Obsidian team for the excellent API
+- Plugin developer community
+- All users who report bugs and suggest improvements
 
 ---
 
-**¿Tienes problemas o sugerencias?** Abre un issue en GitHub o contacta al autor.
+**Having problems or suggestions?** Open an [issue on GitHub](https://github.com/tu-usuario/obsidian-notelert-plugin/issues).
 
-**¿Te gusta el plugin?** ¡Dale una estrella ⭐ en GitHub!
+**Like the plugin?** Give it a star ⭐ on GitHub!

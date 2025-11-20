@@ -20,8 +20,10 @@
   },
   "scripts": {
     "build": "obsidian-plugin build src/main.ts",
+    "build:install": "npm run build && node scripts/copy-to-obsidian.js",
     "dev": "obsidian-plugin dev src/main.ts",
-    "watch": "obsidian-plugin dev src/main.ts --watch"
+    "watch": "obsidian-plugin dev src/main.ts --watch",
+    "install:obsidian": "node scripts/copy-to-obsidian.js"
   },
   "devDependencies": {
     "typescript": "^4.1.5",
