@@ -17,8 +17,9 @@ export interface CancelEmailResult {
   error?: string;
 }
 
-// Timeout recomendado: 10 segundos
-const REQUEST_TIMEOUT = 10000;
+// Timeout aumentado para cold starts en Firebase Functions (25 segundos)
+// Los cold starts pueden tardar 10-20 segundos en inicializar
+const REQUEST_TIMEOUT = 25000;
 
 /**
  * Programar un email de recordatorio usando Firebase Functions
@@ -46,33 +47,34 @@ export async function scheduleEmailReminder(
       userId: userId || null,
     };
 
-    console.log('[Notelert] Enviando request a:', SCHEDULE_EMAIL_URL);
-    console.log('[Notelert] Body:', JSON.stringify(requestBody, null, 2));
-    console.log('[Notelert] API Key presente:', !!apiKey);
+    // Logs solo en modo debug (reducir overhead)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Notelert] Enviando request a:', SCHEDULE_EMAIL_URL);
+    }
 
+    // Usar keepalive para mejorar rendimiento en conexiones lentas
     const response = await fetch(SCHEDULE_EMAIL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-API-Key': apiKey, // Puede ser X-API-Key o x-api-key (ambas funcionan)
+        'X-API-Key': apiKey,
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,
+      keepalive: true, // Mantener conexión viva para mejor rendimiento
     });
 
     clearTimeout(timeoutId);
 
-    console.log('[Notelert] Response status:', response.status);
-    console.log('[Notelert] Response ok:', response.ok);
-
     if (!response.ok) {
       let errorData;
       try {
-        errorData = await response.json();
+        // Intentar parsear JSON con timeout implícito
+        const text = await response.text();
+        errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
       } catch (e) {
         errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
       }
-      console.error('[Notelert] Error response:', errorData);
       
       // Manejar errores específicos
       if (response.status === 401) {
@@ -89,14 +91,29 @@ export async function scheduleEmailReminder(
         };
       }
       
+      if (response.status === 408 || response.status === 504) {
+        return {
+          success: false,
+          error: 'El servidor tardó demasiado en responder. Intenta de nuevo.',
+        };
+      }
+      
       return {
         success: false,
         error: errorData.error || errorData.message || `HTTP ${response.status}`,
       };
     }
 
-    const result = await response.json();
-    console.log('[Notelert] Success response:', result);
+    // Parsear respuesta de forma optimizada
+    let result;
+    try {
+      const text = await response.text();
+      result = text ? JSON.parse(text) : {};
+    } catch (e) {
+      // Si no hay respuesta JSON, asumir éxito con el ID proporcionado
+      result = { notificationId: notificationId };
+    }
+    
     return { 
       success: true,
       notificationId: result.notificationId || notificationId
@@ -105,16 +122,20 @@ export async function scheduleEmailReminder(
     clearTimeout(timeoutId);
     
     if (error.name === 'AbortError') {
-      console.error('[Notelert] Timeout: El servidor no respondió en 10 segundos');
       return {
         success: false,
-        error: 'Timeout: El servidor no respondió en 10 segundos',
+        error: 'Timeout: El servidor no respondió en 25 segundos. Puede ser un cold start. Intenta de nuevo.',
       };
     }
     
-    console.error('[Notelert] Fetch error:', error);
-    console.error('[Notelert] Error message:', error.message);
-    console.error('[Notelert] Error stack:', error.stack);
+    // Detectar errores de red comunes
+    if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+      return {
+        success: false,
+        error: 'Error de conexión. Verifica tu internet e intenta de nuevo.',
+      };
+    }
+    
     return {
       success: false,
       error: error.message || 'Error de red al programar email',
@@ -145,6 +166,7 @@ export async function cancelScheduledEmail(
         userId: userId || null,
       }),
       signal: controller.signal,
+      keepalive: true, // Mantener conexión viva para mejor rendimiento
     });
 
     clearTimeout(timeoutId);
@@ -152,7 +174,8 @@ export async function cancelScheduledEmail(
     if (!response.ok) {
       let errorData;
       try {
-        errorData = await response.json();
+        const text = await response.text();
+        errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
       } catch (e) {
         errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
       }
@@ -171,6 +194,13 @@ export async function cancelScheduledEmail(
         };
       }
       
+      if (response.status === 408 || response.status === 504) {
+        return {
+          success: false,
+          error: 'El servidor tardó demasiado en responder. Intenta de nuevo.',
+        };
+      }
+      
       return {
         success: false,
         error: errorData.error || errorData.message || `HTTP ${response.status}`,
@@ -184,7 +214,15 @@ export async function cancelScheduledEmail(
     if (error.name === 'AbortError') {
       return {
         success: false,
-        error: 'Timeout: El servidor no respondió en 10 segundos',
+        error: 'Timeout: El servidor no respondió en 25 segundos. Puede ser un cold start. Intenta de nuevo.',
+      };
+    }
+    
+    // Detectar errores de red comunes
+    if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+      return {
+        success: false,
+        error: 'Error de conexión. Verifica tu internet e intenta de nuevo.',
       };
     }
     

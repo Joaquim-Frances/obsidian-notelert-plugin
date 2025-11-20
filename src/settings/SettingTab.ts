@@ -328,19 +328,20 @@ export class NotelertSettingTab extends PluginSettingTab {
       const cancelButton = buttonsContainer.createEl("button", {
         text: "🗑️ Cancelar",
         attr: { 
-          style: "padding: 6px 12px; font-size: 12px; white-space: nowrap; color: var(--text-error);" 
+          style: "padding: 6px 12px; font-size: 12px; white-space: nowrap; color: var(--text-error);",
+          id: `cancel-email-btn-${email.notificationId}`
         }
       });
       cancelButton.addEventListener("click", async () => {
         // Encontrar el índice real en la lista original
         const realIndex = emails.findIndex(e => e.notificationId === email.notificationId);
-        await this.cancelScheduledEmail(email, realIndex);
+        await this.cancelScheduledEmail(email, realIndex, cancelButton);
       });
     });
   }
 
   // Cancelar email programado
-  private async cancelScheduledEmail(email: ScheduledEmail, index: number) {
+  private async cancelScheduledEmail(email: ScheduledEmail, index: number, button?: HTMLButtonElement) {
     // Usar API key de settings o la por defecto
     const apiKey = this.plugin.settings.notelertApiKey || DEFAULT_NOTELERT_API_KEY;
     
@@ -349,20 +350,95 @@ export class NotelertSettingTab extends PluginSettingTab {
       return;
     }
 
-    const result = await cancelScheduledEmail(
-      email.notificationId,
-      apiKey
-    );
-
-    if (result.success) {
-      // Eliminar de la lista local
-      this.plugin.settings.scheduledEmails.splice(index, 1);
-      await this.plugin.saveSettings();
-      this.display(); // Recargar para actualizar la lista
-      new Notice("✅ Email cancelado correctamente");
-    } else {
-      new Notice(`❌ Error: ${result.error || 'Error al cancelar email'}`);
+    // Mostrar spinner en el botón si está disponible
+    if (button) {
+      this.showLoadingState(button);
     }
+
+    // Mostrar feedback visual inmediato
+    const loadingNotice = new Notice("⏳ Cancelando email...", 0); // 0 = no auto-close
+
+    try {
+      const result = await cancelScheduledEmail(
+        email.notificationId,
+        apiKey
+      );
+
+      // Cerrar el notice de carga
+      loadingNotice.hide();
+
+      // Restaurar botón
+      if (button) {
+        this.hideLoadingState(button);
+      }
+
+      if (result.success) {
+        // Eliminar de la lista local
+        this.plugin.settings.scheduledEmails.splice(index, 1);
+        await this.plugin.saveSettings();
+        this.display(); // Recargar para actualizar la lista
+        new Notice("✅ Email cancelado correctamente");
+      } else {
+        new Notice(`❌ Error: ${result.error || 'Error al cancelar email'}`);
+      }
+    } catch (error) {
+      // Cerrar el notice de carga
+      loadingNotice.hide();
+      
+      // Restaurar botón en caso de error
+      if (button) {
+        this.hideLoadingState(button);
+      }
+      
+      new Notice(`❌ Error: ${error instanceof Error ? error.message : 'Error al cancelar email'}`);
+    }
+  }
+
+  // Mostrar estado de carga (spinner) en el botón
+  private showLoadingState(button: HTMLButtonElement) {
+    // Guardar el texto original
+    (button as any).__originalText = button.textContent;
+    
+    // Deshabilitar botón
+    button.disabled = true;
+    button.style.opacity = '0.6';
+    button.style.cursor = 'not-allowed';
+    
+    // Agregar spinner
+    button.innerHTML = `
+      <span style="display: inline-block; margin-right: 6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
+          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"/>
+        </svg>
+      </span>
+      Cancelando...
+    `;
+    
+    // Agregar animación CSS si no existe
+    if (!document.getElementById('notelert-spinner-style')) {
+      const style = document.createElement('style');
+      style.id = 'notelert-spinner-style';
+      style.textContent = `
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // Ocultar estado de carga y restaurar botón
+  private hideLoadingState(button: HTMLButtonElement) {
+    // Restaurar texto original
+    const originalText = (button as any).__originalText || "🗑️ Cancelar";
+    button.textContent = originalText;
+    
+    // Restaurar estado del botón
+    button.disabled = false;
+    button.style.opacity = '1';
+    button.style.cursor = 'pointer';
   }
 
   // Abrir selector de ubicaciones

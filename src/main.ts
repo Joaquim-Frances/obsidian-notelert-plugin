@@ -61,7 +61,8 @@ export class NotelertPlugin extends Plugin {
   }
 
   // Crear notificación y marcarla como procesada (para uso con modal)
-  public async createNotificationAndMarkProcessed(pattern: DetectedPattern) {
+  // Retorna true si fue exitoso, false si hubo error
+  public async createNotificationAndMarkProcessed(pattern: DetectedPattern): Promise<boolean> {
     try {
       // Crear la notificación
       await this.createNotificationInternal(pattern);
@@ -69,10 +70,12 @@ export class NotelertPlugin extends Plugin {
       // TEMPORALMENTE COMENTADO - Debug para identificar el problema del guardado continuo
       // // Mostrar notificación de éxito
       // new Notice(getTranslation(this.settings.language, "notices.notificationCreated", { title: pattern.title }));
+      return true;
     } catch (error) {
       this.log(`Error procesando notificación confirmada: ${error}`);
       // TEMPORALMENTE COMENTADO - Debug
       // new Notice(getTranslation(this.settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
+      return false;
     }
   }
 

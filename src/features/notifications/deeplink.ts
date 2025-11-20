@@ -98,6 +98,9 @@ export async function createNotification(
       log(`  - Fecha: ${scheduledDate.toISOString()}`);
       log(`  - Notification ID: ${notificationId}`);
       
+      // Mostrar feedback visual inmediato
+      const loadingNotice = new Notice("⏳ Programando email...", 0); // 0 = no auto-close
+      
       // Programar email
       const result = await scheduleEmailReminder(
         settings.userEmail,
@@ -107,6 +110,9 @@ export async function createNotification(
         notificationId,
         apiKey
       );
+      
+      // Cerrar el notice de carga
+      loadingNotice.hide();
 
       if (result.success && result.notificationId) {
         // Guardar el email programado en settings
@@ -127,8 +133,11 @@ export async function createNotification(
           "✅ Email programado correctamente");
         log(`Email programado: ${result.notificationId}`);
       } else {
-        new Notice(`❌ ${result.error || 'Error al programar email'}`);
-        log(`Error programando email: ${result.error}`);
+        // Lanzar error para que el modal no se cierre
+        const errorMessage = result.error || 'Error al programar email';
+        new Notice(`❌ ${errorMessage}`);
+        log(`Error programando email: ${errorMessage}`);
+        throw new Error(errorMessage);
       }
     } else {
       // Móvil: Usar deep link como antes
@@ -140,9 +149,16 @@ export async function createNotification(
         window.location.href = deeplink;
       }
     }
-  } catch (error) {
+  } catch (error: any) {
+    // Solo loggear errores inesperados, los errores de negocio ya se mostraron
+    if (error?.message && error.message.includes('Error al programar email')) {
+      // Re-lanzar errores de negocio para que el modal no se cierre
+      throw error;
+    }
     log(`Error creando notificación: ${error}`);
     new Notice(getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
+    // Re-lanzar para que el modal no se cierre
+    throw error;
   }
 }
 

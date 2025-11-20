@@ -27,28 +27,30 @@ export class NotelertDatePickerModal extends Modal {
     const { contentEl } = this;
     contentEl.empty();
 
-    // Estilos responsive para el modal - usar todo el ancho disponible
+    const isDesktop = !Platform.isMobile;
+    
+    // Estilos responsive para el modal - optimizado para desktop
     contentEl.setAttribute("style", `
-      min-width: 300px; 
-      max-width: 600px; 
-      width: 95vw;
-      max-height: 90vh; 
+      min-width: ${isDesktop ? '400px' : '300px'}; 
+      max-width: ${isDesktop ? '500px' : '600px'}; 
+      width: ${isDesktop ? 'auto' : '95vw'};
+      max-height: ${isDesktop ? 'auto' : '90vh'}; 
       overflow: hidden;
-      padding: 20px;
+      padding: ${isDesktop ? '25px' : '20px'};
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       margin: 0 auto;
     `);
 
-    // Contenedor con scroll interno
+    // Contenedor con scroll interno (solo si es necesario en móvil)
     const scrollContainer = contentEl.createEl("div", {
       attr: {
         style: `
           flex: 1;
-          overflow-y: auto;
+          overflow-y: ${isDesktop ? 'visible' : 'auto'};
           overflow-x: hidden;
-          padding-right: 5px;
+          padding-right: ${isDesktop ? '0' : '5px'};
           margin-bottom: 10px;
         `
       }
@@ -62,8 +64,6 @@ export class NotelertDatePickerModal extends Modal {
     // Contenedor principal - usar todo el ancho
     const container = scrollContainer.createEl("div", { cls: "notelert-datepicker-container" });
     container.setAttribute("style", "margin: 0; width: 100%;");
-
-    const isDesktop = !Platform.isMobile;
     
     // En desktop, forzar tipo 'time' (no hay ubicaciones)
     if (isDesktop) {
@@ -83,18 +83,343 @@ export class NotelertDatePickerModal extends Modal {
     });
     dateInput.setAttribute("style", "width: 100%; padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 6px; box-sizing: border-box; font-size: 14px;");
 
-    // Selector de hora
+    // Selector de hora - visual con botones +/- (mejor UX)
     const timeContainer = container.createEl("div", { cls: "notelert-time-container" });
     timeContainer.setAttribute("style", "margin-bottom: 20px;");
     
     const timeLabel = timeContainer.createEl("label", { text: getTranslation(this.language, "datePicker.timeLabel") });
-    timeLabel.setAttribute("style", "display: block; margin-bottom: 5px; font-weight: 500;");
+    timeLabel.setAttribute("style", "display: block; margin-bottom: 10px; font-weight: 500;");
     
+    // Contenedor para el selector visual de hora
+    const timePickerContainer = timeContainer.createEl("div", {
+      attr: {
+        style: `
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: ${isDesktop ? '20px' : '15px'};
+          padding: ${isDesktop ? '20px' : '15px'};
+          background: var(--background-secondary);
+          border-radius: 8px;
+          border: 1px solid var(--background-modifier-border);
+        `
+      }
+    });
+    
+    // Selector de horas
+    const hoursContainer = timePickerContainer.createEl("div", {
+      attr: {
+        style: `
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        `
+      }
+    });
+    
+    hoursContainer.createEl("div", {
+      text: "Horas",
+      attr: { style: "font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px;" }
+    });
+    
+    const hoursDisplay = hoursContainer.createEl("div", {
+      text: "12",
+      attr: {
+        style: `
+          font-size: ${isDesktop ? '32px' : '28px'};
+          font-weight: 600;
+          color: var(--text-normal);
+          min-width: ${isDesktop ? '60px' : '50px'};
+          text-align: center;
+          padding: ${isDesktop ? '10px 15px' : '8px 12px'};
+          background: var(--background-primary);
+          border-radius: 6px;
+          border: 2px solid var(--interactive-accent);
+        `
+      }
+    });
+    hoursDisplay.id = "hours-display";
+    
+    const hoursButtons = hoursContainer.createEl("div", {
+      attr: {
+        style: `
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        `
+      }
+    });
+    
+    const hoursDecreaseBtn = hoursButtons.createEl("button", {
+      text: "−",
+      attr: {
+        style: `
+          width: ${isDesktop ? '36px' : '32px'};
+          height: ${isDesktop ? '36px' : '32px'};
+          border-radius: 6px;
+          border: 1px solid var(--background-modifier-border);
+          background: var(--background-primary);
+          font-size: ${isDesktop ? '20px' : '18px'};
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        `
+      }
+    });
+    hoursDecreaseBtn.addEventListener("mouseenter", () => {
+      hoursDecreaseBtn.style.background = "var(--background-modifier-hover)";
+      hoursDecreaseBtn.style.borderColor = "var(--interactive-accent)";
+    });
+    hoursDecreaseBtn.addEventListener("mouseleave", () => {
+      hoursDecreaseBtn.style.background = "var(--background-primary)";
+      hoursDecreaseBtn.style.borderColor = "var(--background-modifier-border)";
+    });
+    
+    const hoursIncreaseBtn = hoursButtons.createEl("button", {
+      text: "+",
+      attr: {
+        style: `
+          width: ${isDesktop ? '36px' : '32px'};
+          height: ${isDesktop ? '36px' : '32px'};
+          border-radius: 6px;
+          border: 1px solid var(--background-modifier-border);
+          background: var(--background-primary);
+          font-size: ${isDesktop ? '20px' : '18px'};
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        `
+      }
+    });
+    hoursIncreaseBtn.addEventListener("mouseenter", () => {
+      hoursIncreaseBtn.style.background = "var(--background-modifier-hover)";
+      hoursIncreaseBtn.style.borderColor = "var(--interactive-accent)";
+    });
+    hoursIncreaseBtn.addEventListener("mouseleave", () => {
+      hoursIncreaseBtn.style.background = "var(--background-primary)";
+      hoursIncreaseBtn.style.borderColor = "var(--background-modifier-border)";
+    });
+    
+    // Separador
+    timePickerContainer.createEl("div", {
+      text: ":",
+      attr: {
+        style: `
+          font-size: ${isDesktop ? '32px' : '28px'};
+          font-weight: 600;
+          color: var(--text-normal);
+          margin: 0 ${isDesktop ? '10px' : '5px'};
+        `
+      }
+    });
+    
+    // Selector de minutos
+    const minutesContainer = timePickerContainer.createEl("div", {
+      attr: {
+        style: `
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        `
+      }
+    });
+    
+    minutesContainer.createEl("div", {
+      text: "Minutos",
+      attr: { style: "font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px;" }
+    });
+    
+    const minutesDisplay = minutesContainer.createEl("div", {
+      text: "00",
+      attr: {
+        style: `
+          font-size: ${isDesktop ? '32px' : '28px'};
+          font-weight: 600;
+          color: var(--text-normal);
+          min-width: ${isDesktop ? '60px' : '50px'};
+          text-align: center;
+          padding: ${isDesktop ? '10px 15px' : '8px 12px'};
+          background: var(--background-primary);
+          border-radius: 6px;
+          border: 2px solid var(--interactive-accent);
+        `
+      }
+    });
+    minutesDisplay.id = "minutes-display";
+    
+    const minutesButtons = minutesContainer.createEl("div", {
+      attr: {
+        style: `
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        `
+      }
+    });
+    
+    const minutesDecreaseBtn = minutesButtons.createEl("button", {
+      text: "−",
+      attr: {
+        style: `
+          width: ${isDesktop ? '36px' : '32px'};
+          height: ${isDesktop ? '36px' : '32px'};
+          border-radius: 6px;
+          border: 1px solid var(--background-modifier-border);
+          background: var(--background-primary);
+          font-size: ${isDesktop ? '20px' : '18px'};
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        `
+      }
+    });
+    minutesDecreaseBtn.addEventListener("mouseenter", () => {
+      minutesDecreaseBtn.style.background = "var(--background-modifier-hover)";
+      minutesDecreaseBtn.style.borderColor = "var(--interactive-accent)";
+    });
+    minutesDecreaseBtn.addEventListener("mouseleave", () => {
+      minutesDecreaseBtn.style.background = "var(--background-primary)";
+      minutesDecreaseBtn.style.borderColor = "var(--background-modifier-border)";
+    });
+    
+    const minutesIncreaseBtn = minutesButtons.createEl("button", {
+      text: "+",
+      attr: {
+        style: `
+          width: ${isDesktop ? '36px' : '32px'};
+          height: ${isDesktop ? '36px' : '32px'};
+          border-radius: 6px;
+          border: 1px solid var(--background-modifier-border);
+          background: var(--background-primary);
+          font-size: ${isDesktop ? '20px' : '18px'};
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        `
+      }
+    });
+    minutesIncreaseBtn.addEventListener("mouseenter", () => {
+      minutesIncreaseBtn.style.background = "var(--background-modifier-hover)";
+      minutesIncreaseBtn.style.borderColor = "var(--interactive-accent)";
+    });
+    minutesIncreaseBtn.addEventListener("mouseleave", () => {
+      minutesIncreaseBtn.style.background = "var(--background-primary)";
+      minutesIncreaseBtn.style.borderColor = "var(--background-modifier-border)";
+    });
+    
+    // Input oculto para mantener compatibilidad
     const timeInput = timeContainer.createEl("input", {
       type: "time",
       cls: "notelert-time-input"
     });
-    timeInput.setAttribute("style", "width: 100%; padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 6px; box-sizing: border-box; font-size: 14px;");
+    timeInput.setAttribute("style", "display: none;");
+    timeInput.id = "hidden-time-input";
+    
+    // Botones rápidos de hora (solo en desktop)
+    if (isDesktop) {
+      const quickTimeButtons = timeContainer.createEl("div", {
+        attr: {
+          style: `
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            justify-content: center;
+          `
+        }
+      });
+      
+      const quickTimes = [
+        { label: "9:00", hours: 9, minutes: 0 },
+        { label: "12:00", hours: 12, minutes: 0 },
+        { label: "15:00", hours: 15, minutes: 0 },
+        { label: "18:00", hours: 18, minutes: 0 },
+        { label: "21:00", hours: 21, minutes: 0 },
+      ];
+      
+      quickTimes.forEach(qt => {
+        const btn = quickTimeButtons.createEl("button", {
+          text: qt.label,
+          attr: {
+            style: `
+              padding: 6px 12px;
+              font-size: 12px;
+              border-radius: 4px;
+              border: 1px solid var(--background-modifier-border);
+              background: var(--background-primary);
+              cursor: pointer;
+              transition: all 0.2s;
+            `
+          }
+        });
+        btn.addEventListener("click", () => {
+          this.updateTimeDisplay(qt.hours, qt.minutes, hoursDisplay, minutesDisplay, timeInput);
+        });
+        btn.addEventListener("mouseenter", () => {
+          btn.style.background = "var(--background-modifier-hover)";
+          btn.style.borderColor = "var(--interactive-accent)";
+        });
+        btn.addEventListener("mouseleave", () => {
+          btn.style.background = "var(--background-primary)";
+          btn.style.borderColor = "var(--background-modifier-border)";
+        });
+      });
+    }
+    
+    // Funciones para actualizar hora/minutos
+    const updateHours = (delta: number) => {
+      const currentHours = parseInt(hoursDisplay.textContent || "12");
+      const currentMinutes = parseInt(minutesDisplay.textContent || "0");
+      let newHours = currentHours + delta;
+      if (newHours < 0) newHours = 23;
+      if (newHours > 23) newHours = 0;
+      this.updateTimeDisplay(newHours, currentMinutes, hoursDisplay, minutesDisplay, timeInput);
+    };
+    
+    const updateMinutes = (delta: number) => {
+      const currentHours = parseInt(hoursDisplay.textContent || "12");
+      const currentMinutes = parseInt(minutesDisplay.textContent || "0");
+      let newMinutes = currentMinutes + delta;
+      let newHours = currentHours;
+      
+      if (newMinutes < 0) {
+        newMinutes = 59;
+        newHours = newHours - 1;
+        if (newHours < 0) newHours = 23;
+      } else if (newMinutes > 59) {
+        newMinutes = 0;
+        newHours = newHours + 1;
+        if (newHours > 23) newHours = 0;
+      }
+      
+      this.updateTimeDisplay(newHours, newMinutes, hoursDisplay, minutesDisplay, timeInput);
+    };
+    
+    hoursDecreaseBtn.addEventListener("click", () => updateHours(-1));
+    hoursIncreaseBtn.addEventListener("click", () => updateHours(1));
+    minutesDecreaseBtn.addEventListener("click", () => updateMinutes(-5)); // Incrementos de 5 minutos
+    minutesIncreaseBtn.addEventListener("click", () => updateMinutes(5));
+    
+    // Inicializar con hora actual + 1 hora
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    const initialHours = now.getHours();
+    const initialMinutes = Math.ceil(now.getMinutes() / 5) * 5; // Redondear a múltiplos de 5
+    this.updateTimeDisplay(initialHours, initialMinutes, hoursDisplay, minutesDisplay, timeInput);
 
     // Selector de tipo de notificación (solo en móvil)
     const typeContainer = container.createEl("div", { cls: "notelert-type-container" });
@@ -177,6 +502,13 @@ export class NotelertDatePickerModal extends Modal {
       button.addEventListener("click", () => {
         dateInput.value = action.date;
         timeInput.value = action.time;
+        // Actualizar display visual si existe
+        const hoursDisplay = document.getElementById("hours-display");
+        const minutesDisplay = document.getElementById("minutes-display");
+        if (hoursDisplay && minutesDisplay) {
+          const [hours, minutes] = action.time.split(':').map(Number);
+          this.updateTimeDisplay(hours, minutes, hoursDisplay, minutesDisplay, timeInput);
+        }
       });
     });
 
@@ -210,7 +542,11 @@ export class NotelertDatePickerModal extends Modal {
       cls: "mod-cta"
     });
     confirmButton.setAttribute("style", "flex: 1; min-width: 120px; padding: 12px 20px; font-size: 14px; box-sizing: border-box;");
+    confirmButton.id = "datepicker-confirm-button";
+    
     confirmButton.addEventListener("click", async () => {
+      // Mostrar spinner y deshabilitar botón
+      this.showLoadingState(confirmButton);
       const addLog = (message: string) => {
         const debugInfo = document.getElementById("datepicker-debug-info");
         if (debugInfo) {
@@ -226,44 +562,59 @@ export class NotelertDatePickerModal extends Modal {
         }
       };
 
-      if (this.notificationType === 'location') {
-        // Para ubicación, verificar que se haya seleccionado una
-        if (!this.selectedLocation) {
-          new Notice(getTranslation(this.language, "datePicker.selectSavedLocation") || "Por favor, selecciona una ubicación");
-          return;
-        }
-        // Crear notificación con la ubicación seleccionada
-        await this.createNotificationFromLocation(this.selectedLocation);
-        this.close();
-      } else {
-        // Para tiempo, usar fecha y hora
-        const date = dateInput.value;
-        const time = timeInput.value;
-        
-        if (date && time) {
-          // Reemplazar :@ o :# con :@fecha, hora
-          const replacement = `:@${date}, ${time}`;
-          const line = this.editor.getLine(this.cursor.line);
-          const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
-          const afterCursor = line.substring(this.cursor.ch);
-          const newLine = beforeCursor + replacement + afterCursor;
-          
-          this.editor.setLine(this.cursor.line, newLine);
-          
-          // Mover cursor al final del reemplazo
-          const newCursor = {
-            line: this.cursor.line,
-            ch: beforeCursor.length + replacement.length
-          };
-          this.editor.setCursor(newCursor);
-          
-          // Crear la notificación directamente
-          await this.createNotificationFromDatePicker(date, time, newLine);
-          
-          this.close();
+      try {
+        if (this.notificationType === 'location') {
+          // Para ubicación, verificar que se haya seleccionado una
+          if (!this.selectedLocation) {
+            this.hideLoadingState(confirmButton);
+            new Notice(getTranslation(this.language, "datePicker.selectSavedLocation") || "Por favor, selecciona una ubicación");
+            return;
+          }
+          // Crear notificación con la ubicación seleccionada
+          const success = await this.createNotificationFromLocation(this.selectedLocation);
+          this.hideLoadingState(confirmButton);
+          if (success) {
+            this.close();
+          }
         } else {
-          new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
+          // Para tiempo, usar fecha y hora
+          const date = dateInput.value;
+          const time = timeInput.value;
+          
+          if (date && time) {
+            // Reemplazar :@ o :# con :@fecha, hora
+            const replacement = `:@${date}, ${time}`;
+            const line = this.editor.getLine(this.cursor.line);
+            const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
+            const afterCursor = line.substring(this.cursor.ch);
+            const newLine = beforeCursor + replacement + afterCursor;
+            
+            this.editor.setLine(this.cursor.line, newLine);
+            
+            // Mover cursor al final del reemplazo
+            const newCursor = {
+              line: this.cursor.line,
+              ch: beforeCursor.length + replacement.length
+            };
+            this.editor.setCursor(newCursor);
+            
+            // Crear la notificación directamente
+            const success = await this.createNotificationFromDatePicker(date, time, newLine);
+            
+            this.hideLoadingState(confirmButton);
+            if (success) {
+              this.close();
+            }
+          } else {
+            this.hideLoadingState(confirmButton);
+            new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
+          }
         }
+      } catch (error) {
+        // Restaurar estado del botón en caso de error
+        this.hideLoadingState(confirmButton);
+        this.plugin.log(`Error en confirmación: ${error}`);
+        new Notice(`❌ Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
       }
     });
 
@@ -293,8 +644,26 @@ export class NotelertDatePickerModal extends Modal {
     return now.toTimeString().slice(0, 5);
   }
 
+  // Actualizar display visual de hora y sincronizar con input oculto
+  private updateTimeDisplay(hours: number, minutes: number, hoursDisplay: HTMLElement, minutesDisplay: HTMLElement, timeInput: HTMLInputElement) {
+    // Asegurar valores válidos
+    if (hours < 0) hours = 0;
+    if (hours > 23) hours = 23;
+    if (minutes < 0) minutes = 0;
+    if (minutes > 59) minutes = 59;
+    
+    // Actualizar displays
+    hoursDisplay.textContent = String(hours).padStart(2, '0');
+    minutesDisplay.textContent = String(minutes).padStart(2, '0');
+    
+    // Sincronizar con input oculto (formato HH:MM)
+    const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    timeInput.value = timeString;
+  }
+
   // Crear notificación directamente desde el date picker
-  private async createNotificationFromDatePicker(date: string, time: string, fullText: string) {
+  // Retorna true si fue exitoso, false si hubo error
+  private async createNotificationFromDatePicker(date: string, time: string, fullText: string): Promise<boolean> {
     try {
       // Obtener el título de la nota (nombre del archivo sin extensión)
       const activeFile = this.plugin.app.workspace.getActiveFile();
@@ -320,7 +689,11 @@ export class NotelertDatePickerModal extends Modal {
       };
 
       // Crear la notificación directamente
-      await this.plugin.createNotificationAndMarkProcessed(pattern);
+      const success = await this.plugin.createNotificationAndMarkProcessed(pattern);
+      
+      if (!success) {
+        return false;
+      }
       
       // TEMPORALMENTE COMENTADO - Debug para identificar el problema del guardado continuo
       // // Añadir feedback visual con un pequeño delay para evitar conflictos con el guardado
@@ -335,9 +708,11 @@ export class NotelertDatePickerModal extends Modal {
       
       // TEMPORALMENTE COMENTADO - Debug
       // this.plugin.log(`Notificación creada desde date picker: ${pattern.title}`);
+      return true;
     } catch (error) {
       this.plugin.log(`Error creando notificación desde date picker: ${error}`);
       new Notice(getTranslation(this.language, "notices.errorCreatingNotification", { title: "Recordatorio" }));
+      return false;
     }
   }
 
@@ -787,7 +1162,8 @@ export class NotelertDatePickerModal extends Modal {
   }
 
   // Crear notificación desde ubicación guardada
-  private async createNotificationFromLocation(location: any) {
+  // Retorna true si fue exitoso, false si hubo error
+  private async createNotificationFromLocation(location: any): Promise<boolean> {
     try {
       // Reemplazar :@ o :# con :#nombreUbicacion
       const replacement = `:#${location.name}`;
@@ -833,13 +1209,66 @@ export class NotelertDatePickerModal extends Modal {
       };
 
       // Crear la notificación directamente
-      await this.plugin.createNotificationAndMarkProcessed(pattern);
+      const success = await this.plugin.createNotificationAndMarkProcessed(pattern);
+      
+      if (!success) {
+        return false;
+      }
       
       this.plugin.log(`Notificación de ubicación creada: ${pattern.title} en ${location.name}`);
+      return true;
     } catch (error) {
       this.plugin.log(`Error creando notificación de ubicación: ${error}`);
       new Notice(getTranslation(this.language, "notices.errorCreatingNotification", { title: "Recordatorio de ubicación" }));
+      return false;
     }
+  }
+
+  // Mostrar estado de carga (spinner) en el botón
+  private showLoadingState(button: HTMLButtonElement) {
+    // Guardar el texto original
+    (button as any).__originalText = button.textContent;
+    
+    // Deshabilitar botón
+    button.disabled = true;
+    button.style.opacity = '0.6';
+    button.style.cursor = 'not-allowed';
+    
+    // Agregar spinner
+    button.innerHTML = `
+      <span style="display: inline-block; margin-right: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
+          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"/>
+        </svg>
+      </span>
+      ${getTranslation(this.language, "datePicker.confirmButton") || "Confirmando..."}
+    `;
+    
+    // Agregar animación CSS si no existe
+    if (!document.getElementById('notelert-spinner-style')) {
+      const style = document.createElement('style');
+      style.id = 'notelert-spinner-style';
+      style.textContent = `
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  // Ocultar estado de carga y restaurar botón
+  private hideLoadingState(button: HTMLButtonElement) {
+    // Restaurar texto original
+    const originalText = (button as any).__originalText || getTranslation(this.language, "datePicker.confirmButton") || "Confirmar";
+    button.textContent = originalText;
+    
+    // Restaurar estado del botón
+    button.disabled = false;
+    button.style.opacity = '1';
+    button.style.cursor = 'pointer';
   }
 
   // Añadir feedback visual: reemplazar :@ con icono de despertador y resaltar solo fecha/hora
