@@ -1,229 +1,30 @@
-# Notelert
-
-Automates the creation of notifications for the **Notelert** mobile app by detecting date/time patterns in your Obsidian notes. Write reminders in your notes and the plugin will automatically convert them into scheduled notifications.
-
-## Features
-
-- ✅ **Automatic detection** of date/time patterns using `{@date, time}` syntax
-- ✅ **Interactive date picker** - Type `{@` to open a visual date and time selector
-- ✅ **Location selector** - Type `{#` to create location-based reminders (geofencing)
-- ✅ **Multi-language support** - 10 popular languages with native keywords
-- ✅ **Relative dates** - Supports "today", "tomorrow", "yesterday" in multiple languages
-- ✅ **Absolute dates** - Formats DD/MM, DD/MM/YYYY, DD-MM-YYYY
-- ✅ **Multiple time formats** - HH:MM, H:MM, HH.MM, H.MM
-- ✅ **Email notifications** - On desktop, schedule emails directly without needing the mobile app
-- ✅ **Notelert integration** - On mobile, automatically opens the Notelert app
-- ✅ **Geocoding** - Support for multiple providers (Google Maps, Nominatim, Mapbox, etc.)
-- ✅ **Flexible configuration** - Customize keywords, excluded folders, and more
-
-## Installation
-
-### From Obsidian (Recommended)
-
-1. Open **Settings** → **Community plugins**
-2. Search for "Notelert"
-3. Click **Install** and then **Enable**
-
-### Manual Installation
-
-1. Download the latest version from [GitHub Releases](https://github.com/tu-usuario/obsidian-notelert-plugin/releases)
-2. Extract the `main.js` and `manifest.json` files to your plugins folder:
-   ```
-   .obsidian/plugins/obsidian-notelert-plugin/
-   ```
-3. Restart Obsidian and enable the plugin in **Settings** → **Community plugins**
-
-## Usage
-
-### Basic Syntax
-
-The plugin detects patterns using the `{@date, time}` syntax:
-
-```
-{@tomorrow, 10:00} Important team meeting
-{@15/12/2025, 14:30} Doctor's appointment
-{@today, 18:00} Buy Christmas gifts
-```
-
-### Interactive Date Picker
-
-1. Type `{@` in any note
-2. A date and time selector will automatically open
-3. Select the desired date and time
-4. The plugin will automatically create the notification
-
-### Location Selector
-
-1. Type `{#` in any note
-2. A location selector with an interactive map will open
-3. Search for an address or click on the map
-4. Configure the geofence radius
-5. The plugin will create a location-based reminder
-
-### Examples
-
-#### Relative Dates
-```
-{@today, 16:00} Review pending emails
-{@tomorrow, 09:00} Call the client
-{@yesterday, 20:00} Review meeting notes
-```
-
-#### Absolute Dates
-```
-{@12/10, 18:00} Buy birthday gifts
-{@15/10/2025, 14:30} Important doctor's appointment
-{@31-12-2025, 23:59} New Year's celebration
-```
-
-#### With Location
-```
-{#Home, 100m} Arrive home and take medication
-{#Work, 50m} Team meeting at the office
-{#Supermarket, 200m} Buy ingredients for dinner
-```
-
-## Configuration
-
-Access settings from **Settings** → **Community plugins** → **Notelert**
-
-### General Settings
-
-- **Enable date picker** - Enable/disable the picker when typing `{@`
-- **Debug mode** - Show debug messages in the console
-- **Language** - Select the language for pattern detection (10 languages available)
-
-### Desktop Settings (Email)
-
-- **User email** - Your email to receive scheduled notifications
-- **Notelert API Key** - API key for authentication (included by default)
-
-### Location Settings
-
-- **Geocoding provider** - Choose between Google Maps, Nominatim, Mapbox, etc.
-- **API Keys** - Configure optional API keys for premium providers
-- **Saved locations** - Manage your favorite locations
-
-### Excluded Folders
-
-By default, these folders are not processed:
-- `Templates`
-- `Archive`
-- `Trash`
-
-You can add more folders in the settings.
-
-## Supported Languages
-
-The plugin supports pattern detection in 10 languages:
-
-- 🇪🇸 **Spanish** - `Recordar:`, `Notificar:`, `Alerta:`, etc.
-- 🇺🇸 **English** - `Remember:`, `Notify:`, `Alert:`, etc.
-- 🇫🇷 **French** - `Rappeler:`, `Notifier:`, `Alerte:`, etc.
-- 🇩🇪 **German** - `Erinnern:`, `Benachrichtigen:`, `Alarm:`, etc.
-- 🇮🇹 **Italian** - `Ricordare:`, `Notificare:`, `Allerta:`, etc.
-- 🇵🇹 **Portuguese** - `Lembrar:`, `Notificar:`, `Alerta:`, etc.
-- 🇷🇺 **Russian** - `Напомнить:`, `Уведомить:`, `Тревога:`, etc.
-- 🇯🇵 **Japanese** - `覚えて:`, `通知:`, `アラート:`, etc.
-- 🇨🇳 **Chinese** - `记住:`, `通知:`, `警报:`, etc.
-- 🇸🇦 **Arabic** - `تذكر:`, `إشعار:`, `تنبيه:`, etc.
-
-Each language has its own native keywords and support for relative dates.
-
-## Requirements
-
-- **Obsidian**: Version 0.15.0 or higher
-- **Operating systems**: Windows, macOS, Linux
-- **Notelert** (optional): Mobile app installed for push notifications on mobile devices
-
-## Platforms
-
-### Desktop (Windows, macOS, Linux)
-
-On desktop, the plugin schedules **email** notifications directly using the Notelert API. You don't need the mobile app installed.
-
-### Mobile (Android/iOS)
-
-On mobile devices, the plugin automatically opens the **Notelert** app using deeplinks to create push notifications.
-
-## Troubleshooting
-
-### Date picker doesn't open
-
-- Verify that "Enable date picker" is enabled in settings
-- Make sure you type exactly `{@` (no spaces)
-- Restart Obsidian if the problem persists
-
-### Notifications are not created
-
-- **On desktop**: Verify that your email is configured correctly
-- **On mobile**: Make sure the Notelert app is installed
-- Enable debug mode to see detailed messages in the console
-
-### Geocoding errors
-
-- Verify that your API key is configured correctly (if using a premium provider)
-- Consider switching to Nominatim (free, no API key required)
-- Check the logs in the console with debug mode enabled
-
-## Development
-
-### Build from source
-
-```bash
-# Clone the repository
-git clone https://github.com/tu-usuario/obsidian-notelert-plugin.git
-cd obsidian-notelert-plugin
-
-# Install dependencies
-npm install
-
-# Compile the plugin
-npm run build
-```
-
-### Project Structure
-
-```
-obsidian-notelert-plugin/
-├── src/
-│   ├── main.ts              # Plugin entry point
-│   ├── core/                # Configuration and types
-│   ├── features/            # Main features
-│   ├── modals/              # Interface modals
-│   └── settings/            # Settings panel
-├── manifest.json            # Plugin manifest
-└── package.json             # Dependencies and scripts
-```
-
-## Contributing
-
-Contributions are welcome. Please:
-
-1. Fork the project
-2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
-
-## Author
-
-**Quim Frances**
-
-- GitHub: [@tu-usuario](https://github.com/tu-usuario)
-
-## Acknowledgments
-
-- Obsidian team for the excellent API
-- Plugin developer community
-- All users who report bugs and suggest improvements
-
----
-
-**Having problems or suggestions?** Open an [issue on GitHub](https://github.com/tu-usuario/obsidian-notelert-plugin/issues).
-
-**Like the plugin?** Give it a star ⭐ on GitHub!
+## What is Notelert
+Notelert is an app that sets notifications and reminders in the Android systems thanks to the Notelert plug-in in Obsidian. This app and plugin act as a bridge between Obsidian and the Android native capavilites regarding notifications. So you want a notification in a certain line of your note, you trigger the pop up select the notification type and confirm. Notelert opens, register the notification in the Android system and return you back to Obsidian in less than two seconds. So the notification is set and you can continue with your notes. The app also acts as list or log of your current active notifications and the old ones, and you can set some preferences also. But that's it.
+Notelert app or plugin does not scans you vault in any way.
+
+## Note for Obsidian Team
+The plugin still need some polishing, and also the app is in an open beta test in Google Play but I do not want to go further without your consent. I really want you to test the app and plugin fully so if you provide me of some emails that the team use for testing I can add you to the beta test in Google Play so you will be able to download the app and test it properly. Without the app the plugin does nothing. If there is another way that you like to use to test the whole system I'm completely open to know about. 
+Many thanks!
+## How it Works 
+
+### Basic Usage
+The user triggers a pop-up using `:@` then in the pop-up the user can select the date and time that he/she wants to be notified and confirms. After confirming a deeplink is generated and the Notelert app catches it and parses the link. If the link contains a valid future date and time, the app sets a notification in the system.
+
+### Location Notifications
+If the user chooses to set a location based notification the process is the same but instead of using date and time the deeplink contains at latitude and longitude. When pressing the location button in the pop-up, appears the list of pre-selected locations that previously the user has selected in the options of the plugin.
+The app uses Google Maps API and geofencing to detect the position of the device and triggers the notification when arriving.
+
+### Email Notifications
+In adition to the push notifications the user can choose if he/she wants to receive email notifications at the same moment than the push notifications. There is a section in the options page when the user can activate or deactive email notifications. Also there is a section in the options page to specify the email that the user wants to use to receive the notification. Email system is using a small backend in Firebase and Resend email system.
+
+## Mobile vs Desktop Modes
+The plugin detects when the device is desktop or mobile and changes the behaviour of the plugin. Initially I was only thinking to use the plugin for mobile, but after setting the email system I decided to use that feature in desktop mode. So in desktop due to the limitations of this project at this stage the email notifications is the only way to be notified. 
+In desktop mode the user selects in the pop-up the date and time of the notification and he/she will receive an email at that moment. Also the email notification that the user sets in desktop mode are listed in the options section of the plugin and can be deleted
+
+## Data usage
+All the data that the app collects is to provide the notifications and nothing else. 
+The plugin nor the app does NOT scan the vaults. Only gets the title of the note and the line of the reminder.
+
+## Premium Features
+While the plugin is totally free the app has a free mode and premium one. The free mode permit all user to set a maximum of 5 active reminders ( I'm still considering the limits). 
+Also the app will have a Premium mode that will unlimit the push notifications and will enable the location and the email notifications.((both location and email notifications has costs of mantainance attached)
