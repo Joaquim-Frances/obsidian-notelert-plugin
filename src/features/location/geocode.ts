@@ -1,4 +1,5 @@
 import { NotelertSettings } from "../../core/types";
+import { PLUGIN_GEOCODE_URL } from "../../core/config";
 
 export type GeocodingProvider = 'nominatim' | 'google' | 'mapbox' | 'locationiq' | 'opencage' | 'algolia';
 
@@ -51,15 +52,17 @@ export class NominatimProvider implements GeocodingProviderInterface {
   }
 }
 
-// API Key por defecto del plugin (puede ser sobrescrita por el usuario)
-const DEFAULT_GOOGLE_MAPS_API_KEY = "AIzaSyBwR-GmihN8Xic-npwi6p4wTUwJ67ueWvk";
+// NOTA: La API Key de Google Maps ya NO está hardcodeada por seguridad.
+// El plugin usa el endpoint proxy pluginGeocode que oculta la API key.
 
 // Implementación para Google Maps Geocoding API
 export class GoogleMapsProvider implements GeocodingProviderInterface {
   constructor(
-    private apiKey: string,
-    private useProxy: boolean = false,
-    private proxyUrl: string = ""
+    private apiKey: string = "", // Ya no se usa cuando useProxy es true
+    private useProxy: boolean = true, // Por defecto usar proxy (más seguro)
+    private proxyUrl: string = "",
+    private userId?: string,
+    private userEmail?: string
   ) {}
 
   async search(query: string, language: string): Promise<GeocodingResult[]> {
@@ -67,21 +70,57 @@ export class GoogleMapsProvider implements GeocodingProviderInterface {
     let options: RequestInit = {};
 
     if (this.useProxy && this.proxyUrl) {
-      // Usar Firebase Functions como proxy
-      url = `${this.proxyUrl}?query=${encodeURIComponent(query)}&language=${language}`;
+      // Usar Firebase Functions como proxy (más seguro - no expone API key)
+      url = this.proxyUrl;
+      options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          language,
+          userId: this.userId,
+          userEmail: this.userEmail,
+        }),
+      };
     } else {
-      // Llamada directa a Google Maps API
+      // Llamada directa a Google Maps API (solo si el usuario tiene su propia API key)
+      if (!this.apiKey || this.apiKey.trim() === '') {
+        throw new Error('Google Maps API key requerida para llamada directa. Usa el proxy de Firebase en su lugar.');
+      }
       url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${this.apiKey}&language=${language}`;
     }
     
     const response = await fetch(url, options);
     if (!response.ok) {
-      throw new Error(`Google Maps error: ${response.status} ${response.statusText}`);
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Google Maps error: ${response.status} ${response.statusText} - ${errorData.message || ''}`);
     }
 
     const data = await response.json();
     
-    // Manejar diferentes estados de respuesta de Google Maps
+    // Manejar respuesta del proxy (formato diferente)
+    if (this.useProxy && this.proxyUrl) {
+      if (data.status === 'ZERO_RESULTS' || (data.results && data.results.length === 0)) {
+        return [];
+      }
+      
+      if (data.status !== 'OK' && data.error) {
+        throw new Error(`Geocoding API error: ${data.error} - ${data.message || ''}`);
+      }
+      
+      // El proxy ya devuelve el formato correcto
+      return (data.results || []).map((result: any) => ({
+        name: result.name,
+        latitude: result.latitude,
+        longitude: result.longitude,
+        address: result.address,
+        displayName: result.displayName
+      }));
+    }
+    
+    // Manejar respuesta directa de Google Maps API
     if (data.status === 'ZERO_RESULTS') {
       return []; // No hay resultados, pero no es un error
     }
@@ -313,25 +352,22 @@ export async function searchLocations(
       
       switch (providerType) {
         case 'google':
-          // Determinar qué API key usar: la del usuario o la por defecto del plugin
-          const apiKey = (settings.googleMapsApiKey && settings.googleMapsApiKey.trim() !== '') 
-            ? settings.googleMapsApiKey 
-            : DEFAULT_GOOGLE_MAPS_API_KEY;
-          
-          if (!apiKey || apiKey.trim() === '') {
-            log?.(`Google Maps: API key no configurada (ni usuario ni plugin)`);
-            continue;
-          }
-          
-          // Verificar si usar proxy de Firebase
-          const useProxy = (settings as any).useFirebaseProxy || false;
-          const proxyUrl = (settings as any).firebaseGeocodingUrl || '';
+          // Verificar si usar proxy de Firebase (recomendado - más seguro)
+          const useProxy = (settings as any).useFirebaseProxy !== false; // Por defecto true
+          const proxyUrl = (settings as any).firebaseGeocodingUrl || PLUGIN_GEOCODE_URL;
           
           if (useProxy && proxyUrl) {
-            log?.(`Google Maps: Usando proxy Firebase`);
-            provider = new GoogleMapsProvider(apiKey, true, proxyUrl);
+            log?.(`Google Maps: Usando proxy Firebase (sin API key requerida)`);
+            // El proxy no requiere API key del plugin
+            provider = new GoogleMapsProvider('', true, proxyUrl, (settings as any).userId, settings.userEmail);
           } else {
-            log?.(`Google Maps: API key encontrada (${apiKey.substring(0, 10)}...)`);
+            // Solo usar llamada directa si el usuario tiene su propia API key
+            const apiKey = settings.googleMapsApiKey?.trim() || '';
+            if (!apiKey) {
+              log?.(`Google Maps: API key no configurada y proxy no disponible. Usando Nominatim como fallback.`);
+              continue; // Saltar a Nominatim
+            }
+            log?.(`Google Maps: Usando API key del usuario (llamada directa)`);
             provider = new GoogleMapsProvider(apiKey, false);
           }
           break;

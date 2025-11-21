@@ -5,7 +5,7 @@ import { SavedLocation, ScheduledEmail } from "../core/types";
 import { searchLocations, GeocodingResult } from "../features/location/geocode";
 import { cancelScheduledEmail } from "../features/notifications/firebase-api";
 import { NotelertLocationPickerModal } from "../modals/LocationPickerModal";
-import { DEFAULT_NOTELERT_API_KEY } from "../core/config";
+import { PLUGIN_SCHEDULE_EMAIL_URL } from "../core/config";
 
 export class NotelertSettingTab extends PluginSettingTab {
   plugin: INotelertPlugin;
@@ -342,11 +342,13 @@ export class NotelertSettingTab extends PluginSettingTab {
 
   // Cancelar email programado
   private async cancelScheduledEmail(email: ScheduledEmail, index: number, button?: HTMLButtonElement) {
-    // Usar API key de settings o la por defecto
-    const apiKey = this.plugin.settings.notelertApiKey || DEFAULT_NOTELERT_API_KEY;
+    // NOTA: cancelScheduledEmail todavía requiere API key del endpoint antiguo
+    // TODO: Crear endpoint /plugin/cancelEmail que use autenticación por usuario
+    // Por ahora, si no hay API key configurada, mostrar error
+    const apiKey = this.plugin.settings.notelertApiKey;
     
     if (!apiKey) {
-      new Notice("❌ API Key no configurada. Contacta al desarrollador del plugin.");
+      new Notice("❌ Para cancelar emails, necesitas configurar una API key en Settings (o esperar a que se envíe automáticamente).");
       return;
     }
 

@@ -40,7 +40,10 @@ export interface NotelertSettings {
   algoliaAppId?: string; // App ID de Algolia Places (opcional)
   // Configuración para Desktop (emails)
   userEmail?: string; // Email del usuario para recibir notificaciones (requerido en desktop)
-  notelertApiKey?: string; // API Key de Notelert para autenticación (requerido en desktop)
+  userId?: string; // ID del usuario de Google (opcional, para autenticación mejorada)
+  notelertApiKey?: string; // API Key de Notelert (opcional, solo para cancelar emails - programar usa proxy sin API key)
+  useFirebaseProxy?: boolean; // Usar Firebase Functions como proxy para geocodificación (más seguro)
+  firebaseGeocodingUrl?: string; // URL del endpoint proxy de geocodificación
   scheduledEmails: ScheduledEmail[]; // Lista de emails programados
 }
 

@@ -387,8 +387,21 @@ export class NotelertLocationPickerModal extends Modal {
     this.addDebugInfo(`📝 Creando callback: ${callbackName}`);
     
     // Cargar el script de Google Maps
+    // NOTA: El mapa interactivo requiere una API key de Google Maps del usuario
+    // La geocodificación usa el proxy de Firebase (sin API key requerida)
+    const apiKey = this.plugin.settings.googleMapsApiKey?.trim() || '';
+    
+    if (!apiKey) {
+      this.addDebugInfo('⚠️ API key de Google Maps no configurada');
+      this.addDebugInfo('ℹ️ El mapa interactivo no estará disponible, pero puedes buscar ubicaciones usando el campo de búsqueda');
+      this.showMapError(
+        'Mapa no disponible',
+        'Para usar el mapa interactivo, configura tu API key de Google Maps en Settings.<br><br>La búsqueda de ubicaciones seguirá funcionando usando el proxy de Firebase.'
+      );
+      return;
+    }
+    
     const script = document.createElement('script');
-    const apiKey = 'AIzaSyBwR-GmihN8Xic-npwi6p4wTUwJ67ueWvk';
     const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${callbackName}`;
     script.src = scriptUrl;
     script.async = true;

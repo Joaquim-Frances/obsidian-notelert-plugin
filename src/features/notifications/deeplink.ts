@@ -1,8 +1,8 @@
 import { App, Notice, Platform } from "obsidian";
 import { DetectedPattern, NotelertSettings, ScheduledEmail } from "../../core/types";
 import { getTranslation } from "../../i18n";
-import { scheduleEmailReminder, generateNotificationId } from "./firebase-api";
-import { DEFAULT_NOTELERT_API_KEY } from "../../core/config";
+import { scheduleEmailReminderProxy, generateNotificationId } from "./firebase-api";
+import { PLUGIN_SCHEDULE_EMAIL_URL } from "../../core/config";
 
 export function generateDeepLink(pattern: DetectedPattern, app: App): string {
   const title = encodeURIComponent(pattern.title);
@@ -54,18 +54,10 @@ export async function createNotification(
     const isDesktop = !Platform.isMobile;
     
     if (isDesktop) {
-      // Desktop: Usar Firebase API para programar email
-      // Usar API key de settings o la por defecto
-      const apiKey = settings.notelertApiKey || DEFAULT_NOTELERT_API_KEY;
-      
+      // Desktop: Usar Firebase API para programar email (endpoint proxy - sin API key requerida)
       if (!settings.userEmail) {
         new Notice(getTranslation(settings.language, "notices.desktopConfigRequired") || 
           "❌ Configura tu email en Settings para usar Notelert en desktop");
-        return;
-      }
-
-      if (!apiKey) {
-        new Notice("❌ API Key no configurada. Contacta al desarrollador del plugin.");
         return;
       }
 
@@ -88,12 +80,21 @@ export async function createNotification(
         return;
       }
       
+      // Limpiar el mensaje de los patrones :@fecha, hora y :#ubicacion (igual que en móvil)
+      let cleanMessage = pattern.message;
+      // Eliminar patrones :@fecha, hora (ej: :@2024-01-15, 14:30)
+      cleanMessage = cleanMessage.replace(/:@[^,\s]+,\s*[^\s]+/g, '');
+      // Eliminar patrones :#ubicacion (ej: :#Supermercado)
+      cleanMessage = cleanMessage.replace(/:#[^\s]+/g, '');
+      // Limpiar espacios extra
+      cleanMessage = cleanMessage.trim().replace(/\s+/g, ' ');
+      
       // Generar ID único
       const notificationId = generateNotificationId();
       
       log(`Programando email para desktop:`);
       log(`  - Título: ${pattern.title}`);
-      log(`  - Mensaje: ${pattern.message}`);
+      log(`  - Mensaje: ${cleanMessage}`);
       log(`  - Email: ${settings.userEmail}`);
       log(`  - Fecha: ${scheduledDate.toISOString()}`);
       log(`  - Notification ID: ${notificationId}`);
@@ -102,13 +103,13 @@ export async function createNotification(
       const loadingNotice = new Notice("⏳ Programando email...", 0); // 0 = no auto-close
       
       // Programar email
-      const result = await scheduleEmailReminder(
+      const result = await scheduleEmailReminderProxy(
         settings.userEmail,
         pattern.title,
-        pattern.message,
+        cleanMessage, // Usar mensaje limpio
         scheduledDate,
         notificationId,
-        apiKey
+        (settings as any).userId
       );
       
       // Cerrar el notice de carga
@@ -119,7 +120,7 @@ export async function createNotification(
         const scheduledEmail: ScheduledEmail = {
           notificationId: result.notificationId,
           title: pattern.title,
-          message: pattern.message,
+          message: cleanMessage, // Usar mensaje limpio
           scheduledDate: scheduledDate.toISOString(),
           createdAt: new Date().toISOString()
         };
