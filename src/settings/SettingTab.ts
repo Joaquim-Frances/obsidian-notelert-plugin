@@ -92,10 +92,36 @@ export class NotelertSettingTab extends PluginSettingTab {
     if (isDesktop) {
       containerEl.createEl("h3", { text: "💻 Configuración Desktop" });
 
-      // Email del usuario
+      // Token del Plugin (REQUERIDO para premium features)
       new Setting(containerEl)
-        .setName("Email del Usuario")
-        .setDesc("Email donde recibirás las notificaciones programadas")
+        .setName("🔑 Token del Plugin")
+        .setDesc("Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token.")
+        .addText((text) => {
+          text
+            .setPlaceholder("Pega tu token aquí...")
+            .setValue(this.plugin.settings.pluginToken || "")
+            .inputEl.type = "password";
+          text.onChange(async (value) => {
+            this.plugin.settings.pluginToken = value.trim();
+            await this.plugin.saveSettings();
+          });
+        })
+        .addButton((button) => {
+          button
+            .setButtonText("Mostrar/Ocultar")
+            .setCta(false)
+            .onClick(() => {
+              const input = containerEl.querySelector('input[type="password"]') as HTMLInputElement;
+              if (input) {
+                input.type = input.type === "password" ? "text" : "password";
+              }
+            });
+        });
+
+      // Email del usuario (DEPRECATED pero mantener por compatibilidad)
+      new Setting(containerEl)
+        .setName("Email del Usuario (Opcional)")
+        .setDesc("Email donde recibirás las notificaciones. Ya no es necesario si usas token del plugin.")
         .addText((text) => {
           text
             .setPlaceholder("usuario@email.com")

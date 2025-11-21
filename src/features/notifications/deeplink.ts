@@ -54,7 +54,20 @@ export async function createNotification(
     const isDesktop = !Platform.isMobile;
     
     if (isDesktop) {
-      // Desktop: Usar Firebase API para programar email (endpoint proxy - sin API key requerida)
+      // Desktop: Usar Firebase API para programar email (requiere token premium)
+      
+      // Validar token del plugin PRIMERO (requerido para premium features)
+      if (!settings.pluginToken || settings.pluginToken.trim() === '') {
+        new Notice(
+          "🔑 Token del plugin requerido\n\n" +
+          "Para usar emails premium desde el plugin, necesitas:\n" +
+          "1. Tener plan Premium activo\n" +
+          "2. Generar tu token en la app móvil (Settings > Token del Plugin)\n" +
+          "3. Pegar el token en Settings > Notelert > Plugin Token"
+        );
+        return;
+      }
+
       if (!settings.userEmail) {
         new Notice(getTranslation(settings.language, "notices.desktopConfigRequired") || 
           "❌ Configura tu email en Settings para usar Notelert en desktop");
@@ -101,15 +114,15 @@ export async function createNotification(
       
       // Mostrar feedback visual inmediato
       const loadingNotice = new Notice("⏳ Programando email...", 0); // 0 = no auto-close
-      
-      // Programar email
+
+      // Programar email (token ya validado arriba)
       const result = await scheduleEmailReminderProxy(
         settings.userEmail,
         pattern.title,
         cleanMessage, // Usar mensaje limpio
         scheduledDate,
         notificationId,
-        (settings as any).userId
+        settings.pluginToken
       );
       
       // Cerrar el notice de carga

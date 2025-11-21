@@ -243,7 +243,7 @@ export async function scheduleEmailReminderProxy(
   message: string,
   scheduledDate: Date,
   notificationId: string,
-  userId?: string
+  pluginToken: string
 ): Promise<ScheduleEmailResult> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
@@ -259,11 +259,18 @@ export async function scheduleEmailReminderProxy(
       userEmail: userEmail, // Requerido para autenticación
     };
 
+    if (!pluginToken || pluginToken.trim() === '') {
+      return {
+        success: false,
+        error: 'Token del plugin requerido. Configura tu token en Settings > Notelert > Plugin Token.'
+      };
+    }
+
     const response = await fetch(PLUGIN_SCHEDULE_EMAIL_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // NO se envía API Key - el endpoint valida por userId/userEmail
+        'X-Plugin-Token': pluginToken,
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,

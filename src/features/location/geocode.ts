@@ -62,7 +62,8 @@ export class GoogleMapsProvider implements GeocodingProviderInterface {
     private useProxy: boolean = true, // Por defecto usar proxy (más seguro)
     private proxyUrl: string = "",
     private userId?: string,
-    private userEmail?: string
+    private userEmail?: string,
+    private pluginToken?: string // Token del plugin para autenticación
   ) {}
 
   async search(query: string, language: string): Promise<GeocodingResult[]> {
@@ -71,17 +72,19 @@ export class GoogleMapsProvider implements GeocodingProviderInterface {
 
     if (this.useProxy && this.proxyUrl) {
       // Usar Firebase Functions como proxy (más seguro - no expone API key)
+      if (!this.pluginToken || this.pluginToken.trim() === '') {
+        throw new Error('Token del plugin requerido para usar geocodificación premium. Configura tu token en Settings.');
+      }
       url = this.proxyUrl;
       options = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Plugin-Token': this.pluginToken,
         },
         body: JSON.stringify({
           query,
           language,
-          userId: this.userId,
-          userEmail: this.userEmail,
         }),
       };
     } else {
@@ -357,9 +360,14 @@ export async function searchLocations(
           const proxyUrl = (settings as any).firebaseGeocodingUrl || PLUGIN_GEOCODE_URL;
           
           if (useProxy && proxyUrl) {
-            log?.(`Google Maps: Usando proxy Firebase (sin API key requerida)`);
-            // El proxy no requiere API key del plugin
-            provider = new GoogleMapsProvider('', true, proxyUrl, (settings as any).userId, settings.userEmail);
+            log?.(`Google Maps: Usando proxy Firebase (requiere token del plugin)`);
+            // El proxy requiere token del plugin para usuarios premium
+            if (!settings.pluginToken || settings.pluginToken.trim() === '') {
+              log?.(`Google Maps: Token del plugin no configurado. Usando Nominatim como fallback.`);
+              // No lanzar error aquí, solo usar fallback a Nominatim (gratis)
+              continue; // Saltar a Nominatim
+            }
+            provider = new GoogleMapsProvider('', true, proxyUrl, undefined, undefined, settings.pluginToken);
           } else {
             // Solo usar llamada directa si el usuario tiene su propia API key
             const apiKey = settings.googleMapsApiKey?.trim() || '';

@@ -31,8 +31,9 @@ export const DEFAULT_SETTINGS: NotelertSettings = {
   algoliaApiKey: "", // API key opcional de Algolia Places
   algoliaAppId: "", // App ID opcional de Algolia Places
   // Configuración Desktop
-  userEmail: "", // Email del usuario (requerido en desktop)
-  userId: "", // ID del usuario de Google (opcional, para autenticación)
+  userEmail: "", // Email del usuario (requerido en desktop - DEPRECATED: usar pluginToken)
+  userId: "", // ID del usuario de Google (opcional - DEPRECATED: usar pluginToken)
+  pluginToken: "", // Token del plugin para autenticación (requerido para premium features)
   scheduledEmails: [], // Lista de emails programados
 };
 

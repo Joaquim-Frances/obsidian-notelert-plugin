@@ -842,6 +842,32 @@ export class NotelertLocationPickerModal extends Modal {
   // Buscar ubicaciones usando el proveedor configurado
   private async searchLocations(query: string, resultsContainer: HTMLElement) {
     try {
+      // Validar token si se usa Google Maps proxy (premium feature)
+      const useProxy = (this.plugin.settings as any).useFirebaseProxy !== false;
+      const provider = (this.plugin.settings as any).geocodingProvider || 'nominatim';
+      
+      if ((provider === 'google' && useProxy) || provider === 'google') {
+        if (!this.plugin.settings.pluginToken || this.plugin.settings.pluginToken.trim() === '') {
+          resultsContainer.style.display = "block";
+          resultsContainer.innerHTML = `
+            <div style='padding: 20px; text-align: center;'>
+              <div style='color: var(--text-error); margin-bottom: 12px; font-weight: 600;'>
+                🔑 Token del plugin requerido
+              </div>
+              <div style='color: var(--text-muted); font-size: 13px; line-height: 1.6;'>
+                Para usar geocodificación premium (Google Maps), necesitas:<br/>
+                1. Tener plan Premium activo<br/>
+                2. Generar tu token en la app móvil (Settings > Token del Plugin)<br/>
+                3. Pegar el token en Settings > Notelert > Plugin Token<br/><br/>
+                <em>Nota: Puedes usar Nominatim (gratis) cambiando el proveedor en Settings.</em>
+              </div>
+            </div>
+          `;
+          new Notice("🔑 Token del plugin requerido para geocodificación premium");
+          return;
+        }
+      }
+      
       resultsContainer.style.display = "block";
       resultsContainer.innerHTML = `<div style='padding: 20px; text-align: center; color: var(--text-muted);'>${getTranslation(this.language, "locationPicker.searching") || "Buscando..."}</div>`;
 
