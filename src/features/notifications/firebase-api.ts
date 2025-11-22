@@ -344,16 +344,30 @@ export async function scheduleEmailReminderProxy(
       };
     }
     
-    if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+    // Mejorar detección de errores de red vs errores del servidor
+    const errorMessage = error.message || String(error);
+    const isNetworkError = errorMessage.includes('Failed to fetch') || 
+                          errorMessage.includes('NetworkError') ||
+                          errorMessage.includes('Network request failed') ||
+                          errorMessage.includes('CORS');
+    
+    if (isNetworkError) {
+      // Si es error de CORS, dar mensaje más específico
+      if (errorMessage.includes('CORS')) {
+        return {
+          success: false,
+          error: 'Error de CORS. El servidor no permite la petición. Verifica la configuración del token.',
+        };
+      }
       return {
         success: false,
-        error: 'Error de conexión. Verifica tu internet e intenta de nuevo.',
+        error: `Error de conexión: ${errorMessage}. Verifica tu internet e intenta de nuevo.`,
       };
     }
     
     return {
       success: false,
-      error: error.message || 'Error de red al programar email',
+      error: errorMessage || 'Error de red al programar email',
     };
   }
 }
