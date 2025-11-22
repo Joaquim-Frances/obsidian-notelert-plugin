@@ -255,8 +255,7 @@ export async function scheduleEmailReminderProxy(
       message: message,
       scheduledDate: scheduledDate.toISOString(),
       notificationId: notificationId,
-      userId: userId || null,
-      userEmail: userEmail, // Requerido para autenticación
+      userEmail: userEmail, // Requerido para autenticación (deprecated, ahora se usa token)
     };
 
     if (!pluginToken || pluginToken.trim() === '') {
