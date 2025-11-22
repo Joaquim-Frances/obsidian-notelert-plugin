@@ -29,6 +29,40 @@ In desktop mode the user selects in the pop-up the date and time of the notifica
 All the data that the app collects is to provide the notifications and nothing else. 
 The plugin nor the app does NOT scan the vaults. Only gets the title of the note and the line of the reminder.
 
+## Network Usage & Remote Services
+
+**This plugin uses remote services to provide its functionality.** The following services are used and why:
+
+### Services Used:
+- **Firebase Functions**: Backend service for scheduling and sending email notifications, and for geocoding location searches
+- **Google Maps API**: Used for geocoding addresses to coordinates (via Firebase proxy)
+- **Resend**: Email delivery service for sending scheduled email notifications
+
+### Why These Services Are Necessary:
+- **Firebase Functions**: Required to schedule emails that will be sent at a future time, even when the plugin is not active. Also provides secure proxy for Google Maps API.
+- **Google Maps API**: Required to convert addresses and place names into coordinates for location-based notifications.
+- **Resend**: Reliable email delivery service for sending notification emails.
+
+### What Data Is Sent:
+- **For email notifications**: Title, message, scheduled date/time, and your email address
+- **For geocoding**: Location search queries (addresses or place names)
+- **For authentication**: Plugin token (to verify premium status)
+- **What is NOT sent**: No vault content, no file contents, no personal notes data
+
+### Privacy:
+- All data is used solely for notification purposes
+- No analytics or telemetry is collected
+- No data is shared with third parties except for the services listed above
+- The plugin does not scan your vault - it only reads the note title and the specific line where you create a reminder
+
+## Account Requirements
+
+**A Notelert mobile app account is required for full functionality:**
+- The plugin requires the Notelert mobile app to be installed on your Android device
+- You need to register an account in the mobile app (via Google Sign-In)
+- For premium features (location notifications, email notifications), you need a Premium subscription in the mobile app
+- The plugin itself is completely free - no payment required for the plugin
+
 ## Premium Features
 While the plugin is totally free the app has a free mode and premium one. The free mode permit all user to set a maximum of 5 active reminders ( I'm still considering the limits). 
 Also the app will have a Premium mode that will unlimit the push notifications and will enable the location and the email notifications.((both location and email notifications has costs of mantainance attached)
