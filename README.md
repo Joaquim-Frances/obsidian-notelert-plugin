@@ -2,6 +2,10 @@
 Notelert is an app that sets notifications and reminders in the Android systems thanks to the Notelert plug-in in Obsidian. This app and plugin act as a bridge between Obsidian and the Android native capavilites regarding notifications. So you want a notification in a certain line of your note, you trigger the pop up select the notification type and confirm. Notelert opens, register the notification in the Android system and return you back to Obsidian in less than two seconds. So the notification is set and you can continue with your notes. The app also acts as list or log of your current active notifications and the old ones, and you can set some preferences also. But that's it.
 Notelert app or plugin does not scans you vault in any way.
 
+### Demo Videos
+- [Demo Video 1](https://youtube.com/shorts/7So2Wmqgnjo)
+- [Demo Video 2](https://youtube.com/shorts/gm-CqmlDU-0)
+
 ## Note for Obsidian Team
 The plugin still need some polishing, and also the app is in an open beta test in Google Play but I do not want to go further without your consent. I really want you to test the app and plugin fully so if you provide me of some emails that the team use for testing I can add you to the beta test in Google Play so you will be able to download the app and test it properly. Without the app the plugin does nothing. If there is another way that you like to use to test the whole system I'm completely open to know about. 
 Many thanks!

@@ -1,8 +1,8 @@
 {
   "id": "notelert",
   "name": "Notelert",
-  "description": "Automatiza la creación de notificaciones para la app móvil Notelert detectando patrones de fecha/hora en tus notas",
-  "author": "Quim Frances",
+  "description": "Automates the creation of notifications for the Notelert mobile app by creating deeplinks of date and time or location",
+  "author": "Joaquim Frances",
   "minAppVersion": "0.15.0",
   "version": "1.0.0"
 }
