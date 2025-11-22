@@ -88,35 +88,42 @@ export class NotelertSettingTab extends PluginSettingTab {
           })
       );
 
+    // ========== TOKEN DEL PLUGIN (DESKTOP Y MÓVIL) ==========
+    containerEl.createEl("h3", { text: "🔑 Token del Plugin" });
+
+    // Token del Plugin (REQUERIDO para premium features)
+    const tokenDesc = isDesktop 
+      ? "Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token."
+      : "Token de autenticación para usar geocodificación premium. Obtén tu token desde la app móvil en Settings > Plugin Token.";
+    
+    new Setting(containerEl)
+      .setName("🔑 Token del Plugin")
+      .setDesc(tokenDesc)
+      .addText((text) => {
+        text
+          .setPlaceholder("Pega tu token aquí...")
+          .setValue(this.plugin.settings.pluginToken || "")
+          .inputEl.type = "password";
+        text.onChange(async (value) => {
+          this.plugin.settings.pluginToken = value.trim();
+          await this.plugin.saveSettings();
+        });
+      })
+      .addButton((button) => {
+        button
+          .setButtonText("Mostrar/Ocultar")
+          .setCta(false)
+          .onClick(() => {
+            const input = containerEl.querySelector('input[type="password"]') as HTMLInputElement;
+            if (input) {
+              input.type = input.type === "password" ? "text" : "password";
+            }
+          });
+      });
+
     // ========== CONFIGURACIÓN DESKTOP ==========
     if (isDesktop) {
       containerEl.createEl("h3", { text: "💻 Configuración Desktop" });
-
-      // Token del Plugin (REQUERIDO para premium features)
-      new Setting(containerEl)
-        .setName("🔑 Token del Plugin")
-        .setDesc("Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token.")
-        .addText((text) => {
-          text
-            .setPlaceholder("Pega tu token aquí...")
-            .setValue(this.plugin.settings.pluginToken || "")
-            .inputEl.type = "password";
-          text.onChange(async (value) => {
-            this.plugin.settings.pluginToken = value.trim();
-            await this.plugin.saveSettings();
-          });
-        })
-        .addButton((button) => {
-          button
-            .setButtonText("Mostrar/Ocultar")
-            .setCta(false)
-            .onClick(() => {
-              const input = containerEl.querySelector('input[type="password"]') as HTMLInputElement;
-              if (input) {
-                input.type = input.type === "password" ? "text" : "password";
-              }
-            });
-        });
 
       // Email del usuario (DEPRECATED pero mantener por compatibilidad)
       new Setting(containerEl)
