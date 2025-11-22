@@ -407,19 +407,18 @@ export class NotelertLocationPickerModal extends Modal {
     script.async = true;
     script.defer = true;
     
-    this.addDebugInfo(`📡 Cargando script: ${scriptUrl.substring(0, 80)}...`);
+    this.addDebugInfo('📡 Cargando script de Google Maps...');
     
     // Manejo de errores del script
     script.onerror = (error) => {
       this.addDebugInfo('❌ Error en script.onerror');
       const errorDetails = `
         <strong>Error cargando script:</strong><br>
-        URL: ${scriptUrl.substring(0, 100)}...<br>
-        API Key: ${apiKey.substring(0, 10)}...<br>
         Verifica:<br>
         - Tu conexión a internet<br>
         - Que la API key sea válida<br>
-        - Que la Geocoding API esté habilitada en Google Cloud
+        - Que la Geocoding API esté habilitada en Google Cloud<br>
+        - Que la Maps JavaScript API esté habilitada en Google Cloud
       `;
       this.showMapError('Error al cargar Google Maps. Verifica tu conexión a internet.', errorDetails);
       delete (window as any)[callbackName];
