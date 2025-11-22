@@ -4,5 +4,6 @@
   "description": "Automates the creation of notifications for the Notelert mobile app by creating deeplinks of date and time or location.",
   "author": "Joaquim Frances",
   "minAppVersion": "0.15.0",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "isDesktopOnly": false
 }
