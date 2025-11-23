@@ -28,7 +28,7 @@ export class NotelertDatePickerModal extends Modal {
     contentEl.empty();
 
     const isDesktop = !Platform.isMobile;
-    
+
     // Estilos responsive para el modal - optimizado para desktop
     contentEl.setAttribute("style", `
       min-width: ${isDesktop ? '400px' : '300px'}; 
@@ -56,7 +56,7 @@ export class NotelertDatePickerModal extends Modal {
       }
     });
 
-    scrollContainer.createEl("h2", { 
+    scrollContainer.createEl("h2", {
       text: getTranslation(this.language, "datePicker.title"),
       attr: { style: "margin: 0 0 15px 0; font-size: 18px; font-weight: 600;" }
     });
@@ -64,7 +64,7 @@ export class NotelertDatePickerModal extends Modal {
     // Contenedor principal - usar todo el ancho
     const container = scrollContainer.createEl("div", { cls: "notelert-datepicker-container" });
     container.setAttribute("style", "margin: 0; width: 100%;");
-    
+
     // En desktop, forzar tipo 'time' (no hay ubicaciones)
     if (isDesktop) {
       this.notificationType = 'time';
@@ -73,10 +73,10 @@ export class NotelertDatePickerModal extends Modal {
     // Selector de fecha
     const dateContainer = container.createEl("div", { cls: "notelert-date-container" });
     dateContainer.setAttribute("style", "margin-bottom: 15px;");
-    
+
     const dateLabel = dateContainer.createEl("label", { text: getTranslation(this.language, "datePicker.dateLabel") });
     dateLabel.setAttribute("style", "display: block; margin-bottom: 5px; font-weight: 500;");
-    
+
     const dateInput = dateContainer.createEl("input", {
       type: "date",
       cls: "notelert-date-input"
@@ -86,10 +86,10 @@ export class NotelertDatePickerModal extends Modal {
     // Selector de hora - visual con botones +/- (mejor UX)
     const timeContainer = container.createEl("div", { cls: "notelert-time-container" });
     timeContainer.setAttribute("style", "margin-bottom: 20px;");
-    
+
     const timeLabel = timeContainer.createEl("label", { text: getTranslation(this.language, "datePicker.timeLabel") });
     timeLabel.setAttribute("style", "display: block; margin-bottom: 10px; font-weight: 500;");
-    
+
     // Contenedor para el selector visual de hora
     const timePickerContainer = timeContainer.createEl("div", {
       attr: {
@@ -105,7 +105,7 @@ export class NotelertDatePickerModal extends Modal {
         `
       }
     });
-    
+
     // Selector de horas
     const hoursContainer = timePickerContainer.createEl("div", {
       attr: {
@@ -117,12 +117,12 @@ export class NotelertDatePickerModal extends Modal {
         `
       }
     });
-    
+
     hoursContainer.createEl("div", {
-      text: "Horas",
+      text: getTranslation(this.language, "datePicker.hours"),
       attr: { style: "font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px;" }
     });
-    
+
     const hoursDisplay = hoursContainer.createEl("div", {
       text: "12",
       attr: {
@@ -140,7 +140,7 @@ export class NotelertDatePickerModal extends Modal {
       }
     });
     hoursDisplay.id = "hours-display";
-    
+
     const hoursButtons = hoursContainer.createEl("div", {
       attr: {
         style: `
@@ -150,7 +150,7 @@ export class NotelertDatePickerModal extends Modal {
         `
       }
     });
-    
+
     const hoursDecreaseBtn = hoursButtons.createEl("button", {
       text: "−",
       attr: {
@@ -178,7 +178,7 @@ export class NotelertDatePickerModal extends Modal {
       hoursDecreaseBtn.style.background = "var(--background-primary)";
       hoursDecreaseBtn.style.borderColor = "var(--background-modifier-border)";
     });
-    
+
     const hoursIncreaseBtn = hoursButtons.createEl("button", {
       text: "+",
       attr: {
@@ -206,7 +206,7 @@ export class NotelertDatePickerModal extends Modal {
       hoursIncreaseBtn.style.background = "var(--background-primary)";
       hoursIncreaseBtn.style.borderColor = "var(--background-modifier-border)";
     });
-    
+
     // Separador
     timePickerContainer.createEl("div", {
       text: ":",
@@ -219,7 +219,7 @@ export class NotelertDatePickerModal extends Modal {
         `
       }
     });
-    
+
     // Selector de minutos
     const minutesContainer = timePickerContainer.createEl("div", {
       attr: {
@@ -231,12 +231,12 @@ export class NotelertDatePickerModal extends Modal {
         `
       }
     });
-    
+
     minutesContainer.createEl("div", {
-      text: "Minutos",
+      text: getTranslation(this.language, "datePicker.minutes"),
       attr: { style: "font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px;" }
     });
-    
+
     const minutesDisplay = minutesContainer.createEl("div", {
       text: "00",
       attr: {
@@ -254,7 +254,7 @@ export class NotelertDatePickerModal extends Modal {
       }
     });
     minutesDisplay.id = "minutes-display";
-    
+
     const minutesButtons = minutesContainer.createEl("div", {
       attr: {
         style: `
@@ -264,7 +264,7 @@ export class NotelertDatePickerModal extends Modal {
         `
       }
     });
-    
+
     const minutesDecreaseBtn = minutesButtons.createEl("button", {
       text: "−",
       attr: {
@@ -292,7 +292,7 @@ export class NotelertDatePickerModal extends Modal {
       minutesDecreaseBtn.style.background = "var(--background-primary)";
       minutesDecreaseBtn.style.borderColor = "var(--background-modifier-border)";
     });
-    
+
     const minutesIncreaseBtn = minutesButtons.createEl("button", {
       text: "+",
       attr: {
@@ -320,7 +320,7 @@ export class NotelertDatePickerModal extends Modal {
       minutesIncreaseBtn.style.background = "var(--background-primary)";
       minutesIncreaseBtn.style.borderColor = "var(--background-modifier-border)";
     });
-    
+
     // Input oculto para mantener compatibilidad
     const timeInput = timeContainer.createEl("input", {
       type: "time",
@@ -328,7 +328,7 @@ export class NotelertDatePickerModal extends Modal {
     });
     timeInput.setAttribute("style", "display: none;");
     timeInput.id = "hidden-time-input";
-    
+
     // Botones rápidos de hora (solo en desktop)
     if (isDesktop) {
       const quickTimeButtons = timeContainer.createEl("div", {
@@ -342,7 +342,7 @@ export class NotelertDatePickerModal extends Modal {
           `
         }
       });
-      
+
       const quickTimes = [
         { label: "9:00", hours: 9, minutes: 0 },
         { label: "12:00", hours: 12, minutes: 0 },
@@ -350,7 +350,7 @@ export class NotelertDatePickerModal extends Modal {
         { label: "18:00", hours: 18, minutes: 0 },
         { label: "21:00", hours: 21, minutes: 0 },
       ];
-      
+
       quickTimes.forEach(qt => {
         const btn = quickTimeButtons.createEl("button", {
           text: qt.label,
@@ -379,7 +379,7 @@ export class NotelertDatePickerModal extends Modal {
         });
       });
     }
-    
+
     // Funciones para actualizar hora/minutos
     const updateHours = (delta: number) => {
       const currentHours = parseInt(hoursDisplay.textContent || "12");
@@ -389,13 +389,13 @@ export class NotelertDatePickerModal extends Modal {
       if (newHours > 23) newHours = 0;
       this.updateTimeDisplay(newHours, currentMinutes, hoursDisplay, minutesDisplay, timeInput);
     };
-    
+
     const updateMinutes = (delta: number) => {
       const currentHours = parseInt(hoursDisplay.textContent || "12");
       const currentMinutes = parseInt(minutesDisplay.textContent || "0");
       let newMinutes = currentMinutes + delta;
       let newHours = currentHours;
-      
+
       if (newMinutes < 0) {
         newMinutes = 59;
         newHours = newHours - 1;
@@ -405,15 +405,15 @@ export class NotelertDatePickerModal extends Modal {
         newHours = newHours + 1;
         if (newHours > 23) newHours = 0;
       }
-      
+
       this.updateTimeDisplay(newHours, newMinutes, hoursDisplay, minutesDisplay, timeInput);
     };
-    
+
     hoursDecreaseBtn.addEventListener("click", () => updateHours(-1));
     hoursIncreaseBtn.addEventListener("click", () => updateHours(1));
     minutesDecreaseBtn.addEventListener("click", () => updateMinutes(-5)); // Incrementos de 5 minutos
     minutesIncreaseBtn.addEventListener("click", () => updateMinutes(5));
-    
+
     // Inicializar con hora actual + 1 hora
     const now = new Date();
     now.setHours(now.getHours() + 1);
@@ -424,29 +424,29 @@ export class NotelertDatePickerModal extends Modal {
     // Selector de tipo de notificación (solo en móvil)
     const typeContainer = container.createEl("div", { cls: "notelert-type-container" });
     typeContainer.setAttribute("style", `margin-bottom: 20px; padding: 15px; background: var(--background-secondary); border-radius: 6px; width: 100%; box-sizing: border-box; ${isDesktop ? 'display: none;' : ''}`);
-    
-    const typeLabel = typeContainer.createEl("label", { 
+
+    const typeLabel = typeContainer.createEl("label", {
       text: getTranslation(this.language, "datePicker.notificationType"),
       attr: { style: "display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;" }
     });
-    
+
     const typeButtonsContainer = typeContainer.createEl("div");
     typeButtonsContainer.setAttribute("style", "display: flex; gap: 10px; flex-wrap: wrap; width: 100%;");
-    
+
     const timeButton = typeButtonsContainer.createEl("button", {
       text: "⏰ " + getTranslation(this.language, "datePicker.timeNotification"),
       cls: "mod-cta"
     });
     timeButton.setAttribute("style", "flex: 1; min-width: 120px; padding: 10px; font-size: 14px; white-space: nowrap;");
     timeButton.id = "notification-type-time";
-    
+
     const locationButton = typeButtonsContainer.createEl("button", {
       text: "📍 " + getTranslation(this.language, "datePicker.locationNotification"),
       cls: "mod-secondary"
     });
     locationButton.setAttribute("style", "flex: 1; min-width: 120px; padding: 10px; font-size: 14px; white-space: nowrap;");
     locationButton.id = "notification-type-location";
-    
+
     // Actualizar estilos según el tipo seleccionado
     const updateTypeButtons = () => {
       if (this.notificationType === 'time') {
@@ -457,28 +457,28 @@ export class NotelertDatePickerModal extends Modal {
         locationButton.className = "mod-cta";
       }
     };
-    
+
     timeButton.addEventListener("click", () => {
       this.notificationType = 'time';
       this.selectedLocation = null; // Reset selección
       updateTypeButtons();
       this.updateModalContent(container, dateInput, timeInput);
     });
-    
+
     locationButton.addEventListener("click", () => {
       this.notificationType = 'location';
       this.selectedLocation = null; // Reset selección
       updateTypeButtons();
       this.updateModalContent(container, dateInput, timeInput);
     });
-    
+
     updateTypeButtons();
 
     // Botones de acción rápida (solo para tipo 'time')
     const quickActions = container.createEl("div", { cls: "notelert-quick-actions" });
     quickActions.setAttribute("style", "margin-bottom: 20px; width: 100%; box-sizing: border-box;");
     quickActions.id = "quick-actions-container";
-    
+
     const quickActionsTitle = quickActions.createEl("p", { text: getTranslation(this.language, "datePicker.quickActions") });
     quickActionsTitle.setAttribute("style", "margin-bottom: 10px; font-weight: 500;");
 
@@ -526,8 +526,8 @@ export class NotelertDatePickerModal extends Modal {
       width: 100%;
       box-sizing: border-box;
     `);
-    
-    const cancelButton = buttonContainer.createEl("button", { 
+
+    const cancelButton = buttonContainer.createEl("button", {
       text: getTranslation(this.language, "datePicker.cancelButton"),
       cls: "mod-secondary"
     });
@@ -537,13 +537,13 @@ export class NotelertDatePickerModal extends Modal {
       this.close();
     });
 
-    const confirmButton = buttonContainer.createEl("button", { 
+    const confirmButton = buttonContainer.createEl("button", {
       text: getTranslation(this.language, "datePicker.confirmButton"),
       cls: "mod-cta"
     });
     confirmButton.setAttribute("style", "flex: 1; min-width: 120px; padding: 12px 20px; font-size: 14px; box-sizing: border-box;");
     confirmButton.id = "datepicker-confirm-button";
-    
+
     confirmButton.addEventListener("click", async () => {
       // Mostrar spinner y deshabilitar botón
       this.showLoadingState(confirmButton);
@@ -552,8 +552,8 @@ export class NotelertDatePickerModal extends Modal {
         if (debugInfo) {
           const timestamp = new Date().toLocaleTimeString();
           const existing = debugInfo.innerHTML || '';
-          const color = message.includes('❌') || message.includes('Error') ? 'var(--text-error)' : 
-                       message.includes('✅') ? 'var(--text-success)' : 'var(--text-normal)';
+          const color = message.includes('❌') || message.includes('Error') ? 'var(--text-error)' :
+            message.includes('✅') ? 'var(--text-success)' : 'var(--text-normal)';
           debugInfo.innerHTML = `${existing}<div style="margin: 4px 0; padding: 4px 8px; font-size: 11px; color: ${color}; border-left: 3px solid ${color}; background: var(--background-secondary); border-radius: 3px; word-wrap: break-word; white-space: pre-wrap;"><span style="opacity: 0.7;">[${timestamp}]</span> ${message}</div>`;
           const container = document.getElementById("datepicker-debug-container");
           if (container) {
@@ -580,7 +580,7 @@ export class NotelertDatePickerModal extends Modal {
           // Para tiempo, usar fecha y hora
           const date = dateInput.value;
           const time = timeInput.value;
-          
+
           if (date && time) {
             // Reemplazar :@ o :# con :@fecha, hora
             const replacement = `:@${date}, ${time}`;
@@ -588,19 +588,19 @@ export class NotelertDatePickerModal extends Modal {
             const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
             const afterCursor = line.substring(this.cursor.ch);
             const newLine = beforeCursor + replacement + afterCursor;
-            
+
             this.editor.setLine(this.cursor.line, newLine);
-            
+
             // Mover cursor al final del reemplazo
             const newCursor = {
               line: this.cursor.line,
               ch: beforeCursor.length + replacement.length
             };
             this.editor.setCursor(newCursor);
-            
+
             // Crear la notificación directamente
             const success = await this.createNotificationFromDatePicker(date, time, newLine);
-            
+
             this.hideLoadingState(confirmButton);
             if (success) {
               this.close();
@@ -651,11 +651,11 @@ export class NotelertDatePickerModal extends Modal {
     if (hours > 23) hours = 23;
     if (minutes < 0) minutes = 0;
     if (minutes > 59) minutes = 59;
-    
+
     // Actualizar displays
     hoursDisplay.textContent = String(hours).padStart(2, '0');
     minutesDisplay.textContent = String(minutes).padStart(2, '0');
-    
+
     // Sincronizar con input oculto (formato HH:MM)
     const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     timeInput.value = timeString;
@@ -668,11 +668,11 @@ export class NotelertDatePickerModal extends Modal {
       // Obtener el título de la nota (nombre del archivo sin extensión)
       const activeFile = this.plugin.app.workspace.getActiveFile();
       const noteTitle = activeFile ? activeFile.basename : 'Nota';
-      
+
       // Obtener la línea actual y limpiarla de los patrones :@fecha, hora
       const currentLine = this.editor.getLine(this.cursor.line);
       const cleanMessage = currentLine.replace(/:@[^,\s]+,\s*[^\s]+/g, '').trim();
-      
+
       // Crear el patrón detectado
       const pattern: DetectedPattern = {
         text: fullText.trim(),
@@ -689,12 +689,10 @@ export class NotelertDatePickerModal extends Modal {
       };
 
       // Crear la notificación directamente
-      const success = await this.plugin.createNotificationAndMarkProcessed(pattern);
-      
-      if (!success) {
-        return false;
-      }
-      
+      await this.plugin.createNotificationAndMarkProcessed(pattern);
+
+      // Success is void, so we assume success if no error was thrown
+
       // TEMPORALMENTE COMENTADO - Debug para identificar el problema del guardado continuo
       // // Añadir feedback visual con un pequeño delay para evitar conflictos con el guardado
       // // Esto permite que Obsidian termine de procesar el deeplink antes de modificar el editor
@@ -705,7 +703,7 @@ export class NotelertDatePickerModal extends Modal {
       //     this.plugin.log(`Error añadiendo feedback visual: ${error}`);
       //   }
       // }, 500);
-      
+
       // TEMPORALMENTE COMENTADO - Debug
       // this.plugin.log(`Notificación creada desde date picker: ${pattern.title}`);
       return true;
@@ -720,15 +718,15 @@ export class NotelertDatePickerModal extends Modal {
   private extractTitleFromText(text: string, match: string): string {
     // Remover el patrón :@fecha, hora del texto
     let title = text.replace(match, '').trim();
-    
+
     // Limpiar espacios extra
     title = title.replace(/\s+/g, ' ').trim();
-    
+
     // Limitar longitud
     if (title.length > 50) {
       title = title.substring(0, 47) + '...';
     }
-    
+
     return title || 'Recordatorio';
   }
 
@@ -738,13 +736,13 @@ export class NotelertDatePickerModal extends Modal {
     const timeContainer = container.querySelector('.notelert-time-container');
     const quickActions = container.querySelector('#quick-actions-container');
     const locationListContainer = container.querySelector('#location-list-container');
-    
+
     if (this.notificationType === 'location') {
       // Ocultar fecha, hora y acciones rápidas para ubicación
       if (dateContainer) (dateContainer as HTMLElement).style.display = 'none';
       if (timeContainer) (timeContainer as HTMLElement).style.display = 'none';
       if (quickActions) (quickActions as HTMLElement).style.display = 'none';
-      
+
       // Mostrar o crear la lista de ubicaciones
       if (!locationListContainer) {
         this.renderLocationList(container);
@@ -756,14 +754,14 @@ export class NotelertDatePickerModal extends Modal {
       if (dateContainer) (dateContainer as HTMLElement).style.display = 'block';
       if (timeContainer) (timeContainer as HTMLElement).style.display = 'block';
       if (quickActions) (quickActions as HTMLElement).style.display = 'block';
-      
+
       // Ocultar lista de ubicaciones
       if (locationListContainer) {
         (locationListContainer as HTMLElement).style.display = 'none';
       }
     }
   }
-  
+
   // Renderizar lista de ubicaciones en el modal
   private renderLocationList(container: HTMLElement) {
     // Eliminar lista anterior si existe
@@ -771,9 +769,9 @@ export class NotelertDatePickerModal extends Modal {
     if (existingList) {
       existingList.remove();
     }
-    
+
     const savedLocations = this.plugin.settings.savedLocations || [];
-    
+
     if (savedLocations.length === 0) {
       const emptyMessage = container.createEl("div", {
         attr: {
@@ -791,10 +789,10 @@ export class NotelertDatePickerModal extends Modal {
       emptyMessage.textContent = getTranslation(this.language, "datePicker.noSavedLocations");
       return;
     }
-    
+
     // Título
     const listTitle = container.createEl("h3", {
-      text: "Selecciona una ubicación:",
+      text: getTranslation(this.language, "datePicker.selectLocationTitle"),
       attr: {
         style: `
           margin: 15px 0 10px 0;
@@ -805,7 +803,7 @@ export class NotelertDatePickerModal extends Modal {
         `
       }
     });
-    
+
     // Contenedor FIJO con scroll SOLO para las tarjetas
     const scrollContainer = container.createEl("div", {
       attr: {
@@ -825,7 +823,7 @@ export class NotelertDatePickerModal extends Modal {
       }
     });
     scrollContainer.id = "location-list-container";
-    
+
     // Crear items de ubicación - SOLO TÍTULO
     savedLocations.forEach((location, index) => {
       const locationItem = scrollContainer.createEl("div", {
@@ -847,16 +845,16 @@ export class NotelertDatePickerModal extends Modal {
         }
       });
       locationItem.id = `location-item-${index}`;
-      
+
       // Nombre de la ubicación
       const name = location.name || `Ubicación ${index + 1}`;
       const nameDiv = locationItem.createEl("div", {
         text: name,
-        attr: { 
-          style: "font-weight: 500; font-size: 14px; flex: 1;" 
+        attr: {
+          style: "font-weight: 500; font-size: 14px; flex: 1;"
         }
       });
-      
+
       // Icono de check (oculto inicialmente)
       const checkIcon = locationItem.createEl("div", {
         text: "✓",
@@ -872,11 +870,11 @@ export class NotelertDatePickerModal extends Modal {
         }
       });
       checkIcon.id = `check-icon-${index}`;
-      
+
       // Guardar referencia a la ubicación
       (locationItem as any).locationData = location;
       (locationItem as any).checkIcon = checkIcon;
-      
+
       // Función para seleccionar/deseleccionar
       const selectLocation = () => {
         // Deseleccionar todas las demás
@@ -891,25 +889,25 @@ export class NotelertDatePickerModal extends Modal {
             icon.style.opacity = "0";
           }
         });
-        
+
         // Seleccionar esta
         locationItem.style.background = "var(--interactive-accent)";
         locationItem.style.borderColor = "var(--interactive-accent)";
         nameDiv.style.color = "var(--text-on-accent)";
         checkIcon.style.opacity = "1";
-        
+
         this.selectedLocation = location;
       };
-      
+
       locationItem.addEventListener("click", selectLocation);
-      
+
       locationItem.addEventListener("mouseenter", () => {
         if (this.selectedLocation !== location) {
           locationItem.style.background = "var(--background-modifier-hover)";
           locationItem.style.borderColor = "var(--interactive-accent)";
         }
       });
-      
+
       locationItem.addEventListener("mouseleave", () => {
         if (this.selectedLocation !== location) {
           locationItem.style.background = "var(--background-primary)";
@@ -926,7 +924,7 @@ export class NotelertDatePickerModal extends Modal {
         // Crear modal primero para tener el área de debug disponible
         const modal = new Modal(this.app);
         modal.titleEl.setText(getTranslation(this.language, "datePicker.selectSavedLocation"));
-        
+
         // Estilos responsive para el modal de selección - usar todo el ancho
         const { contentEl } = modal;
         contentEl.empty();
@@ -942,7 +940,7 @@ export class NotelertDatePickerModal extends Modal {
           flex-direction: column;
           margin: 0 auto;
         `);
-        
+
         // Asegurar que el modal tenga el z-index más alto
         const modalEl = (modal as any).modalEl;
         if (modalEl) {
@@ -985,8 +983,8 @@ export class NotelertDatePickerModal extends Modal {
           if (debugInfo) {
             const timestamp = new Date().toLocaleTimeString();
             const existing = debugInfo.innerHTML || '';
-            const color = message.includes('❌') || message.includes('Error') ? 'var(--text-error)' : 
-                         message.includes('✅') ? 'var(--text-success)' : 'var(--text-normal)';
+            const color = message.includes('❌') || message.includes('Error') ? 'var(--text-error)' :
+              message.includes('✅') ? 'var(--text-success)' : 'var(--text-normal)';
             debugInfo.innerHTML = `${existing}<div style="margin: 4px 0; padding: 4px 8px; font-size: 11px; color: ${color}; border-left: 3px solid ${color}; background: var(--background-secondary); border-radius: 3px; word-wrap: break-word; white-space: pre-wrap;"><span style="opacity: 0.7;">[${timestamp}]</span> ${message}</div>`;
             // Auto-scroll al final
             const container = document.getElementById("location-select-debug-container");
@@ -997,7 +995,7 @@ export class NotelertDatePickerModal extends Modal {
         };
 
         addLog('🔍 Iniciando búsqueda de ubicaciones guardadas...');
-        
+
         // Recargar settings para asegurar que tenemos los datos más recientes
         addLog('📥 Recargando settings...');
         if (this.plugin.loadSettings) {
@@ -1006,13 +1004,13 @@ export class NotelertDatePickerModal extends Modal {
         } else {
           addLog('⚠️ loadSettings no disponible, usando settings actuales');
         }
-        
+
         // Obtener ubicaciones guardadas directamente de settings
         const locations = this.plugin.settings.savedLocations || [];
-        
+
         addLog(`📊 Ubicaciones encontradas: ${locations.length}`);
         addLog(`📋 Settings object: ${JSON.stringify(this.plugin.settings).substring(0, 200)}...`);
-        
+
         if (locations.length > 0) {
           locations.forEach((loc, idx) => {
             addLog(`📍 [${idx + 1}] ${loc.name || 'Sin nombre'} - Lat: ${loc.latitude}, Lon: ${loc.longitude}`);
@@ -1022,7 +1020,7 @@ export class NotelertDatePickerModal extends Modal {
           addLog(`🔍 Tipo de savedLocations: ${typeof this.plugin.settings.savedLocations}`);
           addLog(`🔍 savedLocations es null/undefined: ${this.plugin.settings.savedLocations === null || this.plugin.settings.savedLocations === undefined}`);
         }
-        
+
         if (locations.length === 0) {
           addLog('⚠️ No hay ubicaciones para mostrar');
           new Notice(getTranslation(this.language, "datePicker.noSavedLocations"));
@@ -1031,11 +1029,11 @@ export class NotelertDatePickerModal extends Modal {
           return;
         }
 
-      // Título para la lista de ubicaciones - FUERA del scrollContainer
-      const listTitle = contentEl.createEl("h3", {
-        text: "Selecciona una ubicación:",
-        attr: {
-          style: `
+        // Título para la lista de ubicaciones - FUERA del scrollContainer
+        const listTitle = contentEl.createEl("h3", {
+          text: "Selecciona una ubicación:",
+          attr: {
+            style: `
             margin: 15px 0 10px 0;
             font-size: 18px;
             font-weight: 600;
@@ -1044,13 +1042,13 @@ export class NotelertDatePickerModal extends Modal {
             display: block !important;
             visibility: visible !important;
           `
-        }
-      });
-      
-      // Contenedor con scroll - FORZAR VISIBILIDAD - FUERA del debug
-      const scrollContainer = contentEl.createEl("div", {
-        attr: {
-          style: `
+          }
+        });
+
+        // Contenedor con scroll - FORZAR VISIBILIDAD - FUERA del debug
+        const scrollContainer = contentEl.createEl("div", {
+          attr: {
+            style: `
             flex: 1;
             min-height: 250px;
             max-height: 450px;
@@ -1068,20 +1066,20 @@ export class NotelertDatePickerModal extends Modal {
             position: relative;
             z-index: 100;
           `
-        }
-      });
-      scrollContainer.id = "location-list-container";
-      
-      addLog('🎨 Creando elementos de la lista...');
-      addLog(`📦 Contenedor creado con ID: location-list-container`);
-      addLog(`📏 Altura del contenedor: ${scrollContainer.offsetHeight}px`);
-      
-      locations.forEach((location, index) => {
-        addLog(`📝 Creando item ${index + 1}: ${location.name || 'Sin nombre'}`);
-        
-        const locationItem = scrollContainer.createEl("div", {
-          attr: {
-            style: `
+          }
+        });
+        scrollContainer.id = "location-list-container";
+
+        addLog('🎨 Creando elementos de la lista...');
+        addLog(`📦 Contenedor creado con ID: location-list-container`);
+        addLog(`📏 Altura del contenedor: ${scrollContainer.offsetHeight}px`);
+
+        locations.forEach((location, index) => {
+          addLog(`📝 Creando item ${index + 1}: ${location.name || 'Sin nombre'}`);
+
+          const locationItem = scrollContainer.createEl("div", {
+            attr: {
+              style: `
               padding: 15px;
               margin: 10px 0;
               border: 2px solid var(--interactive-accent);
@@ -1097,62 +1095,62 @@ export class NotelertDatePickerModal extends Modal {
               position: relative;
               z-index: 10;
             `
-          }
-        });
-        locationItem.id = `location-item-${index}`;
-        
-        locationItem.addEventListener("mouseenter", () => {
-          locationItem.style.background = "var(--background-modifier-hover)";
-        });
-        locationItem.addEventListener("mouseleave", () => {
-          locationItem.style.background = "var(--background-primary)";
-        });
-        
-        const name = location.name || `Ubicación ${index + 1}`;
-        locationItem.createEl("div", {
-          text: name,
-          attr: { style: "font-weight: 500; margin-bottom: 4px; font-size: 14px;" }
-        });
-        
-        if (location.address) {
-          locationItem.createEl("div", {
-            text: location.address.length > 60 ? location.address.substring(0, 60) + "..." : location.address,
-            attr: { style: "font-size: 12px; color: var(--text-muted); margin-bottom: 4px; word-wrap: break-word;" }
+            }
           });
-        }
-        
-        locationItem.createEl("div", {
-          text: `📍 ${location.latitude?.toFixed(6) || '0'}, ${location.longitude?.toFixed(6) || '0'}`,
-          attr: { style: "font-size: 11px; color: var(--text-muted);" }
+          locationItem.id = `location-item-${index}`;
+
+          locationItem.addEventListener("mouseenter", () => {
+            locationItem.style.background = "var(--background-modifier-hover)";
+          });
+          locationItem.addEventListener("mouseleave", () => {
+            locationItem.style.background = "var(--background-primary)";
+          });
+
+          const name = location.name || `Ubicación ${index + 1}`;
+          locationItem.createEl("div", {
+            text: name,
+            attr: { style: "font-weight: 500; margin-bottom: 4px; font-size: 14px;" }
+          });
+
+          if (location.address) {
+            locationItem.createEl("div", {
+              text: location.address.length > 60 ? location.address.substring(0, 60) + "..." : location.address,
+              attr: { style: "font-size: 12px; color: var(--text-muted); margin-bottom: 4px; word-wrap: break-word;" }
+            });
+          }
+
+          locationItem.createEl("div", {
+            text: `📍 ${location.latitude?.toFixed(6) || '0'}, ${location.longitude?.toFixed(6) || '0'}`,
+            attr: { style: "font-size: 11px; color: var(--text-muted);" }
+          });
+
+          locationItem.addEventListener("click", () => {
+            addLog(`✅ Ubicación seleccionada: ${location.name}`);
+            modal.close();
+            resolve(location);
+          });
+
+          addLog(`✅ Item ${index + 1} creado con ID: location-item-${index}`);
         });
-        
-        locationItem.addEventListener("click", () => {
-          addLog(`✅ Ubicación seleccionada: ${location.name}`);
-          modal.close();
-          resolve(location);
-        });
-        
-        addLog(`✅ Item ${index + 1} creado con ID: location-item-${index}`);
-      });
-      
-      addLog(`✅ Lista creada con ${locations.length} ubicaciones`);
-      addLog(`📏 Altura final del contenedor: ${scrollContainer.offsetHeight}px`);
-      addLog(`👁️ Elementos hijos del contenedor: ${scrollContainer.children.length}`);
-      
-      // Forzar visibilidad del contenedor
-      setTimeout(() => {
-        const container = document.getElementById("location-list-container");
-        if (container) {
-          addLog(`🔍 Verificando contenedor después de renderizado...`);
-          addLog(`  - display: ${window.getComputedStyle(container).display}`);
-          addLog(`  - visibility: ${window.getComputedStyle(container).visibility}`);
-          addLog(`  - opacity: ${window.getComputedStyle(container).opacity}`);
-          addLog(`  - height: ${window.getComputedStyle(container).height}`);
-          addLog(`  - overflow: ${window.getComputedStyle(container).overflow}`);
-        }
-      }, 100);
-      
-      modal.open();
+
+        addLog(`✅ Lista creada con ${locations.length} ubicaciones`);
+        addLog(`📏 Altura final del contenedor: ${scrollContainer.offsetHeight}px`);
+        addLog(`👁️ Elementos hijos del contenedor: ${scrollContainer.children.length}`);
+
+        // Forzar visibilidad del contenedor
+        setTimeout(() => {
+          const container = document.getElementById("location-list-container");
+          if (container) {
+            addLog(`🔍 Verificando contenedor después de renderizado...`);
+            addLog(`  - display: ${window.getComputedStyle(container).display}`);
+            addLog(`  - visibility: ${window.getComputedStyle(container).visibility}`);
+            addLog(`  - opacity: ${window.getComputedStyle(container).opacity}`);
+            addLog(`  - height: ${window.getComputedStyle(container).height}`);
+            addLog(`  - overflow: ${window.getComputedStyle(container).overflow}`);
+          }
+        }, 100);
+
+        modal.open();
       } catch (error) {
         this.plugin.log(`Error cargando settings: ${error}`);
         new Notice("Error cargando ubicaciones guardadas");
@@ -1171,9 +1169,9 @@ export class NotelertDatePickerModal extends Modal {
       const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
       const afterCursor = line.substring(this.cursor.ch);
       const newLine = beforeCursor + replacement + afterCursor;
-      
+
       this.editor.setLine(this.cursor.line, newLine);
-      
+
       // Mover cursor al final del reemplazo
       const newCursor = {
         line: this.cursor.line,
@@ -1184,7 +1182,7 @@ export class NotelertDatePickerModal extends Modal {
       // Obtener el título de la nota (nombre del archivo sin extensión)
       const activeFile = this.plugin.app.workspace.getActiveFile();
       const noteTitle = activeFile ? activeFile.basename : 'Nota';
-      
+
       // Obtener la línea actual y limpiarla de los patrones :#ubicacion
       const currentLine = this.editor.getLine(this.cursor.line);
       const cleanMessage = currentLine.replace(/:#[^\s]+/g, '').trim();
@@ -1209,12 +1207,10 @@ export class NotelertDatePickerModal extends Modal {
       };
 
       // Crear la notificación directamente
-      const success = await this.plugin.createNotificationAndMarkProcessed(pattern);
-      
-      if (!success) {
-        return false;
-      }
-      
+      await this.plugin.createNotificationAndMarkProcessed(pattern);
+
+      // Success is void, so we assume success if no error was thrown
+
       this.plugin.log(`Notificación de ubicación creada: ${pattern.title} en ${location.name}`);
       return true;
     } catch (error) {
@@ -1228,12 +1224,12 @@ export class NotelertDatePickerModal extends Modal {
   private showLoadingState(button: HTMLButtonElement) {
     // Guardar el texto original
     (button as any).__originalText = button.textContent;
-    
+
     // Deshabilitar botón
     button.disabled = true;
     button.style.opacity = '0.6';
     button.style.cursor = 'not-allowed';
-    
+
     // Agregar spinner
     button.innerHTML = `
       <span style="display: inline-block; margin-right: 8px;">
@@ -1244,7 +1240,7 @@ export class NotelertDatePickerModal extends Modal {
       </span>
       ${getTranslation(this.language, "datePicker.confirmButton") || "Confirmando..."}
     `;
-    
+
     // Agregar animación CSS si no existe
     if (!document.getElementById('notelert-spinner-style')) {
       const style = document.createElement('style');
@@ -1264,7 +1260,7 @@ export class NotelertDatePickerModal extends Modal {
     // Restaurar texto original
     const originalText = (button as any).__originalText || getTranslation(this.language, "datePicker.confirmButton") || "Confirmar";
     button.textContent = originalText;
-    
+
     // Restaurar estado del botón
     button.disabled = false;
     button.style.opacity = '1';
@@ -1279,15 +1275,15 @@ export class NotelertDatePickerModal extends Modal {
       if (matchParts) {
         const date = matchParts[1];
         const time = matchParts[2];
-        
+
         // Crear el texto visual: reemplazar :@ con ⏰ y resaltar solo la parte de fecha/hora
         const dateTimePart = `⏰${date}, ${time}`;
         const highlightedDateTime = `==${dateTimePart}==`;
         const visualText = fullText.replace(match, highlightedDateTime);
-        
+
         // Actualizar la línea en el editor con el texto visual
         this.editor.setLine(this.cursor.line, visualText);
-        
+
         this.plugin.log(`Feedback visual añadido: solo ${dateTimePart} resaltado`);
       }
     } catch (error) {

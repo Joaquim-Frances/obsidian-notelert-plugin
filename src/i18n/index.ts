@@ -12,25 +12,37 @@ import { TRANSLATIONS } from './translations';
 export function getTranslation(language: string, key: string, params?: Record<string, string | number>): string {
   const lang = language as keyof typeof TRANSLATIONS;
   const translation = TRANSLATIONS[lang] || TRANSLATIONS.en;
-  
+  const fallbackTranslation = TRANSLATIONS.en;
+
   const keys = key.split('.');
-  let value: any = translation;
-  
-  for (const k of keys) {
-    value = value?.[k];
+
+  // Helper to get value from a translation object
+  const getValue = (obj: any, keyPath: string[]) => {
+    let val = obj;
+    for (const k of keyPath) {
+      val = val?.[k];
+    }
+    return val;
+  };
+
+  let value = getValue(translation, keys);
+
+  // If not found in selected language, try fallback (English)
+  if (typeof value !== 'string' && translation !== fallbackTranslation) {
+    value = getValue(fallbackTranslation, keys);
   }
-  
+
   if (typeof value !== 'string') {
     return key; // Fallback to key if translation not found
   }
-  
+
   // Replace parameters
   if (params) {
     for (const [param, val] of Object.entries(params)) {
       value = value.replace(`{${param}}`, String(val));
     }
   }
-  
+
   return value;
 }
 

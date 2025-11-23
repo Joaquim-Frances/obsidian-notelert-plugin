@@ -7,6 +7,7 @@ import { searchLocations, GeocodingResult } from "../features/location/geocode";
 export class NotelertLocationPickerModal extends Modal {
   private plugin: INotelertPlugin;
   private language: string;
+  private onSelect?: (location: any) => void;
   private editor: any;
   private cursor: any;
   private originalText: string;
@@ -22,24 +23,36 @@ export class NotelertLocationPickerModal extends Modal {
     app: App,
     plugin: INotelertPlugin,
     language: string,
-    editor: any,
-    cursor: any,
-    originalText: string,
-    onCancel: () => void
+    onSelectOrEditor: ((location: any) => void) | any,
+    cursorOrLocation?: any,
+    originalText?: string,
+    onCancel?: () => void
   ) {
     super(app);
     this.plugin = plugin;
     this.language = language;
-    this.editor = editor;
-    this.cursor = cursor;
-    this.originalText = originalText;
-    this.onCancel = onCancel;
+
+    // Detectar modo de uso (Settings vs Editor)
+    if (typeof onSelectOrEditor === 'function') {
+      // Uso desde Settings
+      this.onSelect = onSelectOrEditor;
+      // Si hay un 5º argumento y no es cursor (objeto complejo), asumimos que es location para editar
+      if (cursorOrLocation && !cursorOrLocation.line) {
+        this.selectedLocation = cursorOrLocation;
+      }
+    } else {
+      // Uso desde Editor
+      this.editor = onSelectOrEditor;
+      this.cursor = cursorOrLocation;
+      this.originalText = originalText || "";
+      this.onCancel = onCancel || (() => { });
+    }
   }
 
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    
+
     // Estilos responsive mejorados - modal centrado y sin scroll visible
     contentEl.setAttribute("style", `
       min-width: 320px; 
@@ -69,7 +82,7 @@ export class NotelertLocationPickerModal extends Modal {
     scrollContainer.id = "notelert-modal-scroll-container";
 
     // Título
-    scrollContainer.createEl("h2", { 
+    scrollContainer.createEl("h2", {
       text: getTranslation(this.language, "locationPicker.title") || "Seleccionar Ubicación",
       attr: { style: "margin: 0 0 15px 0; font-size: 20px; font-weight: 600;" }
     });
@@ -115,7 +128,7 @@ export class NotelertLocationPickerModal extends Modal {
       position: relative;
       z-index: 1000;
     `);
-    
+
     const searchInput = searchContainer.createEl("input", {
       type: "text",
       placeholder: getTranslation(this.language, "locationPicker.searchPlaceholder") || "Buscar dirección...",
@@ -167,7 +180,7 @@ export class NotelertLocationPickerModal extends Modal {
 
     // Mensaje de carga/error del mapa
     const mapLoading = mapContainer.createEl("div", {
-      attr: { 
+      attr: {
         style: `
           position: absolute;
           top: 50%;
@@ -188,13 +201,13 @@ export class NotelertLocationPickerModal extends Modal {
     });
     mapLoading.id = "map-loading";
     mapLoading.innerHTML = `
-      <div style="font-weight: 500; margin-bottom: 8px;">${getTranslation(this.language, "locationPicker.loadingMap") || "Cargando mapa..."}</div>
+      <div style="font-weight: 500; margin-bottom: 8px;">${getTranslation(this.language, "locationPicker.loadingMap")}</div>
     `;
 
     // Botón para mostrar/ocultar debug (solo si está en modo debug)
     if (this.plugin.settings.debugMode) {
       const debugToggle = contentEl.createEl("button", {
-        text: "🔍 Debug Mapa",
+        text: getTranslation(this.language, "locationPicker.debugMap"),
         attr: {
           style: `
             position: absolute;
@@ -234,9 +247,9 @@ export class NotelertLocationPickerModal extends Modal {
     // Sección de favoritas (colapsable en móvil)
     const favoritesSection = scrollContainer.createEl("div", { cls: "notelert-location-favorites" });
     favoritesSection.setAttribute("style", "margin: 15px 0;");
-    
+
     const favoritesHeader = favoritesSection.createEl("div", {
-      attr: { 
+      attr: {
         style: `
           display: flex;
           align-items: center;
@@ -246,8 +259,8 @@ export class NotelertLocationPickerModal extends Modal {
         `
       }
     });
-    
-    favoritesHeader.createEl("h3", { 
+
+    favoritesHeader.createEl("h3", {
       text: getTranslation(this.language, "locationPicker.favorites") || "Ubicaciones Favoritas",
       attr: { style: "font-size: 16px; font-weight: 500; margin: 0;" }
     });
@@ -273,9 +286,9 @@ export class NotelertLocationPickerModal extends Modal {
       padding-top: 10px;
       border-top: 1px solid var(--background-modifier-border);
     `);
-    
-    const cancelButton = buttonContainer.createEl("button", { 
-      text: getTranslation(this.language, "locationPicker.cancelButton") || "Cancelar",
+
+    const cancelButton = buttonContainer.createEl("button", {
+      text: getTranslation(this.language, "locationPicker.cancelButton"),
       cls: "mod-secondary"
     });
     cancelButton.setAttribute("style", `
@@ -286,12 +299,12 @@ export class NotelertLocationPickerModal extends Modal {
       border-radius: 6px;
     `);
     cancelButton.addEventListener("click", () => {
-      this.onCancel();
+      if (this.onCancel) this.onCancel();
       this.close();
     });
 
-    const confirmButton = buttonContainer.createEl("button", { 
-      text: getTranslation(this.language, "locationPicker.confirmButton") || "Confirmar",
+    const confirmButton = buttonContainer.createEl("button", {
+      text: getTranslation(this.language, "locationPicker.confirmButton"),
       cls: "mod-cta"
     });
     confirmButton.id = "confirm-location-button";
@@ -307,12 +320,16 @@ export class NotelertLocationPickerModal extends Modal {
     `);
     confirmButton.addEventListener("click", () => {
       if (this.selectedLocation) {
-        this.createNotificationFromLocation(
-          this.selectedLocation.name,
-          this.selectedLocation.latitude,
-          this.selectedLocation.longitude,
-          100 // Radio fijo de 100 metros
-        );
+        if (this.onSelect) {
+          this.onSelect(this.selectedLocation);
+        } else {
+          this.createNotificationFromLocation(
+            this.selectedLocation.name,
+            this.selectedLocation.latitude,
+            this.selectedLocation.longitude,
+            100 // Radio fijo de 100 metros
+          );
+        }
         this.close();
       }
     });
@@ -320,7 +337,7 @@ export class NotelertLocationPickerModal extends Modal {
     // Listener para búsqueda con debounce
     searchInput.addEventListener("input", (e) => {
       const query = (e.target as HTMLInputElement).value.trim();
-      
+
       // Limpiar timeout anterior
       if (this.searchTimeout) {
         clearTimeout(this.searchTimeout);
@@ -349,7 +366,7 @@ export class NotelertLocationPickerModal extends Modal {
   // Cargar Google Maps dinámicamente
   private loadGoogleMap() {
     this.addDebugInfo('Iniciando carga de Google Maps...');
-    
+
     // Verificar si Google Maps ya está cargado globalmente
     if ((window as any).google && (window as any).google.maps) {
       this.addDebugInfo('✅ Google Maps ya está cargado');
@@ -376,7 +393,7 @@ export class NotelertLocationPickerModal extends Modal {
         } else if (attempts >= maxAttempts) {
           clearInterval(checkInterval);
           this.addDebugInfo('❌ Timeout esperando que se cargue el script existente');
-          this.showMapError('Timeout esperando que se cargue Google Maps', 'El script estaba cargándose pero no se completó. Intenta recargar la página.');
+          this.showMapError('Timeout', 'El script estaba cargándose pero no se completó. Intenta recargar la página.');
         }
       }, 100);
       return;
@@ -385,12 +402,12 @@ export class NotelertLocationPickerModal extends Modal {
     // Crear callback único para esta instancia
     const callbackName = `initNotelertMap_${Date.now()}`;
     this.addDebugInfo(`📝 Creando callback: ${callbackName}`);
-    
+
     // Cargar el script de Google Maps
     // NOTA: El mapa interactivo requiere una API key de Google Maps del usuario
     // La geocodificación usa el proxy de Firebase (sin API key requerida)
     const apiKey = this.plugin.settings.googleMapsApiKey?.trim() || '';
-    
+
     if (!apiKey) {
       this.addDebugInfo('⚠️ API key de Google Maps no configurada');
       this.addDebugInfo('ℹ️ El mapa interactivo no estará disponible, pero puedes buscar ubicaciones usando el campo de búsqueda');
@@ -400,15 +417,15 @@ export class NotelertLocationPickerModal extends Modal {
       );
       return;
     }
-    
+
     const script = document.createElement('script');
     const scriptUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${callbackName}`;
     script.src = scriptUrl;
     script.async = true;
     script.defer = true;
-    
+
     this.addDebugInfo('📡 Cargando script de Google Maps...');
-    
+
     // Manejo de errores del script
     script.onerror = (error) => {
       this.addDebugInfo('❌ Error en script.onerror');
@@ -423,7 +440,7 @@ export class NotelertLocationPickerModal extends Modal {
       this.showMapError('Error al cargar Google Maps. Verifica tu conexión a internet.', errorDetails);
       delete (window as any)[callbackName];
     };
-    
+
     // Callback global temporal para cuando el mapa esté listo
     (window as any)[callbackName] = () => {
       this.addDebugInfo('✅ Callback ejecutado - Google Maps cargado');
@@ -435,7 +452,7 @@ export class NotelertLocationPickerModal extends Modal {
 
     document.head.appendChild(script);
     this.addDebugInfo('📦 Script añadido al DOM');
-    
+
     // Timeout de seguridad (10 segundos)
     setTimeout(() => {
       if (!this.mapLoaded && !this.map) {
@@ -458,15 +475,15 @@ export class NotelertLocationPickerModal extends Modal {
   private showMapError(message: string, details?: string) {
     const loading = document.getElementById('map-loading');
     const debugInfo = document.getElementById('map-debug-info');
-    
+
     if (loading) {
       loading.innerHTML = `
-        <div style="color: var(--text-error); font-weight: 500; margin-bottom: 8px;">⚠️ Error</div>
+        <div style="color: var(--text-error); font-weight: 500; margin-bottom: 8px;">${getTranslation(this.language, "locationPicker.mapError")}</div>
         <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">${message}</div>
         ${details ? `<div id="map-debug-info" style="font-size: 11px; color: var(--text-muted); text-align: left; max-height: 100px; overflow-y: auto; background: var(--background-secondary); padding: 8px; border-radius: 4px; margin-top: 8px;">${details}</div>` : ''}
       `;
     }
-    
+
     if (debugInfo && details) {
       debugInfo.innerHTML = details;
       debugInfo.style.display = 'block';
@@ -479,12 +496,12 @@ export class NotelertLocationPickerModal extends Modal {
     if (debugInfo) {
       const timestamp = new Date().toLocaleTimeString();
       const existing = debugInfo.innerHTML || '';
-      const color = message.includes('❌') || message.includes('Error') || message.includes('Excepción') ? 'var(--text-error)' : 
-                   message.includes('✅') ? 'var(--text-success)' : 
-                   message.includes('⚠️') ? 'var(--text-warning)' :
-                   'var(--text-normal)';
-      const bgColor = message.includes('❌') || message.includes('Error') || message.includes('Excepción') ? 'rgba(255, 0, 0, 0.1)' : 
-                     message.includes('✅') ? 'rgba(0, 255, 0, 0.1)' : 'transparent';
+      const color = message.includes('❌') || message.includes('Error') || message.includes('Excepción') ? 'var(--text-error)' :
+        message.includes('✅') ? 'var(--text-success)' :
+          message.includes('⚠️') ? 'var(--text-warning)' :
+            'var(--text-normal)';
+      const bgColor = message.includes('❌') || message.includes('Error') || message.includes('Excepción') ? 'rgba(255, 0, 0, 0.1)' :
+        message.includes('✅') ? 'rgba(0, 255, 0, 0.1)' : 'transparent';
       debugInfo.innerHTML = `${existing}<div style="margin: 4px 0; padding: 6px 8px; font-size: 11px; color: ${color}; background: ${bgColor}; border-left: 3px solid ${color}; border-radius: 3px; word-wrap: break-word; white-space: pre-wrap;"><span style="opacity: 0.7;">[${timestamp}]</span> ${message}</div>`;
       // Auto-scroll al final
       const container = document.getElementById('notelert-debug-container');
@@ -500,11 +517,11 @@ export class NotelertLocationPickerModal extends Modal {
   private initMap() {
     try {
       this.addDebugInfo('🗺️ Iniciando inicialización del mapa...');
-      
+
       const mapContainer = document.getElementById('notelert-map-container');
       if (!mapContainer) {
         this.addDebugInfo('❌ Contenedor del mapa no encontrado');
-        this.showMapError('Contenedor del mapa no encontrado', 'El elemento #notelert-map-container no existe en el DOM');
+        this.showMapError(getTranslation(this.language, "locationPicker.mapErrorTitle"), 'El elemento #notelert-map-container no existe en el DOM');
         return;
       }
       this.addDebugInfo('✅ Contenedor encontrado');
@@ -515,7 +532,7 @@ export class NotelertLocationPickerModal extends Modal {
         this.showMapError('Google Maps no está disponible', 'window.google no está definido. El script no se cargó correctamente.');
         return;
       }
-      
+
       if (!(window as any).google.maps) {
         this.addDebugInfo('❌ window.google.maps no existe');
         this.showMapError('Google Maps API no disponible', 'window.google.maps no está definido. Verifica que el script se cargó correctamente.');
@@ -531,15 +548,15 @@ export class NotelertLocationPickerModal extends Modal {
       }
 
       // Coordenadas por defecto (centro del mundo o última ubicación seleccionada)
-      const defaultCenter = this.selectedLocation 
+      const defaultCenter = this.selectedLocation
         ? { lat: this.selectedLocation.latitude, lng: this.selectedLocation.longitude }
         : { lat: 40.4168, lng: -3.7038 }; // Madrid por defecto
-      
+
       this.addDebugInfo(`📍 Centro: ${defaultCenter.lat}, ${defaultCenter.lng}`);
 
       // Crear el mapa
       this.addDebugInfo('🔨 Creando instancia del mapa...');
-      
+
       try {
         this.map = new (window as any).google.maps.Map(mapContainer, {
           center: defaultCenter,
@@ -588,7 +605,7 @@ export class NotelertLocationPickerModal extends Modal {
         const lat = e.latLng.lat();
         const lng = e.latLng.lng();
         this.addDebugInfo(`🖱️ Click en mapa: ${lat}, ${lng}`);
-        
+
         // Geocodificación inversa para obtener la dirección
         this.reverseGeocode(lat, lng);
       });
@@ -618,7 +635,7 @@ export class NotelertLocationPickerModal extends Modal {
   // Verificar el estado del mapa después de cargar
   private checkMapStatus() {
     this.addDebugInfo('🔍 Verificando estado del mapa...');
-    
+
     const mapContainer = document.getElementById('notelert-map-container');
     if (!mapContainer) {
       this.addDebugInfo('❌ Contenedor no encontrado en verificación');
@@ -634,19 +651,19 @@ export class NotelertLocationPickerModal extends Modal {
     // Buscar por texto común en errores de Google Maps
     const allDivs = mapContainer.querySelectorAll('div');
     this.addDebugInfo(`🔎 Buscando en ${allDivs.length} elementos div...`);
-    
+
     for (const div of Array.from(allDivs)) {
       const text = div.innerText || div.textContent || '';
       const lowerText = text.toLowerCase();
-      
+
       // Buscar mensajes de error comunes
-      if (lowerText.includes('no ha cargado') || 
-          lowerText.includes('no se ha podido cargar') ||
-          lowerText.includes('something went wrong') ||
-          lowerText.includes('error') ||
-          lowerText.includes('forbidden') ||
-          lowerText.includes('unauthorized') ||
-          lowerText.includes('api key')) {
+      if (lowerText.includes('no ha cargado') ||
+        lowerText.includes('no se ha podido cargar') ||
+        lowerText.includes('something went wrong') ||
+        lowerText.includes('error') ||
+        lowerText.includes('forbidden') ||
+        lowerText.includes('unauthorized') ||
+        lowerText.includes('api key')) {
         googleError = div;
         errorText = text;
         this.addDebugInfo(`❌ Error encontrado: "${text.substring(0, 100)}"`);
@@ -672,10 +689,10 @@ export class NotelertLocationPickerModal extends Modal {
         this.addDebugInfo(`  - Iframe src: ${iframe.src.substring(0, 80)}...`);
       }
     }
-    
+
     if (googleError) {
       this.addDebugInfo(`❌ Error de Google Maps detectado: ${errorText}`);
-      this.showMapError('Google Maps no se cargó correctamente', `
+      this.showMapError(getTranslation(this.language, "locationPicker.googleMapsError"), `
         <strong>Error detectado:</strong><br>
         ${errorText}<br><br>
         <strong>Posibles causas:</strong><br>
@@ -697,7 +714,7 @@ export class NotelertLocationPickerModal extends Modal {
       this.addDebugInfo('🗺️ Mapa existe, verificando tiles...');
       const tiles = mapContainer.querySelectorAll('img[src*="maps.googleapis.com"], img[src*="googleapis"], img[src*="gstatic"]');
       this.addDebugInfo(`🖼️ Tiles encontrados: ${tiles.length}`);
-      
+
       if (tiles.length === 0) {
         this.addDebugInfo('⚠️ No se detectaron tiles del mapa cargados');
         this.addDebugInfo('🔍 Buscando cualquier imagen en el contenedor...');
@@ -706,11 +723,11 @@ export class NotelertLocationPickerModal extends Modal {
         for (const img of Array.from(allImages)) {
           this.addDebugInfo(`  - Imagen src: ${(img as HTMLImageElement).src.substring(0, 80)}...`);
         }
-        
+
         // Verificar si hay contenido HTML que indique error
         const containerHTML = mapContainer.innerHTML.substring(0, 500);
         this.addDebugInfo(`📄 Primeros 500 chars del HTML: ${containerHTML}`);
-        
+
         this.showMapError('El mapa no muestra tiles', 'El mapa se creó pero no se están cargando las imágenes. Verifica tu conexión y la API key. Asegúrate de que "Maps JavaScript API" esté habilitada en Google Cloud.');
       } else {
         this.addDebugInfo(`✅ Mapa verificado: ${tiles.length} tiles cargados`);
@@ -738,9 +755,9 @@ export class NotelertLocationPickerModal extends Modal {
 
     // Buscar errores que aparecen después
     const allText = mapContainer.innerText || mapContainer.textContent || '';
-    if (allText.toLowerCase().includes('error') || 
-        allText.toLowerCase().includes('no ha cargado') ||
-        allText.toLowerCase().includes('forbidden')) {
+    if (allText.toLowerCase().includes('error') ||
+      allText.toLowerCase().includes('no ha cargado') ||
+      allText.toLowerCase().includes('forbidden')) {
       this.addDebugInfo(`❌ Error detectado en verificación tardía: ${allText.substring(0, 200)}`);
       this.showMapError('Error detectado en el mapa', allText.substring(0, 300));
     } else {
@@ -752,15 +769,15 @@ export class NotelertLocationPickerModal extends Modal {
   private async reverseGeocode(lat: number, lng: number) {
     try {
       const geocoder = new (window as any).google.maps.Geocoder();
-      
+
       geocoder.geocode({ location: { lat, lng } }, (results: any[], status: string) => {
         if (status === 'OK' && results[0]) {
           const result = results[0];
           const address = result.formatted_address;
-          const shortName = result.address_components[0]?.long_name || 
-                           result.address_components[1]?.long_name || 
-                           'Ubicación seleccionada';
-          
+          const shortName = result.address_components[0]?.long_name ||
+            result.address_components[1]?.long_name ||
+            'Ubicación seleccionada';
+
           this.selectLocation({
             name: shortName,
             latitude: lat,
@@ -844,7 +861,7 @@ export class NotelertLocationPickerModal extends Modal {
       // Validar token si se usa Google Maps proxy (premium feature)
       const useProxy = (this.plugin.settings as any).useFirebaseProxy !== false;
       const provider = (this.plugin.settings as any).geocodingProvider || 'nominatim';
-      
+
       if ((provider === 'google' && useProxy) || provider === 'google') {
         if (!this.plugin.settings.pluginToken || this.plugin.settings.pluginToken.trim() === '') {
           resultsContainer.style.display = "block";
@@ -866,12 +883,12 @@ export class NotelertLocationPickerModal extends Modal {
           return;
         }
       }
-      
+
       resultsContainer.style.display = "block";
       resultsContainer.innerHTML = `<div style='padding: 20px; text-align: center; color: var(--text-muted);'>${getTranslation(this.language, "locationPicker.searching") || "Buscando..."}</div>`;
 
       this.plugin.log(`Buscando ubicaciones: ${query}`);
-      
+
       // Usar el sistema de geocodificación modular
       const results = await searchLocations(
         query,
@@ -893,7 +910,7 @@ export class NotelertLocationPickerModal extends Modal {
         try {
           const resultItem = resultsContainer.createEl("div", { cls: "notelert-location-result-item" });
           resultItem.setAttribute("style", "padding: 12px; margin: 5px 0; border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; transition: background 0.2s; word-wrap: break-word;");
-          
+
           resultItem.addEventListener("mouseenter", () => {
             resultItem.style.background = "var(--background-modifier-hover)";
           });
@@ -901,11 +918,11 @@ export class NotelertLocationPickerModal extends Modal {
             resultItem.style.background = "";
           });
 
-          resultItem.createEl("div", { 
+          resultItem.createEl("div", {
             text: result.name,
             attr: { style: "font-weight: 500; margin-bottom: 4px;" }
           });
-          resultItem.createEl("div", { 
+          resultItem.createEl("div", {
             text: result.displayName.length > 80 ? result.displayName.substring(0, 80) + "..." : result.displayName,
             attr: { style: "font-size: 11px; color: var(--text-muted);" }
           });
@@ -916,7 +933,7 @@ export class NotelertLocationPickerModal extends Modal {
               new Notice(getTranslation(this.language, "locationPicker.error") || "Error: Coordenadas inválidas");
               return;
             }
-            
+
             this.selectLocation({
               name: result.name,
               latitude: result.latitude,
@@ -938,7 +955,7 @@ export class NotelertLocationPickerModal extends Modal {
       const errorMessage = error?.message || String(error);
       this.plugin.log(`Error buscando ubicaciones: ${errorMessage}`);
       this.plugin.log(`Stack: ${error?.stack || 'No stack trace'}`);
-      
+
       let errorDisplay = getTranslation(this.language, "locationPicker.error") || "Error al buscar ubicaciones";
       if (errorMessage.includes("CORS") || errorMessage.includes("Failed to fetch")) {
         errorDisplay = getTranslation(this.language, "locationPicker.connectionError") || "Error de conexión. Verifica tu conexión a internet.";
@@ -949,7 +966,7 @@ export class NotelertLocationPickerModal extends Modal {
       } else if (errorMessage) {
         errorDisplay = `${getTranslation(this.language, "locationPicker.error") || "Error"}: ${errorMessage}`;
       }
-      
+
       resultsContainer.innerHTML = `<div style='padding: 20px; text-align: center; color: var(--text-error);'>${errorDisplay}</div>`;
     }
   }
@@ -957,11 +974,11 @@ export class NotelertLocationPickerModal extends Modal {
   // Seleccionar una ubicación
   private selectLocation(location: { name: string; latitude: number; longitude: number; radius: number; address?: string }) {
     this.selectedLocation = location;
-    
+
     const selectedContainer = document.getElementById("location-selected-container");
     const confirmButton = document.getElementById("confirm-location-button") as HTMLButtonElement;
     const resultsContainer = document.getElementById("location-results-container");
-    
+
     if (selectedContainer && confirmButton) {
       selectedContainer.style.display = "block";
       const saveFavoriteText = getTranslation(this.language, "locationPicker.saveFavorite") || "⭐ Guardar";
@@ -1022,7 +1039,7 @@ export class NotelertLocationPickerModal extends Modal {
     if (!exists) {
       this.plugin.settings.savedLocations.push(newLocation);
       await this.plugin.saveSettings();
-      
+
       // Actualizar lista de favoritas
       const favoritesList = document.querySelector(".notelert-location-favorites-list");
       if (favoritesList) {
@@ -1034,9 +1051,9 @@ export class NotelertLocationPickerModal extends Modal {
   // Eliminar ubicación favorita
   private async deleteFavorite(location: SavedLocation) {
     const index = this.plugin.settings.savedLocations.findIndex(
-      loc => loc.name === location.name && 
-            loc.latitude === location.latitude && 
-            loc.longitude === location.longitude
+      loc => loc.name === location.name &&
+        loc.latitude === location.latitude &&
+        loc.longitude === location.longitude
     );
 
     if (index !== -1) {
@@ -1050,9 +1067,9 @@ export class NotelertLocationPickerModal extends Modal {
   private renderFavorites(container: HTMLElement) {
     container.innerHTML = "";
     const savedLocations = this.plugin.settings.savedLocations || [];
-    
+
     if (savedLocations.length === 0) {
-      container.createEl("p", { 
+      container.createEl("p", {
         text: getTranslation(this.language, "locationPicker.noFavorites") || "No hay ubicaciones guardadas",
         attr: { style: "color: var(--text-muted); font-size: 12px; padding: 10px; text-align: center;" }
       });
@@ -1060,7 +1077,7 @@ export class NotelertLocationPickerModal extends Modal {
       savedLocations.forEach((location, index) => {
         const locationItem = container.createEl("div", { cls: "notelert-location-favorite-item" });
         locationItem.setAttribute("style", "padding: 10px; margin: 5px 0; border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; flex-wrap: wrap; gap: 8px;");
-        
+
         locationItem.addEventListener("mouseenter", () => {
           locationItem.style.background = "var(--background-modifier-hover)";
         });
@@ -1070,12 +1087,12 @@ export class NotelertLocationPickerModal extends Modal {
 
         const locationInfo = locationItem.createEl("div");
         locationInfo.setAttribute("style", "flex: 1; min-width: 0; margin-right: 10px;");
-        locationInfo.createEl("div", { 
+        locationInfo.createEl("div", {
           text: location.name,
           attr: { style: "font-weight: 500; margin-bottom: 4px; word-wrap: break-word;" }
         });
         if (location.address) {
-          locationInfo.createEl("div", { 
+          locationInfo.createEl("div", {
             text: location.address.length > 50 ? location.address.substring(0, 50) + "..." : location.address,
             attr: { style: "font-size: 11px; color: var(--text-muted); word-wrap: break-word;" }
           });
@@ -1130,9 +1147,9 @@ export class NotelertLocationPickerModal extends Modal {
       const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :#
       const afterCursor = line.substring(this.cursor.ch);
       const newLine = beforeCursor + replacement + afterCursor;
-      
+
       this.editor.setLine(this.cursor.line, newLine);
-      
+
       // Mover cursor al final del reemplazo
       const newCursor = {
         line: this.cursor.line,
@@ -1160,7 +1177,7 @@ export class NotelertLocationPickerModal extends Modal {
 
       // Crear la notificación directamente
       await this.plugin.createNotificationAndMarkProcessed(pattern);
-      
+
       this.plugin.log(`Notificación de ubicación creada: ${pattern.title} en ${locationName}`);
     } catch (error) {
       this.plugin.log(`Error creando notificación de ubicación: ${error}`);
@@ -1172,15 +1189,15 @@ export class NotelertLocationPickerModal extends Modal {
   private extractTitleFromText(text: string, match: string): string {
     // Remover el patrón :#ubicación del texto
     let title = text.replace(match, '').trim();
-    
+
     // Limpiar espacios extra
     title = title.replace(/\s+/g, ' ').trim();
-    
+
     // Limitar longitud
     if (title.length > 50) {
       title = title.substring(0, 47) + '...';
     }
-    
+
     return title || 'Recordatorio de ubicación';
   }
 }

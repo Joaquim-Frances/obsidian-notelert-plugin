@@ -37,27 +37,27 @@ export class NotelertSettingTab extends PluginSettingTab {
     });
 
     if (isDesktop) {
-      platformInfo.createEl("h4", { 
-        text: "💻 Modo Desktop",
+      platformInfo.createEl("h4", {
+        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.desktopTitle"),
         attr: { style: "margin: 0 0 8px 0; font-size: 16px; font-weight: 600;" }
       });
       platformInfo.createEl("p", {
-        text: "En desktop, Notelert envía notificaciones por email. Las notificaciones de ubicación solo están disponibles en móvil.",
+        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.desktopDesc"),
         attr: { style: "margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;" }
       });
     } else {
-      platformInfo.createEl("h4", { 
-        text: "📱 Modo Móvil",
+      platformInfo.createEl("h4", {
+        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.mobileTitle"),
         attr: { style: "margin: 0 0 8px 0; font-size: 16px; font-weight: 600;" }
       });
       platformInfo.createEl("p", {
-        text: "En móvil, Notelert usa la app para enviar notificaciones push y emails. Puedes configurar ubicaciones favoritas para recordatorios basados en ubicación.",
+        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.mobileDesc"),
         attr: { style: "margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;" }
       });
     }
 
     // ========== CONFIGURACIÓN BÁSICA ==========
-    containerEl.createEl("h3", { text: "Configuración Básica" });
+    containerEl.createEl("h3", { text: getTranslation(this.plugin.settings.language, "settings.basicSettings") });
 
     // Selector de idioma
     new Setting(containerEl)
@@ -89,19 +89,19 @@ export class NotelertSettingTab extends PluginSettingTab {
       );
 
     // ========== TOKEN DEL PLUGIN (DESKTOP Y MÓVIL) ==========
-    containerEl.createEl("h3", { text: "🔑 Token del Plugin" });
+    containerEl.createEl("h3", { text: getTranslation(this.plugin.settings.language, "settings.pluginToken.title") });
 
     // Token del Plugin (REQUERIDO para premium features)
-    const tokenDesc = isDesktop 
-      ? "Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token."
-      : "Token de autenticación para usar geocodificación premium. Obtén tu token desde la app móvil en Settings > Plugin Token.";
-    
+    const tokenDesc = isDesktop
+      ? getTranslation(this.plugin.settings.language, "settings.pluginToken.descDesktop")
+      : getTranslation(this.plugin.settings.language, "settings.pluginToken.descMobile");
+
     new Setting(containerEl)
-      .setName("🔑 Token del Plugin")
+      .setName(getTranslation(this.plugin.settings.language, "settings.pluginToken.title"))
       .setDesc(tokenDesc)
       .addText((text) => {
         text
-          .setPlaceholder("Pega tu token aquí...")
+          .setPlaceholder(getTranslation(this.plugin.settings.language, "settings.pluginToken.placeholder"))
           .setValue(this.plugin.settings.pluginToken || "")
           .inputEl.type = "password";
         text.onChange(async (value) => {
@@ -111,7 +111,7 @@ export class NotelertSettingTab extends PluginSettingTab {
       })
       .addButton((button) => {
         button
-          .setButtonText("Mostrar/Ocultar")
+          .setButtonText(getTranslation(this.plugin.settings.language, "settings.pluginToken.showHide"))
           .setCta(false)
           .onClick(() => {
             const input = containerEl.querySelector('input[type="password"]') as HTMLInputElement;
@@ -123,15 +123,15 @@ export class NotelertSettingTab extends PluginSettingTab {
 
     // ========== CONFIGURACIÓN DESKTOP ==========
     if (isDesktop) {
-      containerEl.createEl("h3", { text: "💻 Configuración Desktop" });
+      containerEl.createEl("h3", { text: getTranslation(this.plugin.settings.language, "settings.desktopSettings.title") });
 
       // Email del usuario (DEPRECATED pero mantener por compatibilidad)
       new Setting(containerEl)
-        .setName("Email del Usuario (Opcional)")
-        .setDesc("Email donde recibirás las notificaciones. Ya no es necesario si usas token del plugin.")
+        .setName(getTranslation(this.plugin.settings.language, "settings.desktopSettings.userEmailTitle"))
+        .setDesc(getTranslation(this.plugin.settings.language, "settings.desktopSettings.userEmailDesc"))
         .addText((text) => {
           text
-            .setPlaceholder("usuario@email.com")
+            .setPlaceholder(getTranslation(this.plugin.settings.language, "settings.desktopSettings.userEmailPlaceholder"))
             .setValue(this.plugin.settings.userEmail || "")
             .onChange(async (value) => {
               this.plugin.settings.userEmail = value;
@@ -140,10 +140,10 @@ export class NotelertSettingTab extends PluginSettingTab {
         });
 
       // Lista de emails programados
-      containerEl.createEl("h4", { text: "📧 Emails Programados" });
-      
+      containerEl.createEl("h4", { text: getTranslation(this.plugin.settings.language, "settings.scheduledEmails.title") });
+
       const emailsDesc = containerEl.createEl("p", {
-        text: "Gestiona tus emails programados. Puedes cancelarlos antes de que se envíen.",
+        text: getTranslation(this.plugin.settings.language, "settings.scheduledEmails.desc"),
         attr: { style: "color: var(--text-muted); font-size: 13px; margin-bottom: 15px;" }
       });
 
@@ -164,23 +164,23 @@ export class NotelertSettingTab extends PluginSettingTab {
 
     // ========== CONFIGURACIÓN MÓVIL ==========
     if (!isDesktop) {
-      containerEl.createEl("h3", { text: "📱 Configuración Móvil" });
+      containerEl.createEl("h3", { text: getTranslation(this.plugin.settings.language, "settings.mobileSettings.title") });
 
       // Gestión de ubicaciones
-      containerEl.createEl("h4", { text: "📍 Ubicaciones Guardadas" });
-      
+      containerEl.createEl("h4", { text: getTranslation(this.plugin.settings.language, "settings.savedLocations.title") });
+
       const locationsDesc = containerEl.createEl("p", {
-        text: "Gestiona tus ubicaciones favoritas. Estas aparecerán cuando selecciones 'Ubicación' al crear una notificación.",
+        text: getTranslation(this.plugin.settings.language, "settings.savedLocations.desc"),
         attr: { style: "color: var(--text-muted); font-size: 13px; margin-bottom: 15px;" }
       });
 
       // Botón para añadir nueva ubicación
       new Setting(containerEl)
-        .setName("Añadir Nueva Ubicación")
-        .setDesc("Abre el selector de ubicaciones con mapa para añadir una nueva ubicación")
+        .setName(getTranslation(this.plugin.settings.language, "settings.savedLocations.addTitle"))
+        .setDesc(getTranslation(this.plugin.settings.language, "settings.savedLocations.addDesc"))
         .addButton((button) => {
           button
-            .setButtonText("➕ Añadir Ubicación")
+            .setButtonText(getTranslation(this.plugin.settings.language, "settings.savedLocations.addButton"))
             .setCta()
             .onClick(() => {
               this.openLocationPicker();
@@ -208,13 +208,13 @@ export class NotelertSettingTab extends PluginSettingTab {
   private renderSavedLocations(container: HTMLElement) {
     // Limpiar completamente el contenedor
     container.empty();
-    
+
     // Obtener ubicaciones actualizadas de settings
     const locations = this.plugin.settings.savedLocations || [];
 
     if (locations.length === 0) {
       container.createEl("p", {
-        text: "No hay ubicaciones guardadas. Haz clic en 'Añadir Ubicación' para empezar.",
+        text: getTranslation(this.plugin.settings.language, "settings.savedLocations.empty"),
         attr: { style: "color: var(--text-muted); text-align: center; padding: 20px;" }
       });
       return;
@@ -265,7 +265,7 @@ export class NotelertSettingTab extends PluginSettingTab {
       });
 
       const editButton = buttonsContainer.createEl("button", {
-        text: "✏️ Editar",
+        text: getTranslation(this.plugin.settings.language, "settings.savedLocations.editButton"),
         attr: { style: "padding: 6px 12px; font-size: 12px; white-space: nowrap;" }
       });
       editButton.addEventListener("click", () => {
@@ -287,19 +287,19 @@ export class NotelertSettingTab extends PluginSettingTab {
   // Renderizar lista de emails programados
   private renderScheduledEmails(container: HTMLElement) {
     container.empty();
-    
+
     const emails = this.plugin.settings.scheduledEmails || [];
 
     if (emails.length === 0) {
       container.createEl("p", {
-        text: "No hay emails programados. Los emails que programes aparecerán aquí.",
+        text: getTranslation(this.plugin.settings.language, "settings.scheduledEmails.empty"),
         attr: { style: "color: var(--text-muted); text-align: center; padding: 20px;" }
       });
       return;
     }
 
     // Ordenar por fecha programada (más próximos primero)
-    const sortedEmails = [...emails].sort((a, b) => 
+    const sortedEmails = [...emails].sort((a, b) =>
       new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
     );
 
@@ -340,17 +340,17 @@ export class NotelertSettingTab extends PluginSettingTab {
       const scheduledDate = new Date(email.scheduledDate);
       const now = new Date();
       const isPast = scheduledDate < now;
-      
+
       emailInfo.createEl("div", {
-        text: `📅 ${scheduledDate.toLocaleString('es-ES', { 
-          year: 'numeric', 
-          month: 'short', 
-          day: 'numeric', 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })} ${isPast ? '(Pasado)' : ''}`,
-        attr: { 
-          style: `font-size: 11px; color: ${isPast ? 'var(--text-error)' : 'var(--text-muted)'};` 
+        text: `📅 ${scheduledDate.toLocaleString('es-ES', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })} ${isPast ? getTranslation(this.plugin.settings.language, "settings.scheduledEmails.past") : ''}`,
+        attr: {
+          style: `font-size: 11px; color: ${isPast ? 'var(--text-error)' : 'var(--text-muted)'};`
         }
       });
 
@@ -359,8 +359,8 @@ export class NotelertSettingTab extends PluginSettingTab {
       });
 
       const cancelButton = buttonsContainer.createEl("button", {
-        text: "🗑️ Cancelar",
-        attr: { 
+        text: getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelButton"),
+        attr: {
           style: "padding: 6px 12px; font-size: 12px; white-space: nowrap; color: var(--text-error);",
           id: `cancel-email-btn-${email.notificationId}`
         }
@@ -379,7 +379,7 @@ export class NotelertSettingTab extends PluginSettingTab {
     // TODO: Crear endpoint /plugin/cancelEmail que use autenticación por usuario
     // Por ahora, si no hay API key configurada, mostrar error
     const apiKey = this.plugin.settings.notelertApiKey;
-    
+
     if (!apiKey) {
       new Notice("❌ Para cancelar emails, necesitas configurar una API key en Settings (o esperar a que se envíe automáticamente).");
       return;
@@ -412,20 +412,20 @@ export class NotelertSettingTab extends PluginSettingTab {
         this.plugin.settings.scheduledEmails.splice(index, 1);
         await this.plugin.saveSettings();
         this.display(); // Recargar para actualizar la lista
-        new Notice("✅ Email cancelado correctamente");
+        new Notice(getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelSuccess"));
       } else {
-        new Notice(`❌ Error: ${result.error || 'Error al cancelar email'}`);
+        new Notice(`❌ Error: ${result.error || getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelError")}`);
       }
     } catch (error) {
       // Cerrar el notice de carga
       loadingNotice.hide();
-      
+
       // Restaurar botón en caso de error
       if (button) {
         this.hideLoadingState(button);
       }
-      
-      new Notice(`❌ Error: ${error instanceof Error ? error.message : 'Error al cancelar email'}`);
+
+      new Notice(`❌ Error: ${error instanceof Error ? error.message : getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelError")}`);
     }
   }
 
@@ -433,12 +433,12 @@ export class NotelertSettingTab extends PluginSettingTab {
   private showLoadingState(button: HTMLButtonElement) {
     // Guardar el texto original
     (button as any).__originalText = button.textContent;
-    
+
     // Deshabilitar botón
     button.disabled = true;
     button.style.opacity = '0.6';
     button.style.cursor = 'not-allowed';
-    
+
     // Agregar spinner
     button.innerHTML = `
       <span style="display: inline-block; margin-right: 6px;">
@@ -447,9 +447,9 @@ export class NotelertSettingTab extends PluginSettingTab {
           <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"/>
         </svg>
       </span>
-      Cancelando...
+      ${getTranslation(this.plugin.settings.language, "settings.scheduledEmails.canceling")}
     `;
-    
+
     // Agregar animación CSS si no existe
     if (!document.getElementById('notelert-spinner-style')) {
       const style = document.createElement('style');
@@ -467,9 +467,9 @@ export class NotelertSettingTab extends PluginSettingTab {
   // Ocultar estado de carga y restaurar botón
   private hideLoadingState(button: HTMLButtonElement) {
     // Restaurar texto original
-    const originalText = (button as any).__originalText || "🗑️ Cancelar";
+    const originalText = (button as any).__originalText || getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelButton");
     button.textContent = originalText;
-    
+
     // Restaurar estado del botón
     button.disabled = false;
     button.style.opacity = '1';
