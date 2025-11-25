@@ -79,21 +79,6 @@ export const SUPPORTED_LANGUAGES: Language[] = [
     }
   },
   {
-    code: 'it',
-    name: 'Italian',
-    nativeName: 'Italiano',
-    keywords: ['Ricordare:', 'Notificare:', 'Allerta:', 'Promemoria:', 'Avviso:', 'Reminder:', 'Notify:', 'Alert:'],
-    datePatterns: {
-      today: ['oggi'],
-      tomorrow: ['domani'],
-      yesterday: ['ieri']
-    },
-    timePatterns: {
-      format24h: ['HH:MM', 'H:MM'],
-      format12h: ['HH:MM AM/PM', 'H:MM AM/PM']
-    }
-  },
-  {
     code: 'pt',
     name: 'Portuguese',
     nativeName: 'Português',
@@ -107,66 +92,7 @@ export const SUPPORTED_LANGUAGES: Language[] = [
       format24h: ['HH:MM', 'H:MM'],
       format12h: ['HH:MM AM/PM', 'H:MM AM/PM']
     }
-  },
-  {
-    code: 'ru',
-    name: 'Russian',
-    nativeName: 'Русский',
-    keywords: ['Напомнить:', 'Уведомить:', 'Тревога:', 'Напоминание:', 'Уведомление:', 'Reminder:', 'Notify:', 'Alert:'],
-    datePatterns: {
-      today: ['сегодня'],
-      tomorrow: ['завтра'],
-      yesterday: ['вчера']
-    },
-    timePatterns: {
-      format24h: ['HH:MM', 'H:MM'],
-      format12h: ['HH:MM AM/PM', 'H:MM AM/PM']
-    }
-  },
-  {
-    code: 'ja',
-    name: 'Japanese',
-    nativeName: '日本語',
-    keywords: ['覚えて:', '通知:', 'アラート:', 'リマインダー:', 'お知らせ:', 'Reminder:', 'Notify:', 'Alert:'],
-    datePatterns: {
-      today: ['今日', 'きょう'],
-      tomorrow: ['明日', 'あした'],
-      yesterday: ['昨日', 'きのう']
-    },
-    timePatterns: {
-      format24h: ['HH:MM', 'H:MM'],
-      format12h: ['HH:MM AM/PM', 'H:MM AM/PM']
-    }
-  },
-  {
-    code: 'zh',
-    name: 'Chinese',
-    nativeName: '中文',
-    keywords: ['记住:', '通知:', '警报:', '提醒:', '注意:', 'Reminder:', 'Notify:', 'Alert:'],
-    datePatterns: {
-      today: ['今天'],
-      tomorrow: ['明天'],
-      yesterday: ['昨天']
-    },
-    timePatterns: {
-      format24h: ['HH:MM', 'H:MM'],
-      format12h: ['HH:MM AM/PM', 'H:MM AM/PM']
-    }
-  },
-  {
-    code: 'ar',
-    name: 'Arabic',
-    nativeName: 'العربية',
-    keywords: ['تذكر:', 'إشعار:', 'تنبيه:', 'تذكير:', 'تنبيه:', 'Reminder:', 'Notify:', 'Alert:'],
-    datePatterns: {
-      today: ['اليوم'],
-      tomorrow: ['غداً', 'غدا'],
-      yesterday: ['أمس']
-    },
-    timePatterns: {
-      format24h: ['HH:MM', 'H:MM'],
-      format12h: ['HH:MM AM/PM', 'H:MM AM/PM']
-    }
   }
 ];
+
 

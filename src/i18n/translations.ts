@@ -149,7 +149,11 @@ export const TRANSLATIONS = {
       debugMap: '🔍 Debug Mapa',
       mapError: '⚠️ Error',
       mapErrorTitle: 'Error al cargar el mapa',
-      googleMapsError: 'Google Maps no se cargó correctamente'
+      googleMapsError: 'Google Maps no se cargó correctamente',
+      nameLocationTitle: 'Nombrar ubicación',
+      nameLocationPlaceholder: 'Introduce un nombre para esta ubicación',
+      nameLocationConfirm: 'Guardar',
+      nameLocationCancel: 'Cancelar'
     }
   },
   en: {
@@ -302,7 +306,11 @@ export const TRANSLATIONS = {
       debugMap: '🔍 Debug Map',
       mapError: '⚠️ Error',
       mapErrorTitle: 'Error loading map',
-      googleMapsError: 'Google Maps did not load correctly'
+      googleMapsError: 'Google Maps did not load correctly',
+      nameLocationTitle: 'Name Location',
+      nameLocationPlaceholder: 'Enter a name for this location',
+      nameLocationConfirm: 'Save',
+      nameLocationCancel: 'Cancel'
     }
   },
   ca: {
@@ -429,7 +437,6 @@ export const TRANSLATIONS = {
       selectSavedLocation: 'Seleccionar Ubicació Guardada',
       hours: 'Hores',
       minutes: 'Minuts',
-      selectLocationTitle: 'Selecciona una ubicació:',
       selectLocationTitle: 'Selecciona una ubicació:'
     },
     locationPicker: {
@@ -456,7 +463,11 @@ export const TRANSLATIONS = {
       debugMap: '🔍 Debug Mapa',
       mapError: '⚠️ Error',
       mapErrorTitle: 'Error en carregar el mapa',
-      googleMapsError: 'Google Maps no s\'ha carregat correctament'
+      googleMapsError: 'Google Maps no s\'ha carregat correctament',
+      nameLocationTitle: 'Nomenar ubicació',
+      nameLocationPlaceholder: 'Introdueix un nom per aquesta ubicació',
+      nameLocationConfirm: 'Guardar',
+      nameLocationCancel: 'Cancel·lar'
     }
   },
   fr: {
@@ -583,7 +594,11 @@ export const TRANSLATIONS = {
       debugMap: '🔍 Debug Carte',
       mapError: '⚠️ Erreur',
       mapErrorTitle: 'Erreur lors du chargement de la carte',
-      googleMapsError: 'Google Maps ne s\'est pas chargé correctement'
+      googleMapsError: 'Google Maps ne s\'est pas chargé correctement',
+      nameLocationTitle: 'Nommer le lieu',
+      nameLocationPlaceholder: 'Entrez un nom pour ce lieu',
+      nameLocationConfirm: 'Enregistrer',
+      nameLocationCancel: 'Annuler'
     }
   },
   de: {
@@ -666,86 +681,6 @@ export const TRANSLATIONS = {
       defaultTitle: 'Erinnerung'
     }
   },
-  it: {
-    settings: {
-      title: 'Impostazioni Notelert',
-      autoProcess: 'Elaborazione automatica',
-      autoProcessDesc: 'Abilita l\'elaborazione automatica dei pattern',
-      processOnSave: 'Elabora al salvare',
-      processOnSaveDesc: 'Elabora automaticamente quando si salva una nota',
-      processOnOpen: 'Elabora all\'apertura',
-      processOnOpenDesc: 'Elabora automaticamente quando si apre una nota',
-      debugMode: 'Modalità debug',
-      debugModeDesc: 'Mostra i messaggi di debug nella console',
-      language: 'Lingua',
-      languageDesc: 'Seleziona la lingua per il rilevamento dei pattern',
-      excludedFolders: 'Cartelle escluse',
-      excludedFoldersDesc: 'Cartelle che non verranno elaborate (separate da virgole)',
-      customPatterns: 'Parole chiave personalizzate',
-      customPatternsDesc: 'Parole che attivano l\'elaborazione (separate da virgole)',
-      supportedPatterns: 'Pattern Supportati',
-      keywords: 'Parole chiave',
-      dates: 'Date:',
-      times: 'Orari:',
-      examples: 'Esempi:',
-      platformInfo: {
-        desktopTitle: '💻 Modalità Desktop',
-        desktopDesc: 'Su desktop, Notelert invia notifiche via email. Le notifiche di posizione sono disponibili solo su mobile.',
-        mobileTitle: '📱 Modalità Mobile',
-        mobileDesc: 'Su mobile, Notelert usa l\'app per inviare notifiche push ed email. Puoi configurare luoghi preferiti per promemoria basati sulla posizione.'
-      },
-      basicSettings: 'Impostazioni di Base',
-      pluginToken: {
-        title: '🔑 Token del Plugin',
-        descDesktop: 'Token di autenticazione per usare geocodifica ed email premium. Ottieni il tuo token dall\'app mobile in Impostazioni > Token del Plugin.',
-        descMobile: 'Token di autenticazione per usare geocodifica premium. Ottieni il tuo token dall\'app mobile in Impostazioni > Token del Plugin.',
-        placeholder: 'Incolla il tuo token qui...',
-        showHide: 'Mostra/Nascondi'
-      },
-      desktopSettings: {
-        title: '💻 Impostazioni Desktop',
-        userEmailTitle: 'Email Utente (Opzionale)',
-        userEmailDesc: 'Email dove riceverai le notifiche. Non più necessario se usi il token del plugin.',
-        userEmailPlaceholder: 'utente@email.com'
-      },
-      scheduledEmails: {
-        title: '📧 Email Programmate',
-        desc: 'Gestisci le tue email programmate. Puoi annullarle prima che vengano inviate.',
-        empty: 'Nessuna email programmata. Le email che programmi appariranno qui.',
-        cancelButton: '🗑️ Annulla',
-        canceling: 'Annullamento...',
-        cancelSuccess: '✅ Email annullata con successo',
-        cancelError: '❌ Errore durante l\'annullamento dell\'email',
-        past: '(Passato)'
-      },
-      mobileSettings: {
-        title: '📱 Impostazioni Mobile'
-      },
-      savedLocations: {
-        title: '📍 Luoghi Salvati',
-        desc: 'Gestisci i tuoi luoghi preferiti. Questi appariranno quando selezioni \'Posizione\' durante la creazione di una notifica.',
-        addTitle: 'Aggiungi Nuovo Luogo',
-        addDesc: 'Apri il selettore di posizione con mappa per aggiungere un nuovo luogo',
-        addButton: '➕ Aggiungi Luogo',
-        empty: 'Nessun luogo salvato. Clicca su \'Aggiungi Luogo\' per iniziare.',
-        editButton: '✏️ Modifica',
-        deleteButton: '🗑️'
-      }
-    },
-    commands: {
-      processCurrentNote: 'Elabora nota corrente per Notelert',
-      processAllNotes: 'Elabora tutte le note per Notelert',
-      clearProcessedHistory: 'Cancella cronologia elaborazione'
-    },
-    notices: {
-      noActiveNote: 'Nessuna nota attiva da elaborare',
-      processedNotes: 'Elaborate {count} note per Notelert',
-      processedNote: 'Elaborata: {filename} ({count} notifiche)',
-      clearedHistory: 'Cronologia elaborazione cancellata',
-      errorCreatingNotification: 'Errore nella creazione della notifica: {title}',
-      defaultTitle: 'Promemoria'
-    }
-  },
   pt: {
     settings: {
       title: 'Configurações Notelert',
@@ -825,325 +760,6 @@ export const TRANSLATIONS = {
       errorCreatingNotification: 'Erro ao criar notificação: {title}',
       defaultTitle: 'Lembrete'
     }
-  },
-  ru: {
-    settings: {
-      title: 'Настройки Notelert',
-      autoProcess: 'Автоматическая обработка',
-      autoProcessDesc: 'Включить автоматическую обработку шаблонов',
-      processOnSave: 'Обрабатывать при сохранении',
-      processOnSaveDesc: 'Автоматически обрабатывать при сохранении заметки',
-      processOnOpen: 'Обрабатывать при открытии',
-      processOnOpenDesc: 'Автоматически обрабатывать при открытии заметки',
-      debugMode: 'Режим отладки',
-      debugModeDesc: 'Показывать сообщения отладки в консоли',
-      language: 'Язык',
-      languageDesc: 'Выбрать язык для обнаружения шаблонов',
-      excludedFolders: 'Исключенные папки',
-      excludedFoldersDesc: 'Папки, которые не будут обрабатываться (разделенные запятыми)',
-      customPatterns: 'Пользовательские ключевые слова',
-      customPatternsDesc: 'Слова, которые запускают обработку (разделенные запятыми)',
-      supportedPatterns: 'Поддерживаемые Шаблоны',
-      keywords: 'Ключевые слова',
-      dates: 'Даты:',
-      times: 'Времена:',
-      examples: 'Примеры:',
-      platformInfo: {
-        desktopTitle: '💻 Режим рабочего стола',
-        desktopDesc: 'На рабочем столе Notelert отправляет уведомления по электронной почте. Уведомления о местоположении доступны только на мобильных устройствах.',
-        mobileTitle: '📱 Мобильный режим',
-        mobileDesc: 'На мобильном устройстве Notelert использует приложение для отправки push-уведомлений и электронных писем. Вы можете настроить любимые места для напоминаний на основе местоположения.'
-      },
-      basicSettings: 'Основные настройки',
-      pluginToken: {
-        title: '🔑 Токен плагина',
-        descDesktop: 'Токен аутентификации для использования премиум-геокодирования и электронной почты. Получите токен в мобильном приложении в Настройки > Токен плагина.',
-        descMobile: 'Токен аутентификации для использования премиум-геокодирования. Получите токен в мобильном приложении в Настройки > Токен плагина.',
-        placeholder: 'Вставьте ваш токен здесь...',
-        showHide: 'Показать/Скрыть'
-      },
-      desktopSettings: {
-        title: '💻 Настройки рабочего стола',
-        userEmailTitle: 'Email пользователя (необязательно)',
-        userEmailDesc: 'Email, на который вы будете получать уведомления. Больше не требуется, если используется токен плагина.',
-        userEmailPlaceholder: 'user@email.com'
-      },
-      scheduledEmails: {
-        title: '📧 Запланированные письма',
-        desc: 'Управляйте запланированными письмами. Вы можете отменить их до отправки.',
-        empty: 'Нет запланированных писем. Письма, которые вы запланируете, появятся здесь.',
-        cancelButton: '🗑️ Отменить',
-        canceling: 'Отмена...',
-        cancelSuccess: '✅ Письмо успешно отменено',
-        cancelError: '❌ Ошибка при отмене письма',
-        past: '(Прошедшее)'
-      },
-      mobileSettings: {
-        title: '📱 Мобильные настройки'
-      },
-      savedLocations: {
-        title: '📍 Сохраненные места',
-        desc: 'Управляйте любимыми местами. Они появятся при выборе "Местоположение" при создании уведомления.',
-        addTitle: 'Добавить новое место',
-        addDesc: 'Открыть выбор местоположения с картой для добавления нового места',
-        addButton: '➕ Добавить место',
-        empty: 'Нет сохраненных мест. Нажмите "Добавить место", чтобы начать.',
-        editButton: '✏️ Редактировать',
-        deleteButton: '🗑️'
-      }
-    },
-    commands: {
-      processCurrentNote: 'Обработать текущую заметку для Notelert',
-      processAllNotes: 'Обработать все заметки для Notelert',
-      clearProcessedHistory: 'Очистить историю обработки'
-    },
-    notices: {
-      noActiveNote: 'Нет активной заметки для обработки',
-      processedNotes: 'Обработано {count} заметок для Notelert',
-      processedNote: 'Обработано: {filename} ({count} уведомлений)',
-      clearedHistory: 'История обработки очищена',
-      errorCreatingNotification: 'Ошибка создания уведомления: {title}',
-      defaultTitle: 'Напоминание'
-    }
-  },
-  ja: {
-    settings: {
-      title: 'Notelert設定',
-      autoProcess: '自動処理',
-      autoProcessDesc: 'パターンの自動処理を有効にする',
-      processOnSave: '保存時に処理',
-      processOnSaveDesc: 'ノートを保存する際に自動処理する',
-      processOnOpen: '開く時に処理',
-      processOnOpenDesc: 'ノートを開く際に自動処理する',
-      debugMode: 'デバッグモード',
-      debugModeDesc: 'コンソールにデバッグメッセージを表示',
-      language: '言語',
-      languageDesc: 'パターン検出の言語を選択',
-      excludedFolders: '除外フォルダ',
-      excludedFoldersDesc: '処理されないフォルダ（カンマ区切り）',
-      customPatterns: 'カスタムキーワード',
-      customPatternsDesc: '処理をトリガーする単語（カンマ区切り）',
-      supportedPatterns: 'サポートされるパターン',
-      keywords: 'キーワード',
-      dates: '日付:',
-      times: '時間:',
-      examples: '例:',
-      platformInfo: {
-        desktopTitle: '💻 デスクトップモード',
-        desktopDesc: 'デスクトップでは、Notelertはメール通知を送信します。位置情報通知はモバイルでのみ利用可能です。',
-        mobileTitle: '📱 モバイルモード',
-        mobileDesc: 'モバイルでは、Notelertはアプリを使用してプッシュ通知とメールを送信します。位置情報に基づくリマインダー用にお気に入りの場所を設定できます。'
-      },
-      basicSettings: '基本設定',
-      pluginToken: {
-        title: '🔑 プラグイントークン',
-        descDesktop: 'プレミアムジオコーディングとメールを使用するための認証トークン。モバイルアプリの設定 > プラグイントークンからトークンを取得してください。',
-        descMobile: 'プレミアムジオコーディングを使用するための認証トークン。モバイルアプリの設定 > プラグイントークンからトークンを取得してください。',
-        placeholder: 'ここにトークンを貼り付けてください...',
-        showHide: '表示/非表示'
-      },
-      desktopSettings: {
-        title: '💻 デスクトップ設定',
-        userEmailTitle: 'ユーザーメール（オプション）',
-        userEmailDesc: '通知を受け取るメールアドレス。プラグイントークンを使用している場合は不要です。',
-        userEmailPlaceholder: 'user@email.com'
-      },
-      scheduledEmails: {
-        title: '📧 予約済みメール',
-        desc: '予約済みメールを管理します。送信前にキャンセルできます。',
-        empty: '予約済みメールはありません。予約したメールはここに表示されます。',
-        cancelButton: '🗑️ キャンセル',
-        canceling: 'キャンセル中...',
-        cancelSuccess: '✅ メールが正常にキャンセルされました',
-        cancelError: '❌ メールのキャンセルエラー',
-        past: '(過去)'
-      },
-      mobileSettings: {
-        title: '📱 モバイル設定'
-      },
-      savedLocations: {
-        title: '📍 保存された場所',
-        desc: 'お気に入りの場所を管理します。通知を作成する際に「場所」を選択すると表示されます。',
-        addTitle: '新しい場所を追加',
-        addDesc: '地図付きの場所選択を開いて新しい場所を追加します',
-        addButton: '➕ 場所を追加',
-        empty: '保存された場所はありません。「場所を追加」をクリックして開始してください。',
-        editButton: '✏️ 編集',
-        deleteButton: '🗑️'
-      }
-    },
-    commands: {
-      processCurrentNote: '現在のノートをNotelert用に処理',
-      processAllNotes: 'すべてのノートをNotelert用に処理',
-      clearProcessedHistory: '処理履歴をクリア'
-    },
-    notices: {
-      noActiveNote: '処理するアクティブなノートがありません',
-      processedNotes: 'Notelert用に{count}個のノートを処理しました',
-      processedNote: '処理済み: {filename} ({count}個の通知)',
-      clearedHistory: '処理履歴をクリアしました',
-      errorCreatingNotification: '通知の作成エラー: {title}',
-      defaultTitle: 'リマインダー'
-    }
-  },
-  zh: {
-    settings: {
-      title: 'Notelert设置',
-      autoProcess: '自动处理',
-      autoProcessDesc: '启用模式自动处理',
-      processOnSave: '保存时处理',
-      processOnSaveDesc: '保存笔记时自动处理',
-      processOnOpen: '打开时处理',
-      processOnOpenDesc: '打开笔记时自动处理',
-      debugMode: '调试模式',
-      debugModeDesc: '在控制台显示调试消息',
-      language: '语言',
-      languageDesc: '选择模式检测语言',
-      excludedFolders: '排除文件夹',
-      excludedFoldersDesc: '不会处理的文件夹（逗号分隔）',
-      customPatterns: '自定义关键词',
-      customPatternsDesc: '触发处理的单词（逗号分隔）',
-      supportedPatterns: '支持的模式',
-      keywords: '关键词',
-      dates: '日期:',
-      times: '时间:',
-      examples: '示例:',
-      platformInfo: {
-        desktopTitle: '💻 桌面模式',
-        desktopDesc: '在桌面上，Notelert发送电子邮件通知。位置通知仅在移动设备上可用。',
-        mobileTitle: '📱 移动模式',
-        mobileDesc: '在移动设备上，Notelert使用应用程序发送推送通知和电子邮件。您可以配置常用位置以进行基于位置的提醒。'
-      },
-      basicSettings: '基本设置',
-      pluginToken: {
-        title: '🔑 插件令牌',
-        descDesktop: '用于高级地理编码和电子邮件的身份验证令牌。从移动应用程序的设置 > 插件令牌中获取您的令牌。',
-        descMobile: '用于高级地理编码的身份验证令牌。从移动应用程序的设置 > 插件令牌中获取您的令牌。',
-        placeholder: '在此处粘贴您的令牌...',
-        showHide: '显示/隐藏'
-      },
-      desktopSettings: {
-        title: '💻 桌面设置',
-        userEmailTitle: '用户电子邮件（可选）',
-        userEmailDesc: '您将接收通知的电子邮件。如果使用插件令牌，则不再需要。',
-        userEmailPlaceholder: 'user@email.com'
-      },
-      scheduledEmails: {
-        title: '📧 预定电子邮件',
-        desc: '管理您的预定电子邮件。您可以在发送之前取消它们。',
-        empty: '没有预定的电子邮件。您预定的电子邮件将显示在这里。',
-        cancelButton: '🗑️ 取消',
-        canceling: '正在取消...',
-        cancelSuccess: '✅ 电子邮件已成功取消',
-        cancelError: '❌ 取消电子邮件时出错',
-        past: '(过去)'
-      },
-      mobileSettings: {
-        title: '📱 移动设置'
-      },
-      savedLocations: {
-        title: '📍 已保存的位置',
-        desc: '管理您的常用位置。创建通知时选择“位置”时会出现这些位置。',
-        addTitle: '添加新位置',
-        addDesc: '打开带地图的位置选择器以添加新位置',
-        addButton: '➕ 添加位置',
-        empty: '没有已保存的位置。点击“添加位置”开始。',
-        editButton: '✏️ 编辑',
-        deleteButton: '🗑️'
-      }
-    },
-    commands: {
-      processCurrentNote: '处理当前笔记用于Notelert',
-      processAllNotes: '处理所有笔记用于Notelert',
-      clearProcessedHistory: '清除处理历史'
-    },
-    notices: {
-      noActiveNote: '没有要处理的活跃笔记',
-      processedNotes: '为Notelert处理了{count}个笔记',
-      processedNote: '已处理: {filename} ({count}个通知)',
-      clearedHistory: '处理历史已清除',
-      errorCreatingNotification: '创建通知错误: {title}',
-      defaultTitle: '提醒'
-    }
-  },
-  ar: {
-    settings: {
-      title: 'إعدادات Notelert',
-      autoProcess: 'المعالجة التلقائية',
-      autoProcessDesc: 'تفعيل المعالجة التلقائية للأنماط',
-      processOnSave: 'المعالجة عند الحفظ',
-      processOnSaveDesc: 'المعالجة التلقائية عند حفظ ملاحظة',
-      processOnOpen: 'المعالجة عند الفتح',
-      processOnOpenDesc: 'المعالجة التلقائية عند فتح ملاحظة',
-      debugMode: 'وضع التصحيح',
-      debugModeDesc: 'عرض رسائل التصحيح في وحدة التحكم',
-      language: 'اللغة',
-      languageDesc: 'اختيار لغة اكتشاف الأنماط',
-      excludedFolders: 'المجلدات المستبعدة',
-      excludedFoldersDesc: 'المجلدات التي لن يتم معالجتها (مفصولة بفواصل)',
-      customPatterns: 'الكلمات المفتاحية المخصصة',
-      customPatternsDesc: 'الكلمات التي تبدأ المعالجة (مفصولة بفواصل)',
-      supportedPatterns: 'الأنماط المدعومة',
-      keywords: 'الكلمات المفتاحية',
-      dates: 'التواريخ:',
-      times: 'الأوقات:',
-      examples: 'أمثلة:',
-      platformInfo: {
-        desktopTitle: '💻 وضع سطح المكتب',
-        desktopDesc: 'على سطح المكتب، يرسل Notelert إشعارات عبر البريد الإلكتروني. إشعارات الموقع متاحة فقط على الهاتف المحمول.',
-        mobileTitle: '📱 وضع الهاتف المحمول',
-        mobileDesc: 'على الهاتف المحمول، يستخدم Notelert التطبيق لإرسال إشعارات الدفع ورسائل البريد الإلكتروني. يمكنك تكوين المواقع المفضلة للتذكيرات المستندة إلى الموقع.'
-      },
-      basicSettings: 'الإعدادات الأساسية',
-      pluginToken: {
-        title: '🔑 رمز البرنامج المساعد',
-        descDesktop: 'رمز المصادقة لاستخدام الترميز الجغرافي المتميز ورسائل البريد الإلكتروني. احصل على الرمز الخاص بك من تطبيق الهاتف المحمول في الإعدادات > رمز البرنامج المساعد.',
-        descMobile: 'رمز المصادقة لاستخدام الترميز الجغرافي المتميز. احصل على الرمز الخاص بك من تطبيق الهاتف المحمول في الإعدادات > رمز البرنامج المساعد.',
-        placeholder: 'الصق الرمز الخاص بك هنا...',
-        showHide: 'إظهار/إخفاء'
-      },
-      desktopSettings: {
-        title: '💻 إعدادات سطح المكتب',
-        userEmailTitle: 'البريد الإلكتروني للمستخدم (اختياري)',
-        userEmailDesc: 'البريد الإلكتروني الذي ستتلقى فيه الإشعارات. لم يعد ضروريًا إذا كنت تستخدم رمز البرنامج المساعد.',
-        userEmailPlaceholder: 'user@email.com'
-      },
-      scheduledEmails: {
-        title: '📧 رسائل البريد الإلكتروني المجدولة',
-        desc: 'إدارة رسائل البريد الإلكتروني المجدولة الخاصة بك. يمكنك إلغاؤها قبل إرسالها.',
-        empty: 'لا توجد رسائل بريد إلكتروني مجدولة. ستظهر رسائل البريد الإلكتروني التي تجدولها هنا.',
-        cancelButton: '🗑️ إلغاء',
-        canceling: 'جاري الإلغاء...',
-        cancelSuccess: '✅ تم إلغاء البريد الإلكتروني بنجاح',
-        cancelError: '❌ خطأ في إلغاء البريد الإلكتروني',
-        past: '(سابق)'
-      },
-      mobileSettings: {
-        title: '📱 إعدادات الهاتف المحمول'
-      },
-      savedLocations: {
-        title: '📍 المواقع المحفوظة',
-        desc: 'إدارة مواقعك المفضلة. ستظهر هذه عند تحديد "الموقع" عند إنشاء إشعار.',
-        addTitle: 'إضافة موقع جديد',
-        addDesc: 'فتح محدد الموقع مع الخريطة لإضافة موقع جديد',
-        addButton: '➕ إضافة موقع',
-        empty: 'لا توجد مواقع محفوظة. انقر فوق "إضافة موقع" للبدء.',
-        editButton: '✏️ تحرير',
-        deleteButton: '🗑️'
-      }
-    },
-    commands: {
-      processCurrentNote: 'معالجة الملاحظة الحالية لـ Notelert',
-      processAllNotes: 'معالجة جميع الملاحظات لـ Notelert',
-      clearProcessedHistory: 'مسح تاريخ المعالجة'
-    },
-    notices: {
-      noActiveNote: 'لا توجد ملاحظة نشطة للمعالجة',
-      processedNotes: 'تم معالجة {count} ملاحظة لـ Notelert',
-      processedNote: 'تم المعالجة: {filename} ({count} إشعار)',
-      clearedHistory: 'تم مسح تاريخ المعالجة',
-      errorCreatingNotification: 'خطأ في إنشاء الإشعار: {title}',
-      defaultTitle: 'تذكير'
-    }
   }
 };
+

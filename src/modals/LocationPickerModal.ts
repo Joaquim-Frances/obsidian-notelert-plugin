@@ -93,34 +93,6 @@ export class NotelertLocationPickerModal extends Modal {
       attr: { style: "color: var(--text-muted); font-size: 13px; margin-bottom: 15px; font-style: italic; line-height: 1.4;" }
     });
 
-    // Área de debug SIEMPRE PRIMERO (antes del mapa) para que no se comprima
-    const debugContainer = scrollContainer.createEl("div", {
-      attr: {
-        style: `
-          margin: 15px 0;
-          padding: 15px;
-          background: var(--background-secondary);
-          border: 2px solid var(--background-modifier-border);
-          border-radius: 8px;
-          font-size: 12px;
-          height: 250px;
-          min-height: 250px;
-          overflow-y: auto;
-          overflow-x: hidden;
-          font-family: 'Courier New', monospace;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          flex-shrink: 0;
-        `
-      }
-    });
-    debugContainer.id = "notelert-debug-container";
-    debugContainer.innerHTML = `
-      <div style="font-weight: 700; margin-bottom: 12px; color: var(--text-accent); font-size: 14px; border-bottom: 1px solid var(--background-modifier-border); padding-bottom: 8px;">
-        🔍 Debug del Mapa
-      </div>
-      <div id="map-debug-info" style="color: var(--text-normal); line-height: 1.8; word-wrap: break-word; min-height: 200px;"></div>
-    `;
-
     // Input para buscar dirección con contenedor relativo para el desplegable
     const searchContainer = scrollContainer.createEl("div", { cls: "notelert-location-search" });
     searchContainer.setAttribute("style", `
@@ -203,33 +175,6 @@ export class NotelertLocationPickerModal extends Modal {
     mapLoading.innerHTML = `
       <div style="font-weight: 500; margin-bottom: 8px;">${getTranslation(this.language, "locationPicker.loadingMap")}</div>
     `;
-
-    // Botón para mostrar/ocultar debug (solo si está en modo debug)
-    if (this.plugin.settings.debugMode) {
-      const debugToggle = contentEl.createEl("button", {
-        text: getTranslation(this.language, "locationPicker.debugMap"),
-        attr: {
-          style: `
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 6px 12px;
-            font-size: 11px;
-            background: var(--background-secondary);
-            border: 1px solid var(--background-modifier-border);
-            border-radius: 4px;
-            cursor: pointer;
-            z-index: 2000;
-          `
-        }
-      });
-      debugToggle.addEventListener("click", () => {
-        const debugInfo = document.getElementById("map-debug-info");
-        if (debugInfo) {
-          debugInfo.style.display = debugInfo.style.display === "none" ? "block" : "none";
-        }
-      });
-    }
 
     // Contenedor para ubicación seleccionada
     const selectedContainer = scrollContainer.createEl("div", { cls: "notelert-location-selected" });
@@ -1000,9 +945,11 @@ export class NotelertLocationPickerModal extends Modal {
       const saveFavoriteBtn = document.getElementById("save-favorite-btn");
       if (saveFavoriteBtn) {
         saveFavoriteBtn.addEventListener("click", async () => {
-          await this.saveAsFavorite(location);
-          saveFavoriteBtn.textContent = getTranslation(this.language, "locationPicker.saved") || "✓ Guardado";
-          saveFavoriteBtn.setAttribute("disabled", "true");
+          const saved = await this.saveAsFavorite(location);
+          if (saved) {
+            saveFavoriteBtn.textContent = getTranslation(this.language, "locationPicker.saved") || "✓ Guardado";
+            saveFavoriteBtn.setAttribute("disabled", "true");
+          }
         });
       }
 
@@ -1022,30 +969,143 @@ export class NotelertLocationPickerModal extends Modal {
   }
 
   // Guardar ubicación como favorita
-  private async saveAsFavorite(location: { name: string; latitude: number; longitude: number; radius: number; address?: string }) {
-    const newLocation: SavedLocation = {
-      name: location.name,
-      latitude: location.latitude,
-      longitude: location.longitude,
-      radius: location.radius,
-      address: location.address
-    };
+  private async saveAsFavorite(location: { name: string; latitude: number; longitude: number; radius: number; address?: string }): Promise<boolean> {
+    // Crear un modal simple para nombrar la ubicación
+    return new Promise((resolve) => {
+      const modalEl = document.createElement('div');
+      modalEl.setAttribute('style', `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+      `);
 
-    // Verificar si ya existe
-    const exists = this.plugin.settings.savedLocations.some(
-      loc => loc.name === location.name && loc.latitude === location.latitude && loc.longitude === location.longitude
-    );
+      const dialogEl = modalEl.createEl('div');
+      dialogEl.setAttribute('style', `
+        background: var(--background-primary);
+        border: 1px solid var(--background-modifier-border);
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      `);
 
-    if (!exists) {
-      this.plugin.settings.savedLocations.push(newLocation);
-      await this.plugin.saveSettings();
+      // Título
+      dialogEl.createEl('h3', {
+        text: getTranslation(this.language, 'locationPicker.nameLocationTitle'),
+        attr: { style: 'margin: 0 0 15px 0; font-size: 18px;' }
+      });
 
-      // Actualizar lista de favoritas
-      const favoritesList = document.querySelector(".notelert-location-favorites-list");
-      if (favoritesList) {
-        this.renderFavorites(favoritesList as HTMLElement);
-      }
-    }
+      // Input para el nombre
+      const inputEl = dialogEl.createEl('input', {
+        type: 'text',
+        value: location.name,
+        placeholder: getTranslation(this.language, 'locationPicker.nameLocationPlaceholder'),
+        attr: {
+          style: `
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--background-modifier-border);
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            background: var(--background-primary);
+            color: var(--text-normal);
+          `
+        }
+      });
+
+      // Seleccionar todo el texto al abrir
+      setTimeout(() => inputEl.select(), 50);
+
+      // Botones
+      const buttonsEl = dialogEl.createEl('div');
+      buttonsEl.setAttribute('style', 'display: flex; gap: 10px; justify-content: flex-end;');
+
+      const cancelBtn = buttonsEl.createEl('button', {
+        text: getTranslation(this.language, 'locationPicker.nameLocationCancel'),
+        cls: 'mod-secondary',
+        attr: { style: 'padding: 8px 16px;' }
+      });
+
+      const confirmBtn = buttonsEl.createEl('button', {
+        text: getTranslation(this.language, 'locationPicker.nameLocationConfirm'),
+        cls: 'mod-cta',
+        attr: { style: 'padding: 8px 16px;' }
+      });
+
+      // Función para guardar
+      const saveLocation = async () => {
+        const customName = inputEl.value.trim();
+        if (!customName) {
+          inputEl.focus();
+          return;
+        }
+
+        const newLocation: SavedLocation = {
+          name: customName,
+          latitude: location.latitude,
+          longitude: location.longitude,
+          radius: location.radius,
+          address: location.address
+        };
+
+        // Verificar si ya existe (por coordenadas, no por nombre)
+        const exists = this.plugin.settings.savedLocations.some(
+          loc => loc.latitude === location.latitude && loc.longitude === location.longitude
+        );
+
+        if (!exists) {
+          this.plugin.settings.savedLocations.push(newLocation);
+          await this.plugin.saveSettings();
+
+          // Actualizar lista de favoritas
+          const favoritesList = document.querySelector(".notelert-location-favorites-list");
+          if (favoritesList) {
+            this.renderFavorites(favoritesList as HTMLElement);
+          }
+        }
+
+        document.body.removeChild(modalEl);
+        resolve(true);
+      };
+
+      // Event listeners
+      cancelBtn.addEventListener('click', () => {
+        document.body.removeChild(modalEl);
+        resolve(false);
+      });
+
+      confirmBtn.addEventListener('click', saveLocation);
+
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          saveLocation();
+        } else if (e.key === 'Escape') {
+          document.body.removeChild(modalEl);
+          resolve(false);
+        }
+      });
+
+      // Cerrar al hacer clic fuera
+      modalEl.addEventListener('click', (e) => {
+        if (e.target === modalEl) {
+          document.body.removeChild(modalEl);
+          resolve(false);
+        }
+      });
+
+      document.body.appendChild(modalEl);
+      inputEl.focus();
+    });
   }
 
   // Eliminar ubicación favorita
