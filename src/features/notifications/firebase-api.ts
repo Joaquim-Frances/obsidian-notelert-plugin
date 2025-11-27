@@ -1,6 +1,4 @@
-import { Notice, requestUrl } from "obsidian";
-import { ScheduledEmail } from "../../core/types";
-import { getTranslation } from "../../i18n";
+import { requestUrl } from "obsidian";
 import { FIREBASE_FUNCTION_BASE_URL, PLUGIN_SCHEDULE_EMAIL_URL } from "../../core/config";
 
 const SCHEDULE_EMAIL_URL = `${FIREBASE_FUNCTION_BASE_URL}/scheduleEmailReminder`;

@@ -1,11 +1,9 @@
 import { App, Plugin, PluginSettingTab, Setting, Modal, Platform, Notice } from "obsidian";
 import { INotelertPlugin } from "../core/plugin-interface";
-import { SUPPORTED_LANGUAGES, getTranslation, getLanguageByCode, getDefaultLanguage } from "../i18n";
+import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
 import { SavedLocation, ScheduledEmail } from "../core/types";
-import { searchLocations, GeocodingResult } from "../features/location/geocode";
 import { cancelScheduledEmail } from "../features/notifications/firebase-api";
 import { NotelertLocationPickerModal } from "../modals/LocationPickerModal";
-import { PLUGIN_SCHEDULE_EMAIL_URL } from "../core/config";
 
 export class NotelertSettingTab extends PluginSettingTab {
   plugin: INotelertPlugin;
