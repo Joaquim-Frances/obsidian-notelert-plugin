@@ -755,7 +755,7 @@ export class NotelertLocationPickerModal extends Modal {
   }
 
   // Geocodificación inversa (de coordenadas a dirección)
-  private async reverseGeocode(lat: number, lng: number) {
+  private reverseGeocode(lat: number, lng: number) {
     try {
       const geocoder = new (window as typeof window & { google?: typeof google }).google!.maps.Geocoder();
 

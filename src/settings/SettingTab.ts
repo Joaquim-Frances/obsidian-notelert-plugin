@@ -21,7 +21,10 @@ export class NotelertSettingTab extends PluginSettingTab {
 
     const isDesktop = !Platform.isMobile;
 
-    containerEl.createEl("h2", { text: getTranslation(this.plugin.settings.language, "settings.title") });
+    // Título principal como heading de Setting
+    new Setting(containerEl)
+      .setName(getTranslation(this.plugin.settings.language, "settings.title"))
+      .setHeading();
 
     // ========== INFORMACIÓN SOBRE PLATAFORMA ==========
     const platformInfo = containerEl.createEl("div", {
@@ -37,19 +40,17 @@ export class NotelertSettingTab extends PluginSettingTab {
     });
 
     if (isDesktop) {
-      platformInfo.createEl("h4", {
-        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.desktopTitle"),
-        attr: { style: "margin: 0 0 8px 0; font-size: 16px; font-weight: 600;" }
-      });
+      new Setting(platformInfo)
+        .setName(getTranslation(this.plugin.settings.language, "settings.platformInfo.desktopTitle"))
+        .setHeading();
       platformInfo.createEl("p", {
         text: getTranslation(this.plugin.settings.language, "settings.platformInfo.desktopDesc"),
         attr: { style: "margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;" }
       });
     } else {
-      platformInfo.createEl("h4", {
-        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.mobileTitle"),
-        attr: { style: "margin: 0 0 8px 0; font-size: 16px; font-weight: 600;" }
-      });
+      new Setting(platformInfo)
+        .setName(getTranslation(this.plugin.settings.language, "settings.platformInfo.mobileTitle"))
+        .setHeading();
       platformInfo.createEl("p", {
         text: getTranslation(this.plugin.settings.language, "settings.platformInfo.mobileDesc"),
         attr: { style: "margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;" }
@@ -57,7 +58,9 @@ export class NotelertSettingTab extends PluginSettingTab {
     }
 
     // ========== CONFIGURACIÓN BÁSICA ==========
-    containerEl.createEl("h3", { text: getTranslation(this.plugin.settings.language, "settings.basicSettings") });
+    new Setting(containerEl)
+      .setName(getTranslation(this.plugin.settings.language, "settings.basicSettings"))
+      .setHeading();
 
     // Selector de idioma
     new Setting(containerEl)
@@ -93,7 +96,9 @@ export class NotelertSettingTab extends PluginSettingTab {
       );
 
     // ========== TOKEN DEL PLUGIN (DESKTOP Y MÓVIL) ==========
-    containerEl.createEl("h3", { text: getTranslation(this.plugin.settings.language, "settings.pluginToken.title") });
+    new Setting(containerEl)
+      .setName(getTranslation(this.plugin.settings.language, "settings.pluginToken.title"))
+      .setHeading();
 
     // Token del Plugin (REQUERIDO para premium features)
     const tokenDesc = isDesktop
@@ -129,7 +134,9 @@ export class NotelertSettingTab extends PluginSettingTab {
 
     // ========== CONFIGURACIÓN DESKTOP ==========
     if (isDesktop) {
-      containerEl.createEl("h3", { text: getTranslation(this.plugin.settings.language, "settings.desktopSettings.title") });
+      new Setting(containerEl)
+        .setName(getTranslation(this.plugin.settings.language, "settings.desktopSettings.title"))
+        .setHeading();
 
       // Email del usuario (DEPRECATED pero mantener por compatibilidad)
       new Setting(containerEl)
@@ -148,7 +155,9 @@ export class NotelertSettingTab extends PluginSettingTab {
         });
 
       // Lista de emails programados
-      containerEl.createEl("h4", { text: getTranslation(this.plugin.settings.language, "settings.scheduledEmails.title") });
+      new Setting(containerEl)
+        .setName(getTranslation(this.plugin.settings.language, "settings.scheduledEmails.title"))
+        .setHeading();
 
       const emailsDesc = containerEl.createEl("p", {
         text: getTranslation(this.plugin.settings.language, "settings.scheduledEmails.desc"),
@@ -172,10 +181,14 @@ export class NotelertSettingTab extends PluginSettingTab {
 
     // ========== CONFIGURACIÓN MÓVIL ==========
     if (!isDesktop) {
-      containerEl.createEl("h3", { text: getTranslation(this.plugin.settings.language, "settings.mobileSettings.title") });
+      new Setting(containerEl)
+        .setName(getTranslation(this.plugin.settings.language, "settings.mobileSettings.title"))
+        .setHeading();
 
       // Gestión de ubicaciones
-      containerEl.createEl("h4", { text: getTranslation(this.plugin.settings.language, "settings.savedLocations.title") });
+      new Setting(containerEl)
+        .setName(getTranslation(this.plugin.settings.language, "settings.savedLocations.title"))
+        .setHeading();
 
       const locationsDesc = containerEl.createEl("p", {
         text: getTranslation(this.plugin.settings.language, "settings.savedLocations.desc"),
