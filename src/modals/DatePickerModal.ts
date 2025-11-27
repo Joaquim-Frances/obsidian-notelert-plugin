@@ -1,5 +1,5 @@
-import { App, Modal, Notice, Platform } from "obsidian";
-import { DetectedPattern } from "../core/types";
+import { App, Editor, EditorPosition, Modal, Notice, Platform } from "obsidian";
+import { DetectedPattern, SavedLocation } from "../core/types";
 import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
 
@@ -7,13 +7,13 @@ export class NotelertDatePickerModal extends Modal {
   private onCancel: () => void;
   private language: string;
   private plugin: INotelertPlugin;
-  private editor: any;
-  private cursor: any;
+  private editor: Editor;
+  private cursor: EditorPosition;
   private originalText: string;
   private notificationType: 'time' | 'location' = 'time'; // Tipo de notificación
-  private selectedLocation: any = null; // Ubicación seleccionada
+  private selectedLocation: SavedLocation | null = null; // Ubicación seleccionada
 
-  constructor(app: App, plugin: INotelertPlugin, language: string, editor: any, cursor: any, originalText: string, onCancel: () => void) {
+  constructor(app: App, plugin: INotelertPlugin, language: string, editor: Editor, cursor: EditorPosition, originalText: string, onCancel: () => void) {
     super(app);
     this.plugin = plugin;
     this.language = language;
@@ -872,8 +872,8 @@ export class NotelertDatePickerModal extends Modal {
       checkIcon.id = `check-icon-${index}`;
 
       // Guardar referencia a la ubicación
-      (locationItem as any).locationData = location;
-      (locationItem as any).checkIcon = checkIcon;
+      (locationItem as HTMLElement & { locationData?: SavedLocation; checkIcon?: HTMLElement }).locationData = location;
+      (locationItem as HTMLElement & { locationData?: SavedLocation; checkIcon?: HTMLElement }).checkIcon = checkIcon;
 
       // Función para seleccionar/deseleccionar
       const selectLocation = () => {
@@ -918,7 +918,7 @@ export class NotelertDatePickerModal extends Modal {
   }
 
   // Seleccionar ubicación de las guardadas
-  private async selectLocationFromSaved(): Promise<any> {
+  private async selectLocationFromSaved(): Promise<SavedLocation | null> {
     return new Promise(async (resolve) => {
       try {
         // Crear modal primero para tener el área de debug disponible
@@ -942,7 +942,7 @@ export class NotelertDatePickerModal extends Modal {
         `);
 
         // Asegurar que el modal tenga el z-index más alto
-        const modalEl = (modal as any).modalEl;
+        const modalEl = (modal as Modal & { modalEl: HTMLElement }).modalEl;
         if (modalEl) {
           modalEl.style.zIndex = '10000';
           modalEl.style.position = 'fixed';
@@ -1161,7 +1161,7 @@ export class NotelertDatePickerModal extends Modal {
 
   // Crear notificación desde ubicación guardada
   // Retorna true si fue exitoso, false si hubo error
-  private async createNotificationFromLocation(location: any): Promise<boolean> {
+  private async createNotificationFromLocation(location: SavedLocation): Promise<boolean> {
     try {
       // Reemplazar :@ o :# con :#nombreUbicacion
       const replacement = `:#${location.name}`;
@@ -1223,7 +1223,7 @@ export class NotelertDatePickerModal extends Modal {
   // Mostrar estado de carga (spinner) en el botón
   private showLoadingState(button: HTMLButtonElement) {
     // Guardar el texto original
-    (button as any).__originalText = button.textContent;
+    (button as HTMLButtonElement & { __originalText?: string }).__originalText = button.textContent || undefined;
 
     // Deshabilitar botón
     button.disabled = true;
@@ -1258,7 +1258,10 @@ export class NotelertDatePickerModal extends Modal {
   // Ocultar estado de carga y restaurar botón
   private hideLoadingState(button: HTMLButtonElement) {
     // Restaurar texto original
-    const originalText = (button as any).__originalText || getTranslation(this.language, "datePicker.confirmButton") || "Confirmar";
+    const originalText =
+      (button as HTMLButtonElement & { __originalText?: string }).__originalText ||
+      getTranslation(this.language, "datePicker.confirmButton") ||
+      "Confirmar";
     button.textContent = originalText;
 
     // Restaurar estado del botón

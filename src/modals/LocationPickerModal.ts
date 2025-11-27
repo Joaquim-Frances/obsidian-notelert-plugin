@@ -1,4 +1,4 @@
-import { App, Modal, Notice } from "obsidian";
+import { App, Editor, EditorPosition, Modal, Notice } from "obsidian";
 import { DetectedPattern, SavedLocation } from "../core/types";
 import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
@@ -7,24 +7,26 @@ import { searchLocations, GeocodingResult } from "../features/location/geocode";
 export class NotelertLocationPickerModal extends Modal {
   private plugin: INotelertPlugin;
   private language: string;
-  private onSelect?: (location: any) => void;
-  private editor: any;
-  private cursor: any;
+  private onSelect?: (location: SavedLocation) => void;
+  private editor?: Editor;
+  private cursor?: EditorPosition;
   private originalText: string;
   private onCancel: () => void;
   private selectedLocation: { name: string; latitude: number; longitude: number; radius: number; address?: string } | null = null;
   private searchTimeout: number | null = null;
-  private searchResults: any[] = [];
-  private map: any = null; // Google Maps instance
-  private mapMarker: any = null; // Marker on map
+  private searchResults: GeocodingResult[] = [];
+  // Google Maps types no están disponibles en tiempo de compilación en este contexto,
+  // así que usamos unknown y hacemos type assertions locales donde haga falta.
+  private map: unknown = null;
+  private mapMarker: unknown = null;
   private mapLoaded: boolean = false;
 
   constructor(
     app: App,
     plugin: INotelertPlugin,
     language: string,
-    onSelectOrEditor: ((location: any) => void) | any,
-    cursorOrLocation?: any,
+    onSelectOrEditor: ((location: SavedLocation) => void) | Editor,
+    cursorOrLocation?: EditorPosition | SavedLocation,
     originalText?: string,
     onCancel?: () => void
   ) {
@@ -37,13 +39,13 @@ export class NotelertLocationPickerModal extends Modal {
       // Uso desde Settings
       this.onSelect = onSelectOrEditor;
       // Si hay un 5º argumento y no es cursor (objeto complejo), asumimos que es location para editar
-      if (cursorOrLocation && !cursorOrLocation.line) {
-        this.selectedLocation = cursorOrLocation;
+      if (cursorOrLocation && typeof (cursorOrLocation as EditorPosition).line !== "number") {
+        this.selectedLocation = cursorOrLocation as SavedLocation;
       }
     } else {
       // Uso desde Editor
-      this.editor = onSelectOrEditor;
-      this.cursor = cursorOrLocation;
+      this.editor = onSelectOrEditor as Editor;
+      this.cursor = cursorOrLocation as EditorPosition;
       this.originalText = originalText || "";
       this.onCancel = onCancel || (() => { });
     }
@@ -313,7 +315,7 @@ export class NotelertLocationPickerModal extends Modal {
     this.addDebugInfo('Iniciando carga de Google Maps...');
 
     // Verificar si Google Maps ya está cargado globalmente
-    if ((window as any).google && (window as any).google.maps) {
+    if ((window as typeof window & { google?: typeof google }).google?.maps) {
       this.addDebugInfo('✅ Google Maps ya está cargado');
       this.mapLoaded = true;
       // Pequeño delay para asegurar que el DOM está listo
@@ -330,7 +332,7 @@ export class NotelertLocationPickerModal extends Modal {
       const maxAttempts = 50; // 5 segundos máximo
       const checkInterval = setInterval(() => {
         attempts++;
-        if ((window as any).google && (window as any).google.maps) {
+        if ((window as typeof window & { google?: typeof google }).google?.maps) {
           clearInterval(checkInterval);
           this.addDebugInfo('✅ Google Maps cargado después de esperar');
           this.mapLoaded = true;
@@ -383,15 +385,15 @@ export class NotelertLocationPickerModal extends Modal {
         - Que la Maps JavaScript API esté habilitada en Google Cloud
       `;
       this.showMapError('Error al cargar Google Maps. Verifica tu conexión a internet.', errorDetails);
-      delete (window as any)[callbackName];
+      delete (window as typeof window & { [key: string]: unknown })[callbackName];
     };
 
     // Callback global temporal para cuando el mapa esté listo
-    (window as any)[callbackName] = () => {
+    (window as typeof window & { [key: string]: unknown })[callbackName] = () => {
       this.addDebugInfo('✅ Callback ejecutado - Google Maps cargado');
       this.mapLoaded = true;
       // Limpiar el callback después de usarlo
-      delete (window as any)[callbackName];
+      delete (window as typeof window & { [key: string]: unknown })[callbackName];
       setTimeout(() => this.initMap(), 100);
     };
 
@@ -405,7 +407,7 @@ export class NotelertLocationPickerModal extends Modal {
         const timeoutDetails = `
           <strong>Timeout cargando el mapa:</strong><br>
           Estado: mapLoaded=${this.mapLoaded}, map=${this.map ? 'existe' : 'null'}<br>
-          Google disponible: ${(window as any).google ? 'sí' : 'no'}<br>
+          Google disponible: ${(window as typeof window & { google?: typeof google }).google ? 'sí' : 'no'}<br>
           Verifica:<br>
           - Tu conexión a internet<br>
           - Que no haya bloqueadores de scripts<br>
@@ -472,13 +474,13 @@ export class NotelertLocationPickerModal extends Modal {
       this.addDebugInfo('✅ Contenedor encontrado');
 
       // Verificar que Google Maps está disponible
-      if (!(window as any).google) {
+      if (!(window as typeof window & { google?: typeof google }).google) {
         this.addDebugInfo('❌ window.google no existe');
         this.showMapError('Google Maps no está disponible', 'window.google no está definido. El script no se cargó correctamente.');
         return;
       }
 
-      if (!(window as any).google.maps) {
+      if (!(window as typeof window & { google?: typeof google }).google?.maps) {
         this.addDebugInfo('❌ window.google.maps no existe');
         this.showMapError('Google Maps API no disponible', 'window.google.maps no está definido. Verifica que el script se cargó correctamente.');
         return;
@@ -503,7 +505,7 @@ export class NotelertLocationPickerModal extends Modal {
       this.addDebugInfo('🔨 Creando instancia del mapa...');
 
       try {
-        this.map = new (window as any).google.maps.Map(mapContainer, {
+        this.map = new (window as typeof window & { google?: typeof google }).google!.maps.Map(mapContainer, {
           center: defaultCenter,
           zoom: 13,
           mapTypeControl: false, // Desactivado - sin botones de mapa/satélite
@@ -525,30 +527,28 @@ export class NotelertLocationPickerModal extends Modal {
         }, 500);
 
         // Listener para errores del mapa (puede no funcionar siempre)
-        try {
-          this.map.addListener('error', (error: any) => {
-            this.addDebugInfo(`❌ Error en el mapa (listener): ${error?.message || JSON.stringify(error)}`);
-            this.showMapError('Error al cargar el mapa', `Error del mapa: ${error?.message || 'Error desconocido'}`);
-          });
-        } catch (listenerError) {
-          this.addDebugInfo(`⚠️ No se pudo añadir listener de errores: ${listenerError}`);
-        }
+        // Algunos tipos de Map no exponen un evento 'error' tipado, así que omitimos este listener
 
         // Verificar si el mapa se cargó correctamente después de un momento
         setTimeout(() => {
           this.checkMapStatus();
         }, 2000);
 
-      } catch (mapError: any) {
-        this.addDebugInfo(`❌ Excepción al crear mapa: ${mapError?.message || mapError}`);
-        this.addDebugInfo(`Stack: ${mapError?.stack?.substring(0, 200) || 'No stack'}`);
-        throw mapError;
+      } catch (mapError: unknown) {
+        const err = mapError instanceof Error ? mapError : new Error(String(mapError));
+        this.addDebugInfo(`❌ Excepción al crear mapa: ${err.message}`);
+        this.addDebugInfo(`Stack: ${err.stack?.substring(0, 200) || 'No stack'}`);
+        throw err;
       }
 
       // Listener para clics en el mapa
-      this.map.addListener('click', (e: any) => {
-        const lat = e.latLng.lat();
-        const lng = e.latLng.lng();
+      this.map.addListener('click', (e: google.maps.MapMouseEvent) => {
+        const lat = e.latLng?.lat();
+        const lng = e.latLng?.lng();
+        if (lat === undefined || lng === undefined) {
+          this.addDebugInfo('⚠️ Evento de click sin coordenadas válidas');
+          return;
+        }
         this.addDebugInfo(`🖱️ Click en mapa: ${lat}, ${lng}`);
 
         // Geocodificación inversa para obtener la dirección
@@ -562,9 +562,10 @@ export class NotelertLocationPickerModal extends Modal {
       }
 
       this.addDebugInfo('✅ Mapa inicializado correctamente');
-    } catch (error: any) {
-      const errorMessage = error?.message || String(error);
-      const errorStack = error?.stack || 'No hay stack trace';
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      const errorMessage = err.message;
+      const errorStack = err.stack || 'No hay stack trace';
       this.addDebugInfo(`❌ Excepción: ${errorMessage}`);
       this.addDebugInfo(`Stack: ${errorStack.substring(0, 300)}`);
       const errorDetails = `
@@ -713,9 +714,9 @@ export class NotelertLocationPickerModal extends Modal {
   // Geocodificación inversa (de coordenadas a dirección)
   private async reverseGeocode(lat: number, lng: number) {
     try {
-      const geocoder = new (window as any).google.maps.Geocoder();
+      const geocoder = new (window as typeof window & { google?: typeof google }).google!.maps.Geocoder();
 
-      geocoder.geocode({ location: { lat, lng } }, (results: any[], status: string) => {
+      geocoder.geocode({ location: { lat, lng } }, (results: google.maps.GeocoderResult[] | null, status: string) => {
         if (status === 'OK' && results[0]) {
           const result = results[0];
           const address = result.formatted_address;
@@ -767,17 +768,21 @@ export class NotelertLocationPickerModal extends Modal {
     }
 
     // Crear nuevo marcador
-    this.mapMarker = new (window as any).google.maps.Marker({
+    this.mapMarker = new (window as typeof window & { google?: typeof google }).google!.maps.Marker({
       position: { lat, lng },
       map: this.map,
       draggable: true,
-      animation: (window as any).google.maps.Animation.DROP
+      animation: (window as typeof window & { google?: typeof google }).google!.maps.Animation.DROP
     });
 
     // Listener para cuando se arrastra el marcador
-    this.mapMarker.addListener('dragend', (e: any) => {
-      const newLat = e.latLng.lat();
-      const newLng = e.latLng.lng();
+    this.mapMarker.addListener('dragend', (e: google.maps.MapMouseEvent) => {
+      const newLat = e.latLng?.lat();
+      const newLng = e.latLng?.lng();
+      if (newLat === undefined || newLng === undefined) {
+        this.addDebugInfo('⚠️ Evento dragend sin coordenadas válidas');
+        return;
+      }
       this.reverseGeocode(newLat, newLng);
     });
 
@@ -804,8 +809,8 @@ export class NotelertLocationPickerModal extends Modal {
   private async searchLocations(query: string, resultsContainer: HTMLElement) {
     try {
       // Validar token si se usa Google Maps proxy (premium feature)
-      const useProxy = (this.plugin.settings as any).useFirebaseProxy !== false;
-      const provider = (this.plugin.settings as any).geocodingProvider || 'nominatim';
+      const useProxy = this.plugin.settings.useFirebaseProxy !== false;
+      const provider = this.plugin.settings.geocodingProvider || 'nominatim';
 
       if ((provider === 'google' && useProxy) || provider === 'google') {
         if (!this.plugin.settings.pluginToken || this.plugin.settings.pluginToken.trim() === '') {
@@ -896,10 +901,11 @@ export class NotelertLocationPickerModal extends Modal {
           this.plugin.log(`Error procesando resultado: ${itemError}`);
         }
       });
-    } catch (error: any) {
-      const errorMessage = error?.message || String(error);
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      const errorMessage = err.message;
       this.plugin.log(`Error buscando ubicaciones: ${errorMessage}`);
-      this.plugin.log(`Stack: ${error?.stack || 'No stack trace'}`);
+      this.plugin.log(`Stack: ${err.stack || 'No stack trace'}`);
 
       let errorDisplay = getTranslation(this.language, "locationPicker.error") || "Error al buscar ubicaciones";
       if (errorMessage.includes("CORS") || errorMessage.includes("Failed to fetch")) {

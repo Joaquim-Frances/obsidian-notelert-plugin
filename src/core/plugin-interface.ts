@@ -1,7 +1,8 @@
+import { App } from "obsidian";
 import { DetectedPattern, NotelertSettings } from "./types";
 
 export interface INotelertPlugin {
-  app: any;
+  app: App;
   settings: NotelertSettings;
   log(message: string): void;
   createNotificationAndMarkProcessed(pattern: DetectedPattern): Promise<void>;

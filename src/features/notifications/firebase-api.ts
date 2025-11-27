@@ -118,10 +118,10 @@ export async function scheduleEmailReminder(
       success: true,
       notificationId: result.notificationId || notificationId
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
     
-    if (error.name === 'AbortError') {
+    if (error instanceof DOMException && error.name === 'AbortError') {
       return {
         success: false,
         error: 'Timeout: El servidor no respondió en 25 segundos. Puede ser un cold start. Intenta de nuevo.',
@@ -129,7 +129,7 @@ export async function scheduleEmailReminder(
     }
     
     // Detectar errores de red comunes
-    if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+    if (error instanceof Error && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
       return {
         success: false,
         error: 'Error de conexión. Verifica tu internet e intenta de nuevo.',
@@ -138,7 +138,7 @@ export async function scheduleEmailReminder(
     
     return {
       success: false,
-      error: error.message || 'Error de red al programar email',
+      error: error instanceof Error ? error.message : 'Error de red al programar email',
     };
   }
 }
@@ -208,10 +208,10 @@ export async function cancelScheduledEmail(
     }
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
     
-    if (error.name === 'AbortError') {
+    if (error instanceof DOMException && error.name === 'AbortError') {
       return {
         success: false,
         error: 'Timeout: El servidor no respondió en 25 segundos. Puede ser un cold start. Intenta de nuevo.',
@@ -219,7 +219,7 @@ export async function cancelScheduledEmail(
     }
     
     // Detectar errores de red comunes
-    if (error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError')) {
+    if (error instanceof Error && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
       return {
         success: false,
         error: 'Error de conexión. Verifica tu internet e intenta de nuevo.',
@@ -228,7 +228,7 @@ export async function cancelScheduledEmail(
     
     return {
       success: false,
-      error: error.message || 'Error de red al cancelar email',
+      error: error instanceof Error ? error.message : 'Error de red al cancelar email',
     };
   }
 }
@@ -334,10 +334,10 @@ export async function scheduleEmailReminderProxy(
       success: true,
       notificationId: result.notificationId || notificationId
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timeoutId);
     
-    if (error.name === 'AbortError') {
+    if (error instanceof DOMException && error.name === 'AbortError') {
       return {
         success: false,
         error: 'Timeout: El servidor no respondió en 25 segundos. Puede ser un cold start. Intenta de nuevo.',
@@ -345,7 +345,7 @@ export async function scheduleEmailReminderProxy(
     }
     
     // Mejorar detección de errores de red vs errores del servidor
-    const errorMessage = error.message || String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     const isNetworkError = errorMessage.includes('Failed to fetch') || 
                           errorMessage.includes('NetworkError') ||
                           errorMessage.includes('Network request failed') ||

@@ -16,11 +16,15 @@ export function getTranslation(language: string, key: string, params?: Record<st
 
   const keys = key.split('.');
 
-  // Helper to get value from a translation object
-  const getValue = (obj: any, keyPath: string[]) => {
-    let val = obj;
+  // Helper para obtener un valor anidado de un objeto de traducciones
+  const getValue = (obj: unknown, keyPath: string[]) => {
+    let val: unknown = obj;
     for (const k of keyPath) {
-      val = val?.[k];
+      if (val && typeof val === 'object' && k in (val as Record<string, unknown>)) {
+        val = (val as Record<string, unknown>)[k];
+      } else {
+        return undefined;
+      }
     }
     return val;
   };

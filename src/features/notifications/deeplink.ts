@@ -163,13 +163,13 @@ export async function createNotification(
         window.location.href = deeplink;
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Solo loggear errores inesperados, los errores de negocio ya se mostraron
-    if (error?.message && error.message.includes('Error al programar email')) {
+    if (error instanceof Error && error.message.includes('Error al programar email')) {
       // Re-lanzar errores de negocio para que el modal no se cierre
       throw error;
     }
-    log(`Error creando notificación: ${error}`);
+    log(`Error creando notificación: ${error instanceof Error ? error.message : String(error)}`);
     new Notice(getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
     // Re-lanzar para que el modal no se cierre
     throw error;

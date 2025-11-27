@@ -1,10 +1,13 @@
+import { Editor, EditorPosition } from "obsidian";
 import { INotelertPlugin } from "../../core/plugin-interface";
 import { NotelertDatePickerModal } from "../../modals/DatePickerModal";
 import { NotelertLocationPickerModal } from "../../modals/LocationPickerModal";
 
 export function handleEditorChange(
-  editor: any,
-  info: any,
+  editor: Editor,
+  // La firma de Obsidian para change incluye un objeto complejo;
+  // no lo usamos aquí, así que lo tipamos de forma segura.
+  info: unknown,
   plugin: INotelertPlugin
 ): void {
   if (!plugin.settings.enableDatePicker || !plugin.settings.useNewSyntax) return;
@@ -28,7 +31,7 @@ export function handleEditorChange(
 }
 
 // Abrir date picker y reemplazar :@ con la fecha/hora seleccionada
-export function openDatePicker(editor: any, cursor: any, plugin: INotelertPlugin): void {
+export function openDatePicker(editor: Editor, cursor: EditorPosition, plugin: INotelertPlugin): void {
   const line = editor.getLine(cursor.line);
   const originalText = line;
   
@@ -46,7 +49,7 @@ export function openDatePicker(editor: any, cursor: any, plugin: INotelertPlugin
 }
 
 // Abrir location picker y reemplazar :# con la ubicación seleccionada
-export function openLocationPicker(editor: any, cursor: any, plugin: INotelertPlugin): void {
+export function openLocationPicker(editor: Editor, cursor: EditorPosition, plugin: INotelertPlugin): void {
   const line = editor.getLine(cursor.line);
   const originalText = line;
   

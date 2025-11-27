@@ -34,19 +34,37 @@ export class NominatimProvider implements GeocodingProviderInterface {
       throw new Error(`Nominatim error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: unknown = await response.json();
     if (!Array.isArray(data)) return [];
 
-    return data.map((result: any) => {
-      const address = result.address || {};
-      const shortName = address.road || address.city || address.town || address.village || result.display_name?.split(',')[0] || 'Ubicación';
+    return data.map((result) => {
+      const r = result as {
+        address?: {
+          road?: string;
+          city?: string;
+          town?: string;
+          village?: string;
+        };
+        display_name?: string;
+        name?: string;
+        lat: string;
+        lon: string;
+      };
+      const address = r.address ?? {};
+      const shortName =
+        address.road ||
+        address.city ||
+        address.town ||
+        address.village ||
+        r.display_name?.split(",")[0] ||
+        "Ubicación";
       
       return {
         name: shortName,
-        latitude: parseFloat(result.lat),
-        longitude: parseFloat(result.lon),
-        address: result.display_name || result.name || '',
-        displayName: result.display_name || result.name || 'Ubicación sin nombre'
+        latitude: parseFloat(r.lat),
+        longitude: parseFloat(r.lon),
+        address: r.display_name || r.name || "",
+        displayName: r.display_name || r.name || "Ubicación sin nombre"
       };
     });
   }
@@ -101,7 +119,7 @@ export class GoogleMapsProvider implements GeocodingProviderInterface {
       throw new Error(`Google Maps error: ${response.status} ${response.statusText} - ${errorData.message || ''}`);
     }
 
-    const data = await response.json();
+    const data: { features?: unknown[] } = await response.json();
     
     // Manejar respuesta del proxy (formato diferente)
     if (this.useProxy && this.proxyUrl) {
@@ -114,7 +132,13 @@ export class GoogleMapsProvider implements GeocodingProviderInterface {
       }
       
       // El proxy ya devuelve el formato correcto
-      return (data.results || []).map((result: any) => ({
+      return (data.results || []).map((result: {
+        name: string;
+        latitude: number;
+        longitude: number;
+        address: string;
+        displayName: string;
+      }) => ({
         name: result.name,
         latitude: result.latitude,
         longitude: result.longitude,
@@ -136,12 +160,17 @@ export class GoogleMapsProvider implements GeocodingProviderInterface {
       return [];
     }
 
-    return data.results.slice(0, 5).map((result: any) => {
+    return data.results.slice(0, 5).map((result: {
+      address_components?: Array<{ types: string[]; long_name?: string }>;
+      formatted_address?: string;
+      geometry: { location: { lat: number; lng: number } };
+    }) => {
       const components = result.address_components || [];
-      const shortName = components.find((c: any) => c.types.includes('route'))?.long_name ||
-                       components.find((c: any) => c.types.includes('locality'))?.long_name ||
-                       result.formatted_address?.split(',')[0] ||
-                       'Ubicación';
+      const shortName =
+        components.find((c) => c.types.includes('route'))?.long_name ||
+        components.find((c) => c.types.includes('locality'))?.long_name ||
+        result.formatted_address?.split(',')[0] ||
+        'Ubicación';
       
       return {
         name: shortName,
@@ -166,10 +195,14 @@ export class MapboxProvider implements GeocodingProviderInterface {
       throw new Error(`Mapbox error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: { status: { code?: number }; results?: unknown[] } = await response.json();
     if (!data.features) return [];
 
-    return data.features.slice(0, 5).map((feature: any) => {
+    return data.features.slice(0, 5).map((feature: {
+      center: [number, number];
+      text?: string;
+      place_name?: string;
+    }) => {
       const [longitude, latitude] = feature.center;
       const shortName = feature.text || feature.place_name?.split(',')[0] || 'Ubicación';
       
@@ -196,12 +229,24 @@ export class LocationIQProvider implements GeocodingProviderInterface {
       throw new Error(`LocationIQ error: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: { hits?: unknown[] } = await response.json();
     if (!Array.isArray(data)) return [];
 
-    return data.map((result: any) => {
+    return data.map((result: {
+      address?: { road?: string; city?: string; town?: string; village?: string };
+      display_name?: string;
+      name?: string;
+      lat: string;
+      lon: string;
+    }) => {
       const address = result.address || {};
-      const shortName = address.road || address.city || address.town || address.village || result.display_name?.split(',')[0] || 'Ubicación';
+      const shortName =
+        address.road ||
+        address.city ||
+        address.town ||
+        address.village ||
+        result.display_name?.split(',')[0] ||
+        'Ubicación';
       
       return {
         name: shortName,
@@ -229,9 +274,19 @@ export class OpenCageProvider implements GeocodingProviderInterface {
     const data = await response.json();
     if (data.status.code !== 200 || !data.results) return [];
 
-    return data.results.slice(0, 5).map((result: any) => {
+    return data.results.slice(0, 5).map((result: {
+      components?: { road?: string; city?: string; town?: string; village?: string };
+      formatted?: string;
+      geometry: { lat: number; lng: number };
+    }) => {
       const components = result.components || {};
-      const shortName = components.road || components.city || components.town || components.village || result.formatted?.split(',')[0] || 'Ubicación';
+      const shortName =
+        components.road ||
+        components.city ||
+        components.town ||
+        components.village ||
+        result.formatted?.split(',')[0] ||
+        'Ubicación';
       
       return {
         name: shortName,
@@ -272,7 +327,13 @@ export class AlgoliaPlacesProvider implements GeocodingProviderInterface {
     const data = await response.json();
     if (!data.hits) return [];
 
-    return data.hits.map((hit: any) => {
+    return data.hits.map((hit: {
+      locale_names?: string[];
+      name?: string;
+      value?: string;
+      _geoloc?: { lat?: number; lng?: number };
+      latlng?: { lat?: number; lng?: number };
+    }) => {
       const shortName = hit.locale_names?.[0] || hit.name || hit.value || 'Ubicación';
       
       return {
@@ -288,7 +349,7 @@ export class AlgoliaPlacesProvider implements GeocodingProviderInterface {
 
 // Factory para crear el proveedor correcto
 export function createGeocodingProvider(settings: NotelertSettings): GeocodingProviderInterface {
-  const provider = (settings as any).geocodingProvider || 'nominatim';
+  const provider = settings.geocodingProvider || 'nominatim';
   
   switch (provider) {
     case 'google':
@@ -298,29 +359,29 @@ export function createGeocodingProvider(settings: NotelertSettings): GeocodingPr
       return new GoogleMapsProvider(settings.googleMapsApiKey);
     
     case 'mapbox':
-      const mapboxKey = (settings as any).mapboxApiKey;
+      const mapboxKey = settings.mapboxApiKey;
       if (!mapboxKey) {
         throw new Error('Mapbox API key requerida');
       }
       return new MapboxProvider(mapboxKey);
     
     case 'locationiq':
-      const locationiqKey = (settings as any).locationiqApiKey;
+      const locationiqKey = settings.locationiqApiKey;
       if (!locationiqKey) {
         throw new Error('LocationIQ API key requerida');
       }
       return new LocationIQProvider(locationiqKey);
     
     case 'opencage':
-      const opencageKey = (settings as any).opencageApiKey;
+      const opencageKey = settings.opencageApiKey;
       if (!opencageKey) {
         throw new Error('OpenCage API key requerida');
       }
       return new OpenCageProvider(opencageKey);
     
     case 'algolia':
-      const algoliaKey = (settings as any).algoliaApiKey;
-      const algoliaAppId = (settings as any).algoliaAppId;
+      const algoliaKey = settings.algoliaApiKey;
+      const algoliaAppId = settings.algoliaAppId;
       if (!algoliaKey || !algoliaAppId) {
         throw new Error('Algolia API key y App ID requeridos');
       }
@@ -339,7 +400,7 @@ export async function searchLocations(
   language: string,
   log?: (message: string) => void
 ): Promise<GeocodingResult[]> {
-  const configuredProvider = (settings as any).geocodingProvider || 'nominatim';
+  const configuredProvider = settings.geocodingProvider || 'nominatim';
   log?.(`Proveedor configurado: ${configuredProvider}`);
   
   const providers: GeocodingProvider[] = [
@@ -356,8 +417,8 @@ export async function searchLocations(
       switch (providerType) {
         case 'google':
           // Verificar si usar proxy de Firebase (recomendado - más seguro)
-          const useProxy = (settings as any).useFirebaseProxy !== false; // Por defecto true
-          const proxyUrl = (settings as any).firebaseGeocodingUrl || PLUGIN_GEOCODE_URL;
+          const useProxy = settings.useFirebaseProxy !== false; // Por defecto true
+          const proxyUrl = settings.firebaseGeocodingUrl || PLUGIN_GEOCODE_URL;
           
           if (useProxy && proxyUrl) {
             log?.(`Google Maps: Usando proxy Firebase (requiere token del plugin)`);
@@ -380,7 +441,7 @@ export async function searchLocations(
           }
           break;
         case 'mapbox':
-          const mapboxKey = (settings as any).mapboxApiKey;
+          const mapboxKey = settings.mapboxApiKey;
           if (!mapboxKey || mapboxKey.trim() === '') {
             log?.(`Mapbox: API key no configurada`);
             continue;
@@ -388,7 +449,7 @@ export async function searchLocations(
           provider = new MapboxProvider(mapboxKey);
           break;
         case 'locationiq':
-          const locationiqKey = (settings as any).locationiqApiKey;
+          const locationiqKey = settings.locationiqApiKey;
           if (!locationiqKey || locationiqKey.trim() === '') {
             log?.(`LocationIQ: API key no configurada`);
             continue;
@@ -396,7 +457,7 @@ export async function searchLocations(
           provider = new LocationIQProvider(locationiqKey);
           break;
         case 'opencage':
-          const opencageKey = (settings as any).opencageApiKey;
+          const opencageKey = settings.opencageApiKey;
           if (!opencageKey || opencageKey.trim() === '') {
             log?.(`OpenCage: API key no configurada`);
             continue;
@@ -404,8 +465,8 @@ export async function searchLocations(
           provider = new OpenCageProvider(opencageKey);
           break;
         case 'algolia':
-          const algoliaKey = (settings as any).algoliaApiKey;
-          const algoliaAppId = (settings as any).algoliaAppId;
+          const algoliaKey = settings.algoliaApiKey;
+          const algoliaAppId = settings.algoliaAppId;
           if (!algoliaKey || !algoliaAppId || algoliaKey.trim() === '' || algoliaAppId.trim() === '') {
             log?.(`Algolia: API key o App ID no configurados`);
             continue;
@@ -425,8 +486,8 @@ export async function searchLocations(
       } else {
         log?.(`⚠️ ${providerType} no devolvió resultados, intentando siguiente proveedor...`);
       }
-    } catch (error: any) {
-      const errorMsg = error?.message || String(error);
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
       log?.(`❌ Error con ${providerType}: ${errorMsg}`);
       // Continuar con el siguiente proveedor
       continue;

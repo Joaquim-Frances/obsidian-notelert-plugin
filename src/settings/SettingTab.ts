@@ -432,7 +432,7 @@ export class NotelertSettingTab extends PluginSettingTab {
   // Mostrar estado de carga (spinner) en el botón
   private showLoadingState(button: HTMLButtonElement) {
     // Guardar el texto original
-    (button as any).__originalText = button.textContent;
+    (button as HTMLButtonElement & { __originalText?: string }).__originalText = button.textContent || undefined;
 
     // Deshabilitar botón
     button.disabled = true;
@@ -467,7 +467,9 @@ export class NotelertSettingTab extends PluginSettingTab {
   // Ocultar estado de carga y restaurar botón
   private hideLoadingState(button: HTMLButtonElement) {
     // Restaurar texto original
-    const originalText = (button as any).__originalText || getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelButton");
+    const originalText =
+      (button as HTMLButtonElement & { __originalText?: string }).__originalText ||
+      getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelButton");
     button.textContent = originalText;
 
     // Restaurar estado del botón
