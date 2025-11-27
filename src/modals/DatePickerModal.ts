@@ -2,6 +2,7 @@ import { App, Editor, EditorPosition, Modal, Notice, Platform } from "obsidian";
 import { DetectedPattern, SavedLocation } from "../core/types";
 import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
+import { setCssProps } from "../core/dom";
 
 export class NotelertDatePickerModal extends Modal {
   private onCancel: () => void;
@@ -30,40 +31,44 @@ export class NotelertDatePickerModal extends Modal {
     const isDesktop = !Platform.isMobile;
 
     // Estilos responsive para el modal - optimizado para desktop
-    contentEl.setAttribute("style", `
-      min-width: ${isDesktop ? '400px' : '300px'}; 
-      max-width: ${isDesktop ? '500px' : '600px'}; 
-      width: ${isDesktop ? 'auto' : '95vw'};
-      max-height: ${isDesktop ? 'auto' : '90vh'}; 
-      overflow: hidden;
-      padding: ${isDesktop ? '25px' : '20px'};
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      margin: 0 auto;
-    `);
-
-    // Contenedor con scroll interno (solo si es necesario en móvil)
-    const scrollContainer = contentEl.createEl("div", {
-      attr: {
-        style: `
-          flex: 1;
-          overflow-y: ${isDesktop ? 'visible' : 'auto'};
-          overflow-x: hidden;
-          padding-right: ${isDesktop ? '0' : '5px'};
-          margin-bottom: 10px;
-        `
-      }
+    setCssProps(contentEl, {
+      minWidth: isDesktop ? "400px" : "300px",
+      maxWidth: isDesktop ? "500px" : "600px",
+      width: isDesktop ? "auto" : "95vw",
+      maxHeight: isDesktop ? "auto" : "90vh",
+      overflow: "hidden",
+      padding: isDesktop ? "25px" : "20px",
+      boxSizing: "border-box",
+      display: "flex",
+      flexDirection: "column",
+      margin: "0 auto",
     });
 
-    scrollContainer.createEl("h2", {
+    // Contenedor con scroll interno (solo si es necesario en móvil)
+    const scrollContainer = contentEl.createEl("div");
+    setCssProps(scrollContainer, {
+      flex: "1",
+      overflowY: isDesktop ? "visible" : "auto",
+      overflowX: "hidden",
+      paddingRight: isDesktop ? "0" : "5px",
+      marginBottom: "10px",
+    });
+
+    const titleEl = scrollContainer.createEl("h2", {
       text: getTranslation(this.language, "datePicker.title"),
-      attr: { style: "margin: 0 0 15px 0; font-size: 18px; font-weight: 600;" }
+    });
+    setCssProps(titleEl, {
+      margin: "0 0 15px 0",
+      fontSize: "18px",
+      fontWeight: "600",
     });
 
     // Contenedor principal - usar todo el ancho
     const container = scrollContainer.createEl("div", { cls: "notelert-datepicker-container" });
-    container.setAttribute("style", "margin: 0; width: 100%;");
+    setCssProps(container, {
+      margin: "0",
+      width: "100%",
+    });
 
     // En desktop, forzar tipo 'time' (no hay ubicaciones)
     if (isDesktop) {
@@ -72,169 +77,184 @@ export class NotelertDatePickerModal extends Modal {
 
     // Selector de fecha
     const dateContainer = container.createEl("div", { cls: "notelert-date-container" });
-    dateContainer.setAttribute("style", "margin-bottom: 15px;");
+    setCssProps(dateContainer, { marginBottom: "15px" });
 
     const dateLabel = dateContainer.createEl("label", { text: getTranslation(this.language, "datePicker.dateLabel") });
-    dateLabel.setAttribute("style", "display: block; margin-bottom: 5px; font-weight: 500;");
+    setCssProps(dateLabel, {
+      display: "block",
+      marginBottom: "5px",
+      fontWeight: "500",
+    });
 
     const dateInput = dateContainer.createEl("input", {
       type: "date",
       cls: "notelert-date-input"
     });
-    dateInput.setAttribute("style", "width: 100%; padding: 10px; border: 1px solid var(--background-modifier-border); border-radius: 6px; box-sizing: border-box; font-size: 14px;");
+    setCssProps(dateInput, {
+      width: "100%",
+      padding: "10px",
+      border: "1px solid var(--background-modifier-border)",
+      borderRadius: "6px",
+      boxSizing: "border-box",
+      fontSize: "14px",
+    });
 
     // Selector de hora - visual con botones +/- (mejor UX)
     const timeContainer = container.createEl("div", { cls: "notelert-time-container" });
-    timeContainer.setAttribute("style", "margin-bottom: 20px;");
+    setCssProps(timeContainer, { marginBottom: "20px" });
 
     const timeLabel = timeContainer.createEl("label", { text: getTranslation(this.language, "datePicker.timeLabel") });
-    timeLabel.setAttribute("style", "display: block; margin-bottom: 10px; font-weight: 500;");
+    setCssProps(timeLabel, {
+      display: "block",
+      marginBottom: "10px",
+      fontWeight: "500",
+    });
 
     // Contenedor para el selector visual de hora
-    const timePickerContainer = timeContainer.createEl("div", {
-      attr: {
-        style: `
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: ${isDesktop ? '20px' : '15px'};
-          padding: ${isDesktop ? '20px' : '15px'};
-          background: var(--background-secondary);
-          border-radius: 8px;
-          border: 1px solid var(--background-modifier-border);
-        `
-      }
+    const timePickerContainer = timeContainer.createEl("div");
+    setCssProps(timePickerContainer, {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: isDesktop ? "20px" : "15px",
+      padding: isDesktop ? "20px" : "15px",
+      background: "var(--background-secondary)",
+      borderRadius: "8px",
+      border: "1px solid var(--background-modifier-border)",
     });
 
     // Selector de horas
-    const hoursContainer = timePickerContainer.createEl("div", {
-      attr: {
-        style: `
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-        `
-      }
+    const hoursContainer = timePickerContainer.createEl("div");
+    setCssProps(hoursContainer, {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "8px",
     });
 
-    hoursContainer.createEl("div", {
+    const hoursLabel = hoursContainer.createEl("div", {
       text: getTranslation(this.language, "datePicker.hours"),
-      attr: { style: "font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px;" }
+    });
+    setCssProps(hoursLabel, {
+      fontSize: "11px",
+      color: "var(--text-muted)",
+      textTransform: "uppercase",
+      fontWeight: "500",
+      letterSpacing: "0.5px",
     });
 
     const hoursDisplay = hoursContainer.createEl("div", {
       text: "12",
-      attr: {
-        style: `
-          font-size: ${isDesktop ? '32px' : '28px'};
-          font-weight: 600;
-          color: var(--text-normal);
-          min-width: ${isDesktop ? '60px' : '50px'};
-          text-align: center;
-          padding: ${isDesktop ? '10px 15px' : '8px 12px'};
-          background: var(--background-primary);
-          border-radius: 6px;
-          border: 2px solid var(--interactive-accent);
-        `
-      }
+    });
+    setCssProps(hoursDisplay, {
+      fontSize: isDesktop ? "32px" : "28px",
+      fontWeight: "600",
+      color: "var(--text-normal)",
+      minWidth: isDesktop ? "60px" : "50px",
+      textAlign: "center",
+      padding: isDesktop ? "10px 15px" : "8px 12px",
+      background: "var(--background-primary)",
+      borderRadius: "6px",
+      border: "2px solid var(--interactive-accent)",
     });
     hoursDisplay.id = "hours-display";
 
-    const hoursButtons = hoursContainer.createEl("div", {
-      attr: {
-        style: `
-          display: flex;
-          gap: 8px;
-          align-items: center;
-        `
-      }
+    const hoursButtons = hoursContainer.createEl("div");
+    setCssProps(hoursButtons, {
+      display: "flex",
+      gap: "8px",
+      alignItems: "center",
     });
 
     const hoursDecreaseBtn = hoursButtons.createEl("button", {
       text: "−",
-      attr: {
-        style: `
-          width: ${isDesktop ? '36px' : '32px'};
-          height: ${isDesktop ? '36px' : '32px'};
-          border-radius: 6px;
-          border: 1px solid var(--background-modifier-border);
-          background: var(--background-primary);
-          font-size: ${isDesktop ? '20px' : '18px'};
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        `
-      }
+    });
+    setCssProps(hoursDecreaseBtn, {
+      width: isDesktop ? "36px" : "32px",
+      height: isDesktop ? "36px" : "32px",
+      borderRadius: "6px",
+      border: "1px solid var(--background-modifier-border)",
+      background: "var(--background-primary)",
+      fontSize: isDesktop ? "20px" : "18px",
+      fontWeight: "600",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      transition: "all 0.2s",
     });
     hoursDecreaseBtn.addEventListener("mouseenter", () => {
-      hoursDecreaseBtn.style.background = "var(--background-modifier-hover)";
-      hoursDecreaseBtn.style.borderColor = "var(--interactive-accent)";
+      setCssProps(hoursDecreaseBtn, {
+        background: "var(--background-modifier-hover)",
+        borderColor: "var(--interactive-accent)",
+      });
     });
     hoursDecreaseBtn.addEventListener("mouseleave", () => {
-      hoursDecreaseBtn.style.background = "var(--background-primary)";
-      hoursDecreaseBtn.style.borderColor = "var(--background-modifier-border)";
+      setCssProps(hoursDecreaseBtn, {
+        background: "var(--background-primary)",
+        borderColor: "var(--background-modifier-border)",
+      });
     });
 
     const hoursIncreaseBtn = hoursButtons.createEl("button", {
       text: "+",
-      attr: {
-        style: `
-          width: ${isDesktop ? '36px' : '32px'};
-          height: ${isDesktop ? '36px' : '32px'};
-          border-radius: 6px;
-          border: 1px solid var(--background-modifier-border);
-          background: var(--background-primary);
-          font-size: ${isDesktop ? '20px' : '18px'};
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        `
-      }
+    });
+    setCssProps(hoursIncreaseBtn, {
+      width: isDesktop ? "36px" : "32px",
+      height: isDesktop ? "36px" : "32px",
+      borderRadius: "6px",
+      border: "1px solid var(--background-modifier-border)",
+      background: "var(--background-primary)",
+      fontSize: isDesktop ? "20px" : "18px",
+      fontWeight: "600",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      transition: "all 0.2s",
     });
     hoursIncreaseBtn.addEventListener("mouseenter", () => {
-      hoursIncreaseBtn.style.background = "var(--background-modifier-hover)";
-      hoursIncreaseBtn.style.borderColor = "var(--interactive-accent)";
+      setCssProps(hoursIncreaseBtn, {
+        background: "var(--background-modifier-hover)",
+        borderColor: "var(--interactive-accent)",
+      });
     });
     hoursIncreaseBtn.addEventListener("mouseleave", () => {
-      hoursIncreaseBtn.style.background = "var(--background-primary)";
-      hoursIncreaseBtn.style.borderColor = "var(--background-modifier-border)";
+      setCssProps(hoursIncreaseBtn, {
+        background: "var(--background-primary)",
+        borderColor: "var(--background-modifier-border)",
+      });
     });
 
     // Separador
-    timePickerContainer.createEl("div", {
+    const colonEl = timePickerContainer.createEl("div", {
       text: ":",
-      attr: {
-        style: `
-          font-size: ${isDesktop ? '32px' : '28px'};
-          font-weight: 600;
-          color: var(--text-normal);
-          margin: 0 ${isDesktop ? '10px' : '5px'};
-        `
-      }
+    });
+    setCssProps(colonEl, {
+      fontSize: isDesktop ? "32px" : "28px",
+      fontWeight: "600",
+      color: "var(--text-normal)",
+      margin: `0 ${isDesktop ? "10px" : "5px"}`,
     });
 
     // Selector de minutos
-    const minutesContainer = timePickerContainer.createEl("div", {
-      attr: {
-        style: `
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 8px;
-        `
-      }
+    const minutesContainer = timePickerContainer.createEl("div");
+    setCssProps(minutesContainer, {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "8px",
     });
 
-    minutesContainer.createEl("div", {
+    const minutesLabel = minutesContainer.createEl("div", {
       text: getTranslation(this.language, "datePicker.minutes"),
-      attr: { style: "font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 500; letter-spacing: 0.5px;" }
+    });
+    setCssProps(minutesLabel, {
+      fontSize: "11px",
+      color: "var(--text-muted)",
+      textTransform: "uppercase",
+      fontWeight: "500",
+      letterSpacing: "0.5px",
     });
 
     const minutesDisplay = minutesContainer.createEl("div", {
@@ -285,12 +305,16 @@ export class NotelertDatePickerModal extends Modal {
       }
     });
     minutesDecreaseBtn.addEventListener("mouseenter", () => {
-      minutesDecreaseBtn.style.background = "var(--background-modifier-hover)";
-      minutesDecreaseBtn.style.borderColor = "var(--interactive-accent)";
+      setCssProps(minutesDecreaseBtn, {
+        background: "var(--background-modifier-hover)",
+        borderColor: "var(--interactive-accent)",
+      });
     });
     minutesDecreaseBtn.addEventListener("mouseleave", () => {
-      minutesDecreaseBtn.style.background = "var(--background-primary)";
-      minutesDecreaseBtn.style.borderColor = "var(--background-modifier-border)";
+      setCssProps(minutesDecreaseBtn, {
+        background: "var(--background-primary)",
+        borderColor: "var(--background-modifier-border)",
+      });
     });
 
     const minutesIncreaseBtn = minutesButtons.createEl("button", {
@@ -313,12 +337,16 @@ export class NotelertDatePickerModal extends Modal {
       }
     });
     minutesIncreaseBtn.addEventListener("mouseenter", () => {
-      minutesIncreaseBtn.style.background = "var(--background-modifier-hover)";
-      minutesIncreaseBtn.style.borderColor = "var(--interactive-accent)";
+      setCssProps(minutesIncreaseBtn, {
+        background: "var(--background-modifier-hover)",
+        borderColor: "var(--interactive-accent)",
+      });
     });
     minutesIncreaseBtn.addEventListener("mouseleave", () => {
-      minutesIncreaseBtn.style.background = "var(--background-primary)";
-      minutesIncreaseBtn.style.borderColor = "var(--background-modifier-border)";
+      setCssProps(minutesIncreaseBtn, {
+        background: "var(--background-primary)",
+        borderColor: "var(--background-modifier-border)",
+      });
     });
 
     // Input oculto para mantener compatibilidad
@@ -326,7 +354,7 @@ export class NotelertDatePickerModal extends Modal {
       type: "time",
       cls: "notelert-time-input"
     });
-    timeInput.setAttribute("style", "display: none;");
+    setCssProps(timeInput, { display: "none" });
     timeInput.id = "hidden-time-input";
 
     // Botones rápidos de hora (solo en desktop)
@@ -370,12 +398,16 @@ export class NotelertDatePickerModal extends Modal {
           this.updateTimeDisplay(qt.hours, qt.minutes, hoursDisplay, minutesDisplay, timeInput);
         });
         btn.addEventListener("mouseenter", () => {
-          btn.style.background = "var(--background-modifier-hover)";
-          btn.style.borderColor = "var(--interactive-accent)";
+          setCssProps(btn, {
+            background: "var(--background-modifier-hover)",
+            borderColor: "var(--interactive-accent)",
+          });
         });
         btn.addEventListener("mouseleave", () => {
-          btn.style.background = "var(--background-primary)";
-          btn.style.borderColor = "var(--background-modifier-border)";
+          setCssProps(btn, {
+            background: "var(--background-primary)",
+            borderColor: "var(--background-modifier-border)",
+          });
         });
       });
     }
@@ -423,7 +455,15 @@ export class NotelertDatePickerModal extends Modal {
 
     // Selector de tipo de notificación (solo en móvil)
     const typeContainer = container.createEl("div", { cls: "notelert-type-container" });
-    typeContainer.setAttribute("style", `margin-bottom: 20px; padding: 15px; background: var(--background-secondary); border-radius: 6px; width: 100%; box-sizing: border-box; ${isDesktop ? 'display: none;' : ''}`);
+    setCssProps(typeContainer, {
+      marginBottom: "20px",
+      padding: "15px",
+      background: "var(--background-secondary)",
+      borderRadius: "6px",
+      width: "100%",
+      boxSizing: "border-box",
+      display: isDesktop ? "none" : "",
+    });
 
     const typeLabel = typeContainer.createEl("label", {
       text: getTranslation(this.language, "datePicker.notificationType"),
@@ -431,20 +471,37 @@ export class NotelertDatePickerModal extends Modal {
     });
 
     const typeButtonsContainer = typeContainer.createEl("div");
-    typeButtonsContainer.setAttribute("style", "display: flex; gap: 10px; flex-wrap: wrap; width: 100%;");
+    setCssProps(typeButtonsContainer, {
+      display: "flex",
+      gap: "10px",
+      flexWrap: "wrap",
+      width: "100%",
+    });
 
     const timeButton = typeButtonsContainer.createEl("button", {
       text: "⏰ " + getTranslation(this.language, "datePicker.timeNotification"),
       cls: "mod-cta"
     });
-    timeButton.setAttribute("style", "flex: 1; min-width: 120px; padding: 10px; font-size: 14px; white-space: nowrap;");
+    setCssProps(timeButton, {
+      flex: "1",
+      minWidth: "120px",
+      padding: "10px",
+      fontSize: "14px",
+      whiteSpace: "nowrap",
+    });
     timeButton.id = "notification-type-time";
 
     const locationButton = typeButtonsContainer.createEl("button", {
       text: "📍 " + getTranslation(this.language, "datePicker.locationNotification"),
       cls: "mod-secondary"
     });
-    locationButton.setAttribute("style", "flex: 1; min-width: 120px; padding: 10px; font-size: 14px; white-space: nowrap;");
+    setCssProps(locationButton, {
+      flex: "1",
+      minWidth: "120px",
+      padding: "10px",
+      fontSize: "14px",
+      whiteSpace: "nowrap",
+    });
     locationButton.id = "notification-type-location";
 
     // Actualizar estilos según el tipo seleccionado
@@ -476,14 +533,26 @@ export class NotelertDatePickerModal extends Modal {
 
     // Botones de acción rápida (solo para tipo 'time')
     const quickActions = container.createEl("div", { cls: "notelert-quick-actions" });
-    quickActions.setAttribute("style", "margin-bottom: 20px; width: 100%; box-sizing: border-box;");
+    setCssProps(quickActions, {
+      marginBottom: "20px",
+      width: "100%",
+      boxSizing: "border-box",
+    });
     quickActions.id = "quick-actions-container";
 
     const quickActionsTitle = quickActions.createEl("p", { text: getTranslation(this.language, "datePicker.quickActions") });
-    quickActionsTitle.setAttribute("style", "margin-bottom: 10px; font-weight: 500;");
+    setCssProps(quickActionsTitle, {
+      marginBottom: "10px",
+      fontWeight: "500",
+    });
 
     const quickButtonsContainer = quickActions.createEl("div");
-    quickButtonsContainer.setAttribute("style", "display: flex; gap: 8px; flex-wrap: wrap; width: 100%;");
+    setCssProps(quickButtonsContainer, {
+      display: "flex",
+      gap: "8px",
+      flexWrap: "wrap",
+      width: "100%",
+    });
 
     // Botones de acciones rápidas
     const quickActionsData = [
@@ -498,7 +567,10 @@ export class NotelertDatePickerModal extends Modal {
         text: action.label,
         cls: "mod-secondary"
       });
-      button.setAttribute("style", "padding: 4px 8px; font-size: 12px;");
+      setCssProps(button, {
+        padding: "4px 8px",
+        fontSize: "12px",
+      });
       button.addEventListener("click", () => {
         dateInput.value = action.date;
         timeInput.value = action.time;
@@ -514,24 +586,30 @@ export class NotelertDatePickerModal extends Modal {
 
     // Botones principales (fuera del scroll, siempre visibles)
     const buttonContainer = contentEl.createEl("div", { cls: "notelert-datepicker-buttons" });
-    buttonContainer.setAttribute("style", `
-      display: flex; 
-      gap: 10px; 
-      justify-content: flex-end; 
-      margin-top: 10px; 
-      flex-wrap: wrap;
-      flex-shrink: 0;
-      padding-top: 10px;
-      border-top: 1px solid var(--background-modifier-border);
-      width: 100%;
-      box-sizing: border-box;
-    `);
+    setCssProps(buttonContainer, {
+      display: "flex",
+      gap: "10px",
+      justifyContent: "flex-end",
+      marginTop: "10px",
+      flexWrap: "wrap",
+      flexShrink: "0",
+      paddingTop: "10px",
+      borderTop: "1px solid var(--background-modifier-border)",
+      width: "100%",
+      boxSizing: "border-box",
+    });
 
     const cancelButton = buttonContainer.createEl("button", {
       text: getTranslation(this.language, "datePicker.cancelButton"),
       cls: "mod-secondary"
     });
-    cancelButton.setAttribute("style", "flex: 1; min-width: 120px; padding: 12px 20px; font-size: 14px; box-sizing: border-box;");
+    setCssProps(cancelButton, {
+      flex: "1",
+      minWidth: "120px",
+      padding: "12px 20px",
+      fontSize: "14px",
+      boxSizing: "border-box",
+    });
     cancelButton.addEventListener("click", () => {
       this.onCancel();
       this.close();
@@ -541,20 +619,39 @@ export class NotelertDatePickerModal extends Modal {
       text: getTranslation(this.language, "datePicker.confirmButton"),
       cls: "mod-cta"
     });
-    confirmButton.setAttribute("style", "flex: 1; min-width: 120px; padding: 12px 20px; font-size: 14px; box-sizing: border-box;");
+    setCssProps(confirmButton, {
+      flex: "1",
+      minWidth: "120px",
+      padding: "12px 20px",
+      fontSize: "14px",
+      boxSizing: "border-box",
+    });
     confirmButton.id = "datepicker-confirm-button";
 
-    confirmButton.addEventListener("click", async () => {
+    confirmButton.addEventListener("click", () => {
       // Mostrar spinner y deshabilitar botón
       this.showLoadingState(confirmButton);
       const addLog = (message: string) => {
         const debugInfo = document.getElementById("datepicker-debug-info");
         if (debugInfo) {
           const timestamp = new Date().toLocaleTimeString();
-          const existing = debugInfo.innerHTML || '';
           const color = message.includes('❌') || message.includes('Error') ? 'var(--text-error)' :
             message.includes('✅') ? 'var(--text-success)' : 'var(--text-normal)';
-          debugInfo.innerHTML = `${existing}<div style="margin: 4px 0; padding: 4px 8px; font-size: 11px; color: ${color}; border-left: 3px solid ${color}; background: var(--background-secondary); border-radius: 3px; word-wrap: break-word; white-space: pre-wrap;"><span style="opacity: 0.7;">[${timestamp}]</span> ${message}</div>`;
+
+          const line = debugInfo.createEl("div");
+          setCssProps(line, {
+            margin: "4px 0",
+            padding: "4px 8px",
+            fontSize: "11px",
+            color,
+            borderLeft: `3px solid ${color}`,
+            background: "var(--background-secondary)",
+            borderRadius: "3px",
+            wordWrap: "break-word",
+            whiteSpace: "pre-wrap",
+          } as Partial<CSSStyleDeclaration>);
+          line.textContent = `[${timestamp}] ${message}`;
+
           const container = document.getElementById("datepicker-debug-container");
           if (container) {
             container.scrollTop = container.scrollHeight;
@@ -562,60 +659,62 @@ export class NotelertDatePickerModal extends Modal {
         }
       };
 
-      try {
-        if (this.notificationType === 'location') {
-          // Para ubicación, verificar que se haya seleccionado una
-          if (!this.selectedLocation) {
-            this.hideLoadingState(confirmButton);
-            new Notice(getTranslation(this.language, "datePicker.selectSavedLocation") || "Por favor, selecciona una ubicación");
-            return;
-          }
-          // Crear notificación con la ubicación seleccionada
-          const success = await this.createNotificationFromLocation(this.selectedLocation);
-          this.hideLoadingState(confirmButton);
-          if (success) {
-            this.close();
-          }
-        } else {
-          // Para tiempo, usar fecha y hora
-          const date = dateInput.value;
-          const time = timeInput.value;
-
-          if (date && time) {
-            // Reemplazar :@ o :# con :@fecha, hora
-            const replacement = `:@${date}, ${time}`;
-            const line = this.editor.getLine(this.cursor.line);
-            const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
-            const afterCursor = line.substring(this.cursor.ch);
-            const newLine = beforeCursor + replacement + afterCursor;
-
-            this.editor.setLine(this.cursor.line, newLine);
-
-            // Mover cursor al final del reemplazo
-            const newCursor = {
-              line: this.cursor.line,
-              ch: beforeCursor.length + replacement.length
-            };
-            this.editor.setCursor(newCursor);
-
-            // Crear la notificación directamente
-            const success = await this.createNotificationFromDatePicker(date, time, newLine);
-
+      void (async () => {
+        try {
+          if (this.notificationType === 'location') {
+            // Para ubicación, verificar que se haya seleccionado una
+            if (!this.selectedLocation) {
+              this.hideLoadingState(confirmButton);
+              new Notice(getTranslation(this.language, "datePicker.selectSavedLocation") || "Por favor, selecciona una ubicación");
+              return;
+            }
+            // Crear notificación con la ubicación seleccionada
+            const success = await this.createNotificationFromLocation(this.selectedLocation);
             this.hideLoadingState(confirmButton);
             if (success) {
               this.close();
             }
           } else {
-            this.hideLoadingState(confirmButton);
-            new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
+            // Para tiempo, usar fecha y hora
+            const date = dateInput.value;
+            const time = timeInput.value;
+
+            if (date && time) {
+              // Reemplazar :@ o :# con :@fecha, hora
+              const replacement = `:@${date}, ${time}`;
+              const line = this.editor.getLine(this.cursor.line);
+              const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
+              const afterCursor = line.substring(this.cursor.ch);
+              const newLine = beforeCursor + replacement + afterCursor;
+
+              this.editor.setLine(this.cursor.line, newLine);
+
+              // Mover cursor al final del reemplazo
+              const newCursor = {
+                line: this.cursor.line,
+                ch: beforeCursor.length + replacement.length
+              };
+              this.editor.setCursor(newCursor);
+
+              // Crear la notificación directamente
+              const success = await this.createNotificationFromDatePicker(date, time, newLine);
+
+              this.hideLoadingState(confirmButton);
+              if (success) {
+                this.close();
+              }
+            } else {
+              this.hideLoadingState(confirmButton);
+              new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
+            }
           }
+        } catch (error) {
+          // Restaurar estado del botón en caso de error
+          this.hideLoadingState(confirmButton);
+          this.plugin.log(`Error en confirmación: ${error}`);
+          new Notice(`❌ Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
         }
-      } catch (error) {
-        // Restaurar estado del botón en caso de error
-        this.hideLoadingState(confirmButton);
-        this.plugin.log(`Error en confirmación: ${error}`);
-        new Notice(`❌ Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
-      }
+      })();
     });
 
     // Establecer valores por defecto
@@ -879,22 +978,28 @@ export class NotelertDatePickerModal extends Modal {
       const selectLocation = () => {
         // Deseleccionar todas las demás
         savedLocations.forEach((_, idx) => {
-          const item = document.getElementById(`location-item-${idx}`);
-          const icon = document.getElementById(`check-icon-${idx}`);
-          if (item && icon) {
-            const nameEl = item.querySelector('div:first-child') as HTMLElement;
-            item.style.background = "var(--background-primary)";
-            item.style.borderColor = "var(--background-modifier-border)";
-            if (nameEl) nameEl.style.color = "var(--text-normal)";
-            icon.style.opacity = "0";
+        const item = document.getElementById(`location-item-${idx}`);
+        const icon = document.getElementById(`check-icon-${idx}`);
+        if (item && icon) {
+          const firstDiv = item.querySelector('div:first-child');
+          setCssProps(item, {
+            background: "var(--background-primary)",
+            borderColor: "var(--background-modifier-border)",
+          });
+          if (firstDiv instanceof HTMLElement) {
+            setCssProps(firstDiv, { color: "var(--text-normal)" });
           }
+          setCssProps(icon, { opacity: "0" });
+        }
         });
 
         // Seleccionar esta
-        locationItem.style.background = "var(--interactive-accent)";
-        locationItem.style.borderColor = "var(--interactive-accent)";
-        nameDiv.style.color = "var(--text-on-accent)";
-        checkIcon.style.opacity = "1";
+        setCssProps(locationItem, {
+          background: "var(--interactive-accent)",
+          borderColor: "var(--interactive-accent)",
+        });
+        setCssProps(nameDiv, { color: "var(--text-on-accent)" });
+        setCssProps(checkIcon, { opacity: "1" });
 
         this.selectedLocation = location;
       };
@@ -903,15 +1008,19 @@ export class NotelertDatePickerModal extends Modal {
 
       locationItem.addEventListener("mouseenter", () => {
         if (this.selectedLocation !== location) {
-          locationItem.style.background = "var(--background-modifier-hover)";
-          locationItem.style.borderColor = "var(--interactive-accent)";
+          setCssProps(locationItem, {
+            background: "var(--background-modifier-hover)",
+            borderColor: "var(--interactive-accent)",
+          });
         }
       });
 
       locationItem.addEventListener("mouseleave", () => {
         if (this.selectedLocation !== location) {
-          locationItem.style.background = "var(--background-primary)";
-          locationItem.style.borderColor = "var(--background-modifier-border)";
+          setCssProps(locationItem, {
+            background: "var(--background-primary)",
+            borderColor: "var(--background-modifier-border)",
+          });
         }
       });
     });
@@ -919,8 +1028,9 @@ export class NotelertDatePickerModal extends Modal {
 
   // Seleccionar ubicación de las guardadas
   private async selectLocationFromSaved(): Promise<SavedLocation | null> {
-    return new Promise(async (resolve) => {
-      try {
+    return new Promise((resolve) => {
+      void (async () => {
+        try {
         // Crear modal primero para tener el área de debug disponible
         const modal = new Modal(this.app);
         modal.titleEl.setText(getTranslation(this.language, "datePicker.selectSavedLocation"));
@@ -928,64 +1038,91 @@ export class NotelertDatePickerModal extends Modal {
         // Estilos responsive para el modal de selección - usar todo el ancho
         const { contentEl } = modal;
         contentEl.empty();
-        contentEl.setAttribute("style", `
-          min-width: 300px; 
-          max-width: 600px; 
-          width: 95vw;
-          max-height: 85vh; 
-          overflow: hidden;
-          padding: 20px;
-          box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
-          margin: 0 auto;
-        `);
+        setCssProps(contentEl, {
+          minWidth: "300px",
+          maxWidth: "600px",
+          width: "95vw",
+          maxHeight: "85vh",
+          overflow: "hidden",
+          padding: "20px",
+          boxSizing: "border-box",
+          display: "flex",
+          flexDirection: "column",
+          margin: "0 auto",
+        });
 
         // Asegurar que el modal tenga el z-index más alto
         const modalEl = (modal as Modal & { modalEl: HTMLElement }).modalEl;
         if (modalEl) {
-          modalEl.style.zIndex = '10000';
-          modalEl.style.position = 'fixed';
+          setCssProps(modalEl, {
+            zIndex: '10000',
+            position: 'fixed',
+          });
         }
 
         // Área de debug/logs visible - CREAR PRIMERO
-        const debugContainer = contentEl.createEl("div", {
-          attr: {
-            style: `
-              margin-bottom: 15px;
-              padding: 12px;
-              background: var(--background-secondary);
-              border: 2px solid var(--background-modifier-border);
-              border-radius: 8px;
-              font-size: 11px;
-              height: 150px;
-              min-height: 150px;
-              max-height: 200px;
-              overflow-y: auto;
-              overflow-x: hidden;
-              font-family: 'Courier New', monospace;
-              box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-              flex-shrink: 0;
-            `
-          }
-        });
+        const debugContainer = contentEl.createEl("div");
+        setCssProps(debugContainer, {
+          marginBottom: "15px",
+          padding: "12px",
+          background: "var(--background-secondary)",
+          border: "2px solid var(--background-modifier-border)",
+          borderRadius: "8px",
+          fontSize: "11px",
+          height: "150px",
+          minHeight: "150px",
+          maxHeight: "200px",
+          overflowY: "auto",
+          overflowX: "hidden",
+          fontFamily: "'Courier New', monospace",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+          flexShrink: "0",
+        } as Partial<CSSStyleDeclaration>);
         debugContainer.id = "location-select-debug-container";
-        debugContainer.innerHTML = `
-          <div style="font-weight: 700; margin-bottom: 8px; color: var(--text-accent); font-size: 12px; border-bottom: 1px solid var(--background-modifier-border); padding-bottom: 6px;">
-            🔍 Debug - Ubicaciones Guardadas
-          </div>
-          <div id="location-select-debug-info" style="color: var(--text-normal); line-height: 1.6; word-wrap: break-word; min-height: 100px;"></div>
-        `;
+
+        const header = debugContainer.createEl("div", {
+          text: "🔍 Debug - Ubicaciones guardadas",
+        });
+        setCssProps(header, {
+          fontWeight: "700",
+          marginBottom: "8px",
+          color: "var(--text-accent)",
+          fontSize: "12px",
+          borderBottom: "1px solid var(--background-modifier-border)",
+          paddingBottom: "6px",
+        } as Partial<CSSStyleDeclaration>);
+
+        const debugInfoEl = debugContainer.createEl("div");
+        debugInfoEl.id = "location-select-debug-info";
+        setCssProps(debugInfoEl, {
+          color: "var(--text-normal)",
+          lineHeight: "1.6",
+          wordWrap: "break-word",
+          minHeight: "100px",
+        } as Partial<CSSStyleDeclaration>);
 
         // Función para añadir logs
         const addLog = (message: string) => {
           const debugInfo = document.getElementById("location-select-debug-info");
           if (debugInfo) {
             const timestamp = new Date().toLocaleTimeString();
-            const existing = debugInfo.innerHTML || '';
             const color = message.includes('❌') || message.includes('Error') ? 'var(--text-error)' :
               message.includes('✅') ? 'var(--text-success)' : 'var(--text-normal)';
-            debugInfo.innerHTML = `${existing}<div style="margin: 4px 0; padding: 4px 8px; font-size: 11px; color: ${color}; border-left: 3px solid ${color}; background: var(--background-secondary); border-radius: 3px; word-wrap: break-word; white-space: pre-wrap;"><span style="opacity: 0.7;">[${timestamp}]</span> ${message}</div>`;
+
+            const line = debugInfo.createEl("div");
+            setCssProps(line, {
+              margin: "4px 0",
+              padding: "4px 8px",
+              fontSize: "11px",
+              color,
+              borderLeft: `3px solid ${color}`,
+              background: "var(--background-secondary)",
+              borderRadius: "3px",
+              wordWrap: "break-word",
+              whiteSpace: "pre-wrap",
+            } as Partial<CSSStyleDeclaration>);
+            line.textContent = `[${timestamp}] ${message}`;
+
             // Auto-scroll al final
             const container = document.getElementById("location-select-debug-container");
             if (container) {
@@ -1100,10 +1237,10 @@ export class NotelertDatePickerModal extends Modal {
           locationItem.id = `location-item-${index}`;
 
           locationItem.addEventListener("mouseenter", () => {
-            locationItem.style.background = "var(--background-modifier-hover)";
+            setCssProps(locationItem, { background: "var(--background-modifier-hover)" });
           });
           locationItem.addEventListener("mouseleave", () => {
-            locationItem.style.background = "var(--background-primary)";
+            setCssProps(locationItem, { background: "var(--background-primary)" });
           });
 
           const name = location.name || `Ubicación ${index + 1}`;
@@ -1156,6 +1293,7 @@ export class NotelertDatePickerModal extends Modal {
         new Notice("Error cargando ubicaciones guardadas");
         resolve(null);
       }
+    })();
     });
   }
 
@@ -1227,32 +1365,13 @@ export class NotelertDatePickerModal extends Modal {
 
     // Deshabilitar botón
     button.disabled = true;
-    button.style.opacity = '0.6';
-    button.style.cursor = 'not-allowed';
+    setCssProps(button, {
+      opacity: '0.6',
+      cursor: 'not-allowed',
+    });
 
-    // Agregar spinner
-    button.innerHTML = `
-      <span style="display: inline-block; margin-right: 8px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
-          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"/>
-        </svg>
-      </span>
-      ${getTranslation(this.language, "datePicker.confirmButton") || "Confirmando..."}
-    `;
-
-    // Agregar animación CSS si no existe
-    if (!document.getElementById('notelert-spinner-style')) {
-      const style = document.createElement('style');
-      style.id = 'notelert-spinner-style';
-      style.textContent = `
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
+    // Texto de carga sencillo
+    button.textContent = getTranslation(this.language, "datePicker.confirmButton") || "Confirmando...";
   }
 
   // Ocultar estado de carga y restaurar botón
@@ -1266,8 +1385,10 @@ export class NotelertDatePickerModal extends Modal {
 
     // Restaurar estado del botón
     button.disabled = false;
-    button.style.opacity = '1';
-    button.style.cursor = 'pointer';
+    setCssProps(button, {
+      opacity: '1',
+      cursor: 'pointer',
+    });
   }
 
   // Añadir feedback visual: reemplazar :@ con icono de despertador y resaltar solo fecha/hora

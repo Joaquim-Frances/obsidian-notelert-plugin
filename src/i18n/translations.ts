@@ -30,7 +30,7 @@ export const TRANSLATIONS = {
       useNewSyntaxDesc: 'Usar el nuevo formato :@fecha, hora en lugar del sistema anterior',
       enableDatePicker: 'Activar date picker',
       enableDatePickerDesc: 'Abrir automáticamente el selector de fecha al escribir :@',
-      supportedPatterns: 'Patrones Soportados',
+      supportedPatterns: 'Patrones soportados',
       keywords: 'Palabras clave',
       dates: 'Fechas:',
       times: 'Horas:',
@@ -41,22 +41,22 @@ export const TRANSLATIONS = {
         mobileTitle: '📱 Modo Móvil',
         mobileDesc: 'En móvil, Notelert usa la app para enviar notificaciones push y emails. Puedes configurar ubicaciones favoritas para recordatorios basados en ubicación.'
       },
-      basicSettings: 'Configuración Básica',
+      basicSettings: 'Configuración básica',
       pluginToken: {
-        title: '🔑 Token del Plugin',
+        title: '🔑 Token del plugin',
         descDesktop: 'Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token.',
         descMobile: 'Token de autenticación para usar geocodificación premium. Obtén tu token desde la app móvil en Settings > Plugin Token.',
         placeholder: 'Pega tu token aquí...',
         showHide: 'Mostrar/Ocultar'
       },
       desktopSettings: {
-        title: '💻 Configuración Desktop',
-        userEmailTitle: 'Email del Usuario (Opcional)',
+        title: '💻 Configuración de escritorio',
+        userEmailTitle: 'Email del usuario (opcional)',
         userEmailDesc: 'Email donde recibirás las notificaciones. Ya no es necesario si usas token del plugin.',
         userEmailPlaceholder: 'usuario@email.com'
       },
       scheduledEmails: {
-        title: '📧 Emails Programados',
+        title: '📧 Emails programados',
         desc: 'Gestiona tus emails programados. Puedes cancelarlos antes de que se envíen.',
         empty: 'No hay emails programados. Los emails que programes aparecerán aquí.',
         cancelButton: '🗑️ Cancelar',
@@ -66,15 +66,15 @@ export const TRANSLATIONS = {
         past: '(Pasado)'
       },
       mobileSettings: {
-        title: '📱 Configuración Móvil'
+        title: '📱 Configuración móvil'
       },
       savedLocations: {
-        title: '📍 Ubicaciones Guardadas',
+        title: '📍 Ubicaciones guardadas',
         desc: 'Gestiona tus ubicaciones favoritas. Estas aparecerán cuando selecciones \'Ubicación\' al crear una notificación.',
-        addTitle: 'Añadir Nueva Ubicación',
+        addTitle: 'Añadir nueva ubicación',
         addDesc: 'Abre el selector de ubicaciones con mapa para añadir una nueva ubicación',
-        addButton: '➕ Añadir Ubicación',
-        empty: 'No hay ubicaciones guardadas. Haz clic en \'Añadir Ubicación\' para empezar.',
+        addButton: '➕ Añadir ubicación',
+        empty: 'No hay ubicaciones guardadas. Haz clic en \'Añadir ubicación\' para empezar.',
         editButton: '✏️ Editar',
         deleteButton: '🗑️'
       }
@@ -187,7 +187,7 @@ export const TRANSLATIONS = {
       useNewSyntaxDesc: 'Use the new :@date, time format instead of the previous system',
       enableDatePicker: 'Enable date picker',
       enableDatePickerDesc: 'Automatically open date selector when typing :@',
-      supportedPatterns: 'Supported Patterns',
+      supportedPatterns: 'Supported patterns',
       keywords: 'Keywords',
       dates: 'Dates:',
       times: 'Times:',
@@ -198,22 +198,22 @@ export const TRANSLATIONS = {
         mobileTitle: '📱 Mobile Mode',
         mobileDesc: 'On mobile, Notelert uses the app to send push notifications and emails. You can configure favorite locations for location-based reminders.'
       },
-      basicSettings: 'Basic Settings',
+      basicSettings: 'Basic settings',
       pluginToken: {
-        title: '🔑 Plugin Token',
+        title: '🔑 Plugin token',
         descDesktop: 'Authentication token for premium geocoding and emails. Get your token from the mobile app in Settings > Plugin Token.',
         descMobile: 'Authentication token for premium geocoding. Get your token from the mobile app in Settings > Plugin Token.',
         placeholder: 'Paste your token here...',
         showHide: 'Show/Hide'
       },
       desktopSettings: {
-        title: '💻 Desktop Settings',
-        userEmailTitle: 'User Email (Optional)',
+        title: '💻 Desktop settings',
+        userEmailTitle: 'User email (optional)',
         userEmailDesc: 'Email where you will receive notifications. No longer needed if using plugin token.',
         userEmailPlaceholder: 'user@email.com'
       },
       scheduledEmails: {
-        title: '📧 Scheduled Emails',
+        title: '📧 Scheduled emails',
         desc: 'Manage your scheduled emails. You can cancel them before they are sent.',
         empty: 'No scheduled emails. Emails you schedule will appear here.',
         cancelButton: '🗑️ Cancel',
@@ -223,15 +223,15 @@ export const TRANSLATIONS = {
         past: '(Past)'
       },
       mobileSettings: {
-        title: '📱 Mobile Settings'
+        title: '📱 Mobile settings'
       },
       savedLocations: {
-        title: '📍 Saved Locations',
+        title: '📍 Saved locations',
         desc: 'Manage your favorite locations. These will appear when you select \'Location\' when creating a notification.',
-        addTitle: 'Add New Location',
+        addTitle: 'Add new location',
         addDesc: 'Open location picker with map to add a new location',
-        addButton: '➕ Add Location',
-        empty: 'No saved locations. Click \'Add Location\' to start.',
+        addButton: '➕ Add location',
+        empty: 'No saved locations. Click \'Add location\' to start.',
         editButton: '✏️ Edit',
         deleteButton: '🗑️'
       }

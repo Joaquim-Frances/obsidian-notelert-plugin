@@ -68,10 +68,12 @@ export class NotelertSettingTab extends PluginSettingTab {
           dropdown.addOption(lang.code, `${lang.nativeName} (${lang.name})`);
         });
         dropdown.setValue(this.plugin.settings.language);
-        dropdown.onChange(async (value) => {
-          this.plugin.settings.language = value;
-          await this.plugin.saveSettings();
-          this.display(); // Recargar para actualizar traducciones
+        dropdown.onChange((value) => {
+          void (async () => {
+            this.plugin.settings.language = value;
+            await this.plugin.saveSettings();
+            this.display(); // Recargar para actualizar traducciones
+          })();
         });
       });
 
@@ -82,9 +84,11 @@ export class NotelertSettingTab extends PluginSettingTab {
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.debugMode)
-          .onChange(async (value) => {
-            this.plugin.settings.debugMode = value;
-            await this.plugin.saveSettings();
+          .onChange((value) => {
+            void (async () => {
+              this.plugin.settings.debugMode = value;
+              await this.plugin.saveSettings();
+            })();
           })
       );
 
@@ -104,9 +108,11 @@ export class NotelertSettingTab extends PluginSettingTab {
           .setPlaceholder(getTranslation(this.plugin.settings.language, "settings.pluginToken.placeholder"))
           .setValue(this.plugin.settings.pluginToken || "")
           .inputEl.type = "password";
-        text.onChange(async (value) => {
-          this.plugin.settings.pluginToken = value.trim();
-          await this.plugin.saveSettings();
+        text.onChange((value) => {
+          void (async () => {
+            this.plugin.settings.pluginToken = value.trim();
+            await this.plugin.saveSettings();
+          })();
         });
       })
       .addButton((button) => {
@@ -114,7 +120,7 @@ export class NotelertSettingTab extends PluginSettingTab {
           .setButtonText(getTranslation(this.plugin.settings.language, "settings.pluginToken.showHide"))
           .setCta(false)
           .onClick(() => {
-            const input = containerEl.querySelector('input[type="password"]') as HTMLInputElement;
+            const input = containerEl.querySelector<HTMLInputElement>('input[type="password"]');
             if (input) {
               input.type = input.type === "password" ? "text" : "password";
             }
@@ -133,9 +139,11 @@ export class NotelertSettingTab extends PluginSettingTab {
           text
             .setPlaceholder(getTranslation(this.plugin.settings.language, "settings.desktopSettings.userEmailPlaceholder"))
             .setValue(this.plugin.settings.userEmail || "")
-            .onChange(async (value) => {
-              this.plugin.settings.userEmail = value;
-              await this.plugin.saveSettings();
+            .onChange((value) => {
+              void (async () => {
+                this.plugin.settings.userEmail = value;
+                await this.plugin.saveSettings();
+              })();
             });
         });
 
@@ -276,10 +284,12 @@ export class NotelertSettingTab extends PluginSettingTab {
         text: "🗑️",
         attr: { style: "padding: 6px 10px; font-size: 14px; color: var(--text-error);" }
       });
-      deleteButton.addEventListener("click", async () => {
-        await this.deleteLocation(index);
-        // Recargar toda la configuración para actualizar la lista
-        this.display();
+      deleteButton.addEventListener("click", () => {
+        void (async () => {
+          await this.deleteLocation(index);
+          // Recargar toda la configuración para actualizar la lista
+          this.display();
+        })();
       });
     });
   }
@@ -365,10 +375,12 @@ export class NotelertSettingTab extends PluginSettingTab {
           id: `cancel-email-btn-${email.notificationId}`
         }
       });
-      cancelButton.addEventListener("click", async () => {
-        // Encontrar el índice real en la lista original
-        const realIndex = emails.findIndex(e => e.notificationId === email.notificationId);
-        await this.cancelScheduledEmail(email, realIndex, cancelButton);
+      cancelButton.addEventListener("click", () => {
+        void (async () => {
+          // Encontrar el índice real en la lista original
+          const realIndex = emails.findIndex(e => e.notificationId === email.notificationId);
+          await this.cancelScheduledEmail(email, realIndex, cancelButton);
+        })();
       });
     });
   }
@@ -436,32 +448,13 @@ export class NotelertSettingTab extends PluginSettingTab {
 
     // Deshabilitar botón
     button.disabled = true;
-    button.style.opacity = '0.6';
-    button.style.cursor = 'not-allowed';
+    setCssProps(button, {
+      opacity: '0.6',
+      cursor: 'not-allowed',
+    });
 
-    // Agregar spinner
-    button.innerHTML = `
-      <span style="display: inline-block; margin-right: 6px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
-          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"/>
-        </svg>
-      </span>
-      ${getTranslation(this.plugin.settings.language, "settings.scheduledEmails.canceling")}
-    `;
-
-    // Agregar animación CSS si no existe
-    if (!document.getElementById('notelert-spinner-style')) {
-      const style = document.createElement('style');
-      style.id = 'notelert-spinner-style';
-      style.textContent = `
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
+    // Texto de carga sencillo
+    button.textContent = getTranslation(this.plugin.settings.language, "settings.scheduledEmails.canceling");
   }
 
   // Ocultar estado de carga y restaurar botón
@@ -474,8 +467,10 @@ export class NotelertSettingTab extends PluginSettingTab {
 
     // Restaurar estado del botón
     button.disabled = false;
-    button.style.opacity = '1';
-    button.style.cursor = 'pointer';
+    setCssProps(button, {
+      opacity: '1',
+      cursor: 'pointer',
+    });
   }
 
   // Abrir selector de ubicaciones

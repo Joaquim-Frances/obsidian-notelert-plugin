@@ -9,7 +9,7 @@ export class NotelertPlugin extends Plugin {
   settings: NotelertSettings;
 
   async onload() {
-    console.log("Cargando plugin Notelert...");
+    console.debug("Cargando plugin Notelert...");
     await this.loadSettings();
 
     // Configuración del plugin
@@ -27,11 +27,11 @@ export class NotelertPlugin extends Plugin {
       );
     }
 
-    console.log("Plugin Notelert cargado correctamente");
+    console.debug("Plugin Notelert cargado correctamente");
   }
 
   onunload() {
-    console.log("Descargando plugin Notelert...");
+    console.debug("Descargando plugin Notelert...");
   }
 
   async loadSettings() {
@@ -82,7 +82,7 @@ export class NotelertPlugin extends Plugin {
   // Función de logging
   public log(message: string) {
     if (this.settings.debugMode) {
-      console.log(`[Notelert] ${message}`);
+      console.debug(`[Notelert] ${message}`);
     }
   }
 }

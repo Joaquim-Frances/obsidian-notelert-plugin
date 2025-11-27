@@ -1,4 +1,4 @@
-import { Notice } from "obsidian";
+import { Notice, requestUrl } from "obsidian";
 import { ScheduledEmail } from "../../core/types";
 import { getTranslation } from "../../i18n";
 import { FIREBASE_FUNCTION_BASE_URL, PLUGIN_SCHEDULE_EMAIL_URL } from "../../core/config";
@@ -49,11 +49,12 @@ export async function scheduleEmailReminder(
 
     // Logs solo en modo debug (reducir overhead)
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Notelert] Enviando request a:', SCHEDULE_EMAIL_URL);
+      console.debug('[Notelert] Enviando request a:', SCHEDULE_EMAIL_URL);
     }
 
-    // Usar keepalive para mejorar rendimiento en conexiones lentas
-    const response = await fetch(SCHEDULE_EMAIL_URL, {
+    // Usar requestUrl de Obsidian para las peticiones de red
+    const response = await requestUrl({
+      url: SCHEDULE_EMAIL_URL,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -61,16 +62,15 @@ export async function scheduleEmailReminder(
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,
-      keepalive: true, // Mantener conexión viva para mejor rendimiento
     });
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
+    if (response.status >= 400) {
       let errorData;
       try {
         // Intentar parsear JSON con timeout implícito
-        const text = await response.text();
+        const text = await response.text;
         errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
       } catch (e) {
         errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
@@ -107,7 +107,7 @@ export async function scheduleEmailReminder(
     // Parsear respuesta de forma optimizada
     let result;
     try {
-      const text = await response.text();
+      const text = await response.text;
       result = text ? JSON.parse(text) : {};
     } catch (e) {
       // Si no hay respuesta JSON, asumir éxito con el ID proporcionado
@@ -155,7 +155,8 @@ export async function cancelScheduledEmail(
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
   try {
-    const response = await fetch(CANCEL_EMAIL_URL, {
+    const response = await requestUrl({
+      url: CANCEL_EMAIL_URL,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -166,15 +167,14 @@ export async function cancelScheduledEmail(
         userId: userId || null,
       }),
       signal: controller.signal,
-      keepalive: true, // Mantener conexión viva para mejor rendimiento
     });
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
+    if (response.status >= 400) {
       let errorData;
       try {
-        const text = await response.text();
+        const text = await response.text;
         errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
       } catch (e) {
         errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
@@ -265,7 +265,8 @@ export async function scheduleEmailReminderProxy(
       };
     }
 
-    const response = await fetch(PLUGIN_SCHEDULE_EMAIL_URL, {
+    const response = await requestUrl({
+      url: PLUGIN_SCHEDULE_EMAIL_URL,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -273,15 +274,14 @@ export async function scheduleEmailReminderProxy(
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,
-      keepalive: true,
     });
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
+    if (response.status >= 400) {
       let errorData;
       try {
-        const text = await response.text();
+        const text = await response.text;
         errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
       } catch (e) {
         errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
@@ -376,6 +376,7 @@ export async function scheduleEmailReminderProxy(
  * Generar un ID único para notificaciones
  */
 export function generateNotificationId(): string {
-  return `obsidian-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const randomPart = Math.random().toString(36).slice(2, 11);
+  return `obsidian-${Date.now()}-${randomPart}`;
 }
 

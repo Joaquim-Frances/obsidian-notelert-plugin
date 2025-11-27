@@ -3,6 +3,7 @@ import { DetectedPattern, SavedLocation } from "../core/types";
 import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { searchLocations, GeocodingResult } from "../features/location/geocode";
+import { setCssProps } from "../core/dom";
 
 export class NotelertLocationPickerModal extends Modal {
   private plugin: INotelertPlugin;
@@ -56,18 +57,18 @@ export class NotelertLocationPickerModal extends Modal {
     contentEl.empty();
 
     // Estilos responsive mejorados - modal centrado y sin scroll visible
-    contentEl.setAttribute("style", `
-      min-width: 320px; 
-      max-width: 700px; 
-      width: 90vw;
-      max-height: 90vh; 
-      overflow: hidden;
-      padding: 20px;
-      box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
-      margin: 0 auto;
-    `);
+    setCssProps(contentEl, {
+      minWidth: "320px",
+      maxWidth: "700px",
+      width: "90vw",
+      maxHeight: "90vh",
+      overflow: "hidden",
+      padding: "20px",
+      boxSizing: "border-box",
+      display: "flex",
+      flexDirection: "column",
+      margin: "0 auto",
+    });
 
     // Contenedor con scroll interno para el contenido
     const scrollContainer = contentEl.createEl("div", {
@@ -85,7 +86,7 @@ export class NotelertLocationPickerModal extends Modal {
 
     // Título
     scrollContainer.createEl("h2", {
-      text: getTranslation(this.language, "locationPicker.title") || "Seleccionar Ubicación",
+      text: getTranslation(this.language, "locationPicker.title") || "Seleccionar ubicación",
       attr: { style: "margin: 0 0 15px 0; font-size: 20px; font-weight: 600;" }
     });
 
@@ -97,154 +98,156 @@ export class NotelertLocationPickerModal extends Modal {
 
     // Input para buscar dirección con contenedor relativo para el desplegable
     const searchContainer = scrollContainer.createEl("div", { cls: "notelert-location-search" });
-    searchContainer.setAttribute("style", `
-      margin-bottom: 15px; 
-      position: relative;
-      z-index: 1000;
-    `);
+    setCssProps(searchContainer, {
+      marginBottom: "15px",
+      position: "relative",
+      zIndex: "1000",
+    } as Partial<CSSStyleDeclaration>);
 
     const searchInput = searchContainer.createEl("input", {
       type: "text",
       placeholder: getTranslation(this.language, "locationPicker.searchPlaceholder") || "Buscar dirección...",
       cls: "notelert-location-input"
     });
-    searchInput.setAttribute("style", `
-      width: 100%; 
-      padding: 12px; 
-      border: 1px solid var(--background-modifier-border); 
-      border-radius: 6px;
-      font-size: 14px;
-      box-sizing: border-box;
-      background: var(--background-primary);
-      color: var(--text-normal);
-    `);
+    setCssProps(searchInput, {
+      width: "100%",
+      padding: "12px",
+      border: "1px solid var(--background-modifier-border)",
+      borderRadius: "6px",
+      fontSize: "14px",
+      boxSizing: "border-box",
+      background: "var(--background-primary)",
+      color: "var(--text-normal)",
+    });
 
     // Contenedor para resultados de búsqueda - posicionado absolutamente DENTRO del searchContainer
     const resultsContainer = searchContainer.createEl("div", { cls: "notelert-location-results" });
-    resultsContainer.setAttribute("style", `
-      position: absolute;
-      top: calc(100% + 4px);
-      left: 0;
-      right: 0;
-      max-height: 200px; 
-      overflow-y: auto; 
-      border: 1px solid var(--background-modifier-border); 
-      border-radius: 6px; 
-      display: none;
-      background: var(--background-primary);
-      z-index: 1001;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    `);
+    setCssProps(resultsContainer, {
+      position: "absolute",
+      top: "calc(100% + 4px)",
+      left: "0",
+      right: "0",
+      maxHeight: "200px",
+      overflowY: "auto",
+      border: "1px solid var(--background-modifier-border)",
+      borderRadius: "6px",
+      display: "none",
+      background: "var(--background-primary)",
+      zIndex: "1001",
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+    } as Partial<CSSStyleDeclaration>);
     resultsContainer.id = "location-results-container";
 
     // Contenedor para el mapa interactivo - más compacto
     const mapContainer = scrollContainer.createEl("div", { cls: "notelert-map-container" });
-    mapContainer.setAttribute("style", `
-      width: 100%;
-      height: 250px;
-      min-height: 200px;
-      margin: 15px 0;
-      border: 1px solid var(--background-modifier-border);
-      border-radius: 6px;
-      overflow: hidden;
-      background: var(--background-secondary);
-      position: relative;
-    `);
+    setCssProps(mapContainer, {
+      width: "100%",
+      height: "250px",
+      minHeight: "200px",
+      margin: "15px 0",
+      border: "1px solid var(--background-modifier-border)",
+      borderRadius: "6px",
+      overflow: "hidden",
+      background: "var(--background-secondary)",
+      position: "relative",
+    });
     mapContainer.id = "notelert-map-container";
 
     // Mensaje de carga/error del mapa
-    const mapLoading = mapContainer.createEl("div", {
-      attr: {
-        style: `
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          color: var(--text-muted);
-          font-size: 14px;
-          z-index: 1000;
-          text-align: center;
-          padding: 15px;
-          background: var(--background-primary);
-          border: 2px solid var(--text-error);
-          border-radius: 6px;
-          max-width: 90%;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        `
-      }
-    });
+    const mapLoading = mapContainer.createEl("div");
+    setCssProps(mapLoading, {
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      color: "var(--text-muted)",
+      fontSize: "14px",
+      zIndex: "1000",
+      textAlign: "center",
+      padding: "15px",
+      background: "var(--background-primary)",
+      border: "2px solid var(--text-error)",
+      borderRadius: "6px",
+      maxWidth: "90%",
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+    } as Partial<CSSStyleDeclaration>);
     mapLoading.id = "map-loading";
-    mapLoading.innerHTML = `
-      <div style="font-weight: 500; margin-bottom: 8px;">${getTranslation(this.language, "locationPicker.loadingMap")}</div>
-    `;
+    const loadingText = mapLoading.createEl("div", {
+      text: getTranslation(this.language, "locationPicker.loadingMap"),
+    });
+    setCssProps(loadingText, {
+      fontWeight: "500",
+      marginBottom: "8px",
+    });
 
     // Contenedor para ubicación seleccionada
     const selectedContainer = scrollContainer.createEl("div", { cls: "notelert-location-selected" });
-    selectedContainer.setAttribute("style", `
-      margin: 15px 0; 
-      padding: 15px; 
-      background: var(--background-secondary); 
-      border-radius: 6px; 
-      display: none; 
-      word-wrap: break-word;
-      border: 2px solid var(--interactive-accent);
-    `);
+    setCssProps(selectedContainer, {
+      margin: "15px 0",
+      padding: "15px",
+      background: "var(--background-secondary)",
+      borderRadius: "6px",
+      display: "none",
+      wordWrap: "break-word",
+      border: "2px solid var(--interactive-accent)",
+    } as Partial<CSSStyleDeclaration>);
     selectedContainer.id = "location-selected-container";
 
     // Sección de favoritas (colapsable en móvil)
     const favoritesSection = scrollContainer.createEl("div", { cls: "notelert-location-favorites" });
-    favoritesSection.setAttribute("style", "margin: 15px 0;");
+    setCssProps(favoritesSection, { margin: "15px 0" });
 
-    const favoritesHeader = favoritesSection.createEl("div", {
-      attr: {
-        style: `
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 10px;
-          cursor: pointer;
-        `
-      }
+    const favoritesHeader = favoritesSection.createEl("div");
+    setCssProps(favoritesHeader, {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: "10px",
+      cursor: "pointer",
+    } as Partial<CSSStyleDeclaration>);
+
+    const favoritesTitle = favoritesHeader.createEl("h3", {
+      text: getTranslation(this.language, "locationPicker.favorites") || "Ubicaciones favoritas",
     });
-
-    favoritesHeader.createEl("h3", {
-      text: getTranslation(this.language, "locationPicker.favorites") || "Ubicaciones Favoritas",
-      attr: { style: "font-size: 16px; font-weight: 500; margin: 0;" }
+    setCssProps(favoritesTitle, {
+      fontSize: "16px",
+      fontWeight: "500",
+      margin: "0",
     });
 
     const favoritesList = favoritesSection.createEl("div", { cls: "notelert-location-favorites-list" });
-    favoritesList.setAttribute("style", `
-      max-height: 150px; 
-      overflow-y: auto;
-      margin-top: 10px;
-    `);
+    setCssProps(favoritesList, {
+      maxHeight: "150px",
+      overflowY: "auto",
+      marginTop: "10px",
+    } as Partial<CSSStyleDeclaration>);
 
     this.renderFavorites(favoritesList);
 
     // Botones principales (fuera del scroll, siempre visibles)
     const buttonContainer = contentEl.createEl("div", { cls: "notelert-locationpicker-buttons" });
-    buttonContainer.setAttribute("style", `
-      display: flex; 
-      gap: 10px; 
-      justify-content: flex-end; 
-      margin-top: 10px; 
-      flex-wrap: wrap;
-      flex-shrink: 0;
-      padding-top: 10px;
-      border-top: 1px solid var(--background-modifier-border);
-    `);
+    setCssProps(buttonContainer, {
+      display: "flex",
+      gap: "10px",
+      justifyContent: "flex-end",
+      marginTop: "10px",
+      flexWrap: "wrap",
+      flexShrink: "0",
+      paddingTop: "10px",
+      borderTop: "1px solid var(--background-modifier-border)",
+    } as Partial<CSSStyleDeclaration>);
 
     const cancelButton = buttonContainer.createEl("button", {
       text: getTranslation(this.language, "locationPicker.cancelButton"),
       cls: "mod-secondary"
     });
-    cancelButton.setAttribute("style", `
-      flex: 1; 
-      min-width: 100px; 
-      padding: 10px 20px;
-      font-size: 14px;
-      border-radius: 6px;
-    `);
+    setCssProps(cancelButton, {
+      flex: "1",
+      minWidth: "100px",
+      padding: "10px 20px",
+      fontSize: "14px",
+      borderRadius: "6px",
+    });
     cancelButton.addEventListener("click", () => {
       if (this.onCancel) this.onCancel();
       this.close();
@@ -256,15 +259,15 @@ export class NotelertLocationPickerModal extends Modal {
     });
     confirmButton.id = "confirm-location-button";
     confirmButton.setAttribute("disabled", "true");
-    confirmButton.setAttribute("style", `
-      flex: 1; 
-      min-width: 100px; 
-      padding: 10px 20px;
-      font-size: 14px;
-      border-radius: 6px;
-      opacity: 0.5;
-      cursor: not-allowed;
-    `);
+    setCssProps(confirmButton, {
+      flex: "1",
+      minWidth: "100px",
+      padding: "10px 20px",
+      fontSize: "14px",
+      borderRadius: "6px",
+      opacity: "0.5",
+      cursor: "not-allowed",
+    });
     confirmButton.addEventListener("click", () => {
       if (this.selectedLocation) {
         if (this.onSelect) {
@@ -293,9 +296,9 @@ export class NotelertLocationPickerModal extends Modal {
       if (query.length < 3) {
         resultsContainer.style.display = "none";
         // Asegurar que el contenedor de búsqueda tiene posición relativa
-        const searchContainer = searchInput.parentElement;
+        const searchContainer = searchInput.parentElement as HTMLElement | null;
         if (searchContainer && searchContainer.style.position !== 'relative') {
-          searchContainer.style.position = 'relative';
+          setCssProps(searchContainer, { position: 'relative' });
         }
         return;
       }
@@ -424,15 +427,43 @@ export class NotelertLocationPickerModal extends Modal {
     const debugInfo = document.getElementById('map-debug-info');
 
     if (loading) {
-      loading.innerHTML = `
-        <div style="color: var(--text-error); font-weight: 500; margin-bottom: 8px;">${getTranslation(this.language, "locationPicker.mapError")}</div>
-        <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 8px;">${message}</div>
-        ${details ? `<div id="map-debug-info" style="font-size: 11px; color: var(--text-muted); text-align: left; max-height: 100px; overflow-y: auto; background: var(--background-secondary); padding: 8px; border-radius: 4px; margin-top: 8px;">${details}</div>` : ''}
-      `;
+      loading.empty();
+
+      const titleEl = loading.createEl("div", {
+        text: getTranslation(this.language, "locationPicker.mapError"),
+      });
+      setCssProps(titleEl, {
+        color: "var(--text-error)",
+        fontWeight: "500",
+        marginBottom: "8px",
+      });
+
+      const messageEl = loading.createEl("div", { text: message });
+      setCssProps(messageEl, {
+        color: "var(--text-muted)",
+        fontSize: "12px",
+        marginBottom: "8px",
+      });
+
+      if (details) {
+        const detailsEl = loading.createEl("div", { text: details });
+        detailsEl.id = "map-debug-info";
+        setCssProps(detailsEl, {
+          fontSize: "11px",
+          color: "var(--text-muted)",
+          textAlign: "left",
+          maxHeight: "100px",
+          overflowY: "auto",
+          background: "var(--background-secondary)",
+          padding: "8px",
+          borderRadius: "4px",
+          marginTop: "8px",
+        });
+      }
     }
 
     if (debugInfo && details) {
-      debugInfo.innerHTML = details;
+      debugInfo.textContent = details;
       debugInfo.style.display = 'block';
     }
   }
@@ -442,14 +473,26 @@ export class NotelertLocationPickerModal extends Modal {
     const debugInfo = document.getElementById('map-debug-info');
     if (debugInfo) {
       const timestamp = new Date().toLocaleTimeString();
-      const existing = debugInfo.innerHTML || '';
       const color = message.includes('❌') || message.includes('Error') || message.includes('Excepción') ? 'var(--text-error)' :
         message.includes('✅') ? 'var(--text-success)' :
           message.includes('⚠️') ? 'var(--text-warning)' :
             'var(--text-normal)';
       const bgColor = message.includes('❌') || message.includes('Error') || message.includes('Excepción') ? 'rgba(255, 0, 0, 0.1)' :
         message.includes('✅') ? 'rgba(0, 255, 0, 0.1)' : 'transparent';
-      debugInfo.innerHTML = `${existing}<div style="margin: 4px 0; padding: 6px 8px; font-size: 11px; color: ${color}; background: ${bgColor}; border-left: 3px solid ${color}; border-radius: 3px; word-wrap: break-word; white-space: pre-wrap;"><span style="opacity: 0.7;">[${timestamp}]</span> ${message}</div>`;
+
+      const line = debugInfo.createEl("div");
+      setCssProps(line, {
+        margin: "4px 0",
+        padding: "6px 8px",
+        fontSize: "11px",
+        color,
+        background: bgColor,
+        borderLeft: `3px solid ${color}`,
+        borderRadius: "3px",
+        wordWrap: "break-word",
+        whiteSpace: "pre-wrap",
+      } as Partial<CSSStyleDeclaration>);
+      line.textContent = `[${timestamp}] ${message}`;
       // Auto-scroll al final
       const container = document.getElementById('notelert-debug-container');
       if (container) {
@@ -667,7 +710,7 @@ export class NotelertLocationPickerModal extends Modal {
         const allImages = mapContainer.querySelectorAll('img');
         this.addDebugInfo(`📸 Total imágenes: ${allImages.length}`);
         for (const img of Array.from(allImages)) {
-          this.addDebugInfo(`  - Imagen src: ${(img as HTMLImageElement).src.substring(0, 80)}...`);
+          this.addDebugInfo(`  - Imagen src: ${img.src.substring(0, 80)}...`);
         }
 
         // Verificar si hay contenido HTML que indique error
@@ -808,38 +851,52 @@ export class NotelertLocationPickerModal extends Modal {
   // Buscar ubicaciones usando el proveedor configurado
   private async searchLocations(query: string, resultsContainer: HTMLElement) {
     try {
-      // Validar token si se usa Google Maps proxy (premium feature)
-      const useProxy = this.plugin.settings.useFirebaseProxy !== false;
-      const provider = this.plugin.settings.geocodingProvider || 'nominatim';
+      // Validar token (Google Maps vía proxy es siempre el proveedor)
+      if (!this.plugin.settings.pluginToken || this.plugin.settings.pluginToken.trim() === '') {
+        resultsContainer.style.display = "block";
+        resultsContainer.empty();
 
-      if ((provider === 'google' && useProxy) || provider === 'google') {
-        if (!this.plugin.settings.pluginToken || this.plugin.settings.pluginToken.trim() === '') {
-          resultsContainer.style.display = "block";
-          resultsContainer.innerHTML = `
-            <div style='padding: 20px; text-align: center;'>
-              <div style='color: var(--text-error); margin-bottom: 12px; font-weight: 600;'>
-                🔑 Token del plugin requerido
-              </div>
-              <div style='color: var(--text-muted); font-size: 13px; line-height: 1.6;'>
-                Para usar geocodificación premium (Google Maps), necesitas:<br/>
-                1. Tener plan Premium activo<br/>
-                2. Generar tu token en la app móvil (Settings > Token del Plugin)<br/>
-                3. Pegar el token en Settings > Notelert > Plugin Token<br/><br/>
-                <em>Nota: Puedes usar Nominatim (gratis) cambiando el proveedor en Settings.</em>
-              </div>
-            </div>
-          `;
-          new Notice("🔑 Token del plugin requerido para geocodificación premium");
-          return;
-        }
+        const wrapper = resultsContainer.createEl("div");
+        setCssProps(wrapper, {
+          padding: "20px",
+          textAlign: "center",
+        });
+
+        const title = wrapper.createEl("div", { text: "🔑 Token del plugin requerido" });
+        setCssProps(title, {
+          color: "var(--text-error)",
+          marginBottom: "12px",
+          fontWeight: "600",
+        });
+
+        const desc = wrapper.createEl("div");
+        setCssProps(desc, {
+          color: "var(--text-muted)",
+          fontSize: "13px",
+          lineHeight: "1.6",
+        });
+        desc.appendText("Para buscar direcciones necesitas:\n");
+        desc.appendText("1. Tener plan Premium activo\n");
+        desc.appendText("2. Generar tu token en la app móvil (Settings > Token del Plugin)\n");
+        desc.appendText("3. Pegar el token en Settings > Notelert > Plugin Token");
+        new Notice("🔑 Token del plugin requerido para geocodificación (Google Maps)");
+        return;
       }
 
       resultsContainer.style.display = "block";
-      resultsContainer.innerHTML = `<div style='padding: 20px; text-align: center; color: var(--text-muted);'>${getTranslation(this.language, "locationPicker.searching") || "Buscando..."}</div>`;
+      resultsContainer.empty();
+      const searchingEl = resultsContainer.createEl("div", {
+        text: getTranslation(this.language, "locationPicker.searching") || "Buscando...",
+      });
+      setCssProps(searchingEl, {
+        padding: "20px",
+        textAlign: "center",
+        color: "var(--text-muted)",
+      });
 
       this.plugin.log(`Buscando ubicaciones: ${query}`);
 
-      // Usar el sistema de geocodificación modular
+      // Usar Google Maps vía proxy (función centralizada)
       const results = await searchLocations(
         query,
         this.plugin.settings,
@@ -850,22 +907,38 @@ export class NotelertLocationPickerModal extends Modal {
       this.plugin.log(`Resultados encontrados: ${results.length}`);
 
       if (results.length === 0) {
-        resultsContainer.innerHTML = `<div style='padding: 20px; text-align: center; color: var(--text-muted);'>${getTranslation(this.language, "locationPicker.noResults") || "No se encontraron resultados"}</div>`;
+        resultsContainer.empty();
+        const emptyEl = resultsContainer.createEl("div", {
+          text: getTranslation(this.language, "locationPicker.noResults") || "No se encontraron resultados",
+        });
+        setCssProps(emptyEl, {
+          padding: "20px",
+          textAlign: "center",
+          color: "var(--text-muted)",
+        });
         return;
       }
 
       // Mostrar resultados
-      resultsContainer.innerHTML = "";
+      resultsContainer.empty();
       results.forEach((result: GeocodingResult) => {
         try {
           const resultItem = resultsContainer.createEl("div", { cls: "notelert-location-result-item" });
-          resultItem.setAttribute("style", "padding: 12px; margin: 5px 0; border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; transition: background 0.2s; word-wrap: break-word;");
+          setCssProps(resultItem, {
+            padding: "12px",
+            margin: "5px 0",
+            border: "1px solid var(--background-modifier-border)",
+            borderRadius: "4px",
+            cursor: "pointer",
+            transition: "background 0.2s",
+            wordWrap: "break-word",
+          } as Partial<CSSStyleDeclaration>);
 
           resultItem.addEventListener("mouseenter", () => {
-            resultItem.style.background = "var(--background-modifier-hover)";
+            setCssProps(resultItem, { background: "var(--background-modifier-hover)" });
           });
           resultItem.addEventListener("mouseleave", () => {
-            resultItem.style.background = "";
+            setCssProps(resultItem, { background: "" });
           });
 
           resultItem.createEl("div", {
@@ -918,7 +991,13 @@ export class NotelertLocationPickerModal extends Modal {
         errorDisplay = `${getTranslation(this.language, "locationPicker.error") || "Error"}: ${errorMessage}`;
       }
 
-      resultsContainer.innerHTML = `<div style='padding: 20px; text-align: center; color: var(--text-error);'>${errorDisplay}</div>`;
+      resultsContainer.empty();
+      const errorEl = resultsContainer.createEl("div", { text: errorDisplay });
+      setCssProps(errorEl, {
+        padding: "20px",
+        textAlign: "center",
+        color: "var(--text-error)",
+      });
     }
   }
 
@@ -933,35 +1012,85 @@ export class NotelertLocationPickerModal extends Modal {
     if (selectedContainer && confirmButton) {
       selectedContainer.style.display = "block";
       const saveFavoriteText = getTranslation(this.language, "locationPicker.saveFavorite") || "⭐ Guardar";
-      selectedContainer.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 10px;">
-          <div style="flex: 1; min-width: 200px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-              <span style="font-size: 18px;">📍</span>
-              <strong style="word-wrap: break-word; font-size: 15px;">${location.name}</strong>
-            </div>
-            <small style="color: var(--text-muted); word-wrap: break-word; display: block; margin-bottom: 4px;">${location.address || ''}</small>
-            <small style="color: var(--text-muted); font-size: 10px;">Lat: ${location.latitude.toFixed(6)}, Lon: ${location.longitude.toFixed(6)}</small>
-          </div>
-          <button id="save-favorite-btn" class="mod-secondary" style="padding: 4px 8px; font-size: 12px; white-space: nowrap; flex-shrink: 0;">${saveFavoriteText}</button>
-        </div>
-      `;
+      selectedContainer.empty();
+
+      const wrapper = selectedContainer.createEl("div");
+      setCssProps(wrapper, {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        flexWrap: "wrap",
+        gap: "10px",
+      });
+
+      const info = wrapper.createEl("div");
+      setCssProps(info, {
+        flex: "1",
+        minWidth: "200px",
+      });
+
+      const titleRow = info.createEl("div");
+      setCssProps(titleRow, {
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        marginBottom: "8px",
+      });
+
+      titleRow.createEl("span", { text: "📍" });
+      const nameEl = titleRow.createEl("strong", { text: location.name });
+      setCssProps(nameEl, {
+        wordWrap: "break-word",
+        fontSize: "15px",
+      });
+
+      const addressEl = info.createEl("small", { text: location.address || "" });
+      setCssProps(addressEl, {
+        color: "var(--text-muted)",
+        wordWrap: "break-word",
+        display: "block",
+        marginBottom: "4px",
+      });
+
+      const coordsEl = info.createEl("small", {
+        text: `Lat: ${location.latitude.toFixed(6)}, Lon: ${location.longitude.toFixed(6)}`,
+      });
+      setCssProps(coordsEl, {
+        color: "var(--text-muted)",
+        fontSize: "10px",
+      });
+
+      const buttonEl = wrapper.createEl("button", {
+        text: saveFavoriteText,
+        cls: "mod-secondary",
+      });
+      buttonEl.id = "save-favorite-btn";
+      setCssProps(buttonEl, {
+        padding: "4px 8px",
+        fontSize: "12px",
+        whiteSpace: "nowrap",
+        flexShrink: "0",
+      });
 
       // Botón para guardar como favorita
       const saveFavoriteBtn = document.getElementById("save-favorite-btn");
       if (saveFavoriteBtn) {
-        saveFavoriteBtn.addEventListener("click", async () => {
-          const saved = await this.saveAsFavorite(location);
-          if (saved) {
-            saveFavoriteBtn.textContent = getTranslation(this.language, "locationPicker.saved") || "✓ Guardado";
-            saveFavoriteBtn.setAttribute("disabled", "true");
-          }
+        saveFavoriteBtn.addEventListener("click", () => {
+          void (async () => {
+            const saved = await this.saveAsFavorite(location);
+            if (saved) {
+              saveFavoriteBtn.textContent = getTranslation(this.language, "locationPicker.saved") || "✓ Guardado";
+              saveFavoriteBtn.setAttribute("disabled", "true");
+            }
+          })();
         });
       }
 
       confirmButton.removeAttribute("disabled");
-      confirmButton.style.opacity = "1";
-      confirmButton.style.cursor = "pointer";
+      setCssProps(confirmButton, {
+        opacity: "1",
+        cursor: "pointer",
+      });
     }
 
     if (resultsContainer) {
@@ -979,29 +1108,29 @@ export class NotelertLocationPickerModal extends Modal {
     // Crear un modal simple para nombrar la ubicación
     return new Promise((resolve) => {
       const modalEl = document.createElement('div');
-      modalEl.setAttribute('style', `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-      `);
+      setCssProps(modalEl, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        right: "0",
+        bottom: "0",
+        background: "rgba(0, 0, 0, 0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: "10000",
+      } as Partial<CSSStyleDeclaration>);
 
       const dialogEl = modalEl.createEl('div');
-      dialogEl.setAttribute('style', `
-        background: var(--background-primary);
-        border: 1px solid var(--background-modifier-border);
-        border-radius: 8px;
-        padding: 20px;
-        max-width: 400px;
-        width: 90%;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      `);
+      setCssProps(dialogEl, {
+        background: "var(--background-primary)",
+        border: "1px solid var(--background-modifier-border)",
+        borderRadius: "8px",
+        padding: "20px",
+        maxWidth: "400px",
+        width: "90%",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+      });
 
       // Título
       dialogEl.createEl('h3', {
@@ -1014,19 +1143,17 @@ export class NotelertLocationPickerModal extends Modal {
         type: 'text',
         value: location.name,
         placeholder: getTranslation(this.language, 'locationPicker.nameLocationPlaceholder'),
-        attr: {
-          style: `
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--background-modifier-border);
-            border-radius: 4px;
-            font-size: 14px;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-            background: var(--background-primary);
-            color: var(--text-normal);
-          `
-        }
+      });
+      setCssProps(inputEl, {
+        width: "100%",
+        padding: "10px",
+        border: "1px solid var(--background-modifier-border)",
+        borderRadius: "4px",
+        fontSize: "14px",
+        boxSizing: "border-box",
+        marginBottom: "15px",
+        background: "var(--background-primary)",
+        color: "var(--text-normal)",
       });
 
       // Seleccionar todo el texto al abrir
@@ -1034,54 +1161,60 @@ export class NotelertLocationPickerModal extends Modal {
 
       // Botones
       const buttonsEl = dialogEl.createEl('div');
-      buttonsEl.setAttribute('style', 'display: flex; gap: 10px; justify-content: flex-end;');
+      setCssProps(buttonsEl, {
+        display: "flex",
+        gap: "10px",
+        justifyContent: "flex-end",
+      });
 
       const cancelBtn = buttonsEl.createEl('button', {
         text: getTranslation(this.language, 'locationPicker.nameLocationCancel'),
         cls: 'mod-secondary',
-        attr: { style: 'padding: 8px 16px;' }
       });
+      setCssProps(cancelBtn, { padding: "8px 16px" });
 
       const confirmBtn = buttonsEl.createEl('button', {
         text: getTranslation(this.language, 'locationPicker.nameLocationConfirm'),
         cls: 'mod-cta',
-        attr: { style: 'padding: 8px 16px;' }
       });
+      setCssProps(confirmBtn, { padding: "8px 16px" });
 
       // Función para guardar
-      const saveLocation = async () => {
-        const customName = inputEl.value.trim();
-        if (!customName) {
-          inputEl.focus();
-          return;
-        }
-
-        const newLocation: SavedLocation = {
-          name: customName,
-          latitude: location.latitude,
-          longitude: location.longitude,
-          radius: location.radius,
-          address: location.address
-        };
-
-        // Verificar si ya existe (por coordenadas, no por nombre)
-        const exists = this.plugin.settings.savedLocations.some(
-          loc => loc.latitude === location.latitude && loc.longitude === location.longitude
-        );
-
-        if (!exists) {
-          this.plugin.settings.savedLocations.push(newLocation);
-          await this.plugin.saveSettings();
-
-          // Actualizar lista de favoritas
-          const favoritesList = document.querySelector(".notelert-location-favorites-list");
-          if (favoritesList) {
-            this.renderFavorites(favoritesList as HTMLElement);
+      const saveLocation = () => {
+        void (async () => {
+          const customName = inputEl.value.trim();
+          if (!customName) {
+            inputEl.focus();
+            return;
           }
-        }
 
-        document.body.removeChild(modalEl);
-        resolve(true);
+          const newLocation: SavedLocation = {
+            name: customName,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            radius: location.radius,
+            address: location.address
+          };
+
+          // Verificar si ya existe (por coordenadas, no por nombre)
+          const exists = this.plugin.settings.savedLocations.some(
+            loc => loc.latitude === location.latitude && loc.longitude === location.longitude
+          );
+
+          if (!exists) {
+            this.plugin.settings.savedLocations.push(newLocation);
+            await this.plugin.saveSettings();
+
+            // Actualizar lista de favoritas
+            const favoritesList = document.querySelector(".notelert-location-favorites-list");
+            if (favoritesList) {
+              this.renderFavorites(favoritesList as HTMLElement);
+            }
+          }
+
+          document.body.removeChild(modalEl);
+          resolve(true);
+        })();
       };
 
       // Event listeners
@@ -1131,7 +1264,7 @@ export class NotelertLocationPickerModal extends Modal {
 
   // Renderizar lista de favoritas
   private renderFavorites(container: HTMLElement) {
-    container.innerHTML = "";
+    container.empty();
     const savedLocations = this.plugin.settings.savedLocations || [];
 
     if (savedLocations.length === 0) {
@@ -1142,17 +1275,33 @@ export class NotelertLocationPickerModal extends Modal {
     } else {
       savedLocations.forEach((location, index) => {
         const locationItem = container.createEl("div", { cls: "notelert-location-favorite-item" });
-        locationItem.setAttribute("style", "padding: 10px; margin: 5px 0; border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; flex-wrap: wrap; gap: 8px;");
+        setCssProps(locationItem, {
+          padding: "10px",
+          margin: "5px 0",
+          border: "1px solid var(--background-modifier-border)",
+          borderRadius: "4px",
+          cursor: "pointer",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          transition: "background 0.2s",
+          flexWrap: "wrap",
+          gap: "8px",
+        } as Partial<CSSStyleDeclaration>);
 
         locationItem.addEventListener("mouseenter", () => {
-          locationItem.style.background = "var(--background-modifier-hover)";
+          setCssProps(locationItem, { background: "var(--background-modifier-hover)" });
         });
         locationItem.addEventListener("mouseleave", () => {
-          locationItem.style.background = "";
+          setCssProps(locationItem, { background: "" });
         });
 
         const locationInfo = locationItem.createEl("div");
-        locationInfo.setAttribute("style", "flex: 1; min-width: 0; margin-right: 10px;");
+        setCssProps(locationInfo, {
+          flex: "1",
+          minWidth: "0",
+          marginRight: "10px",
+        });
         locationInfo.createEl("div", {
           text: location.name,
           attr: { style: "font-weight: 500; margin-bottom: 4px; word-wrap: break-word;" }
@@ -1166,13 +1315,21 @@ export class NotelertLocationPickerModal extends Modal {
 
         // Contenedor para botones
         const buttonsContainer = locationItem.createEl("div");
-        buttonsContainer.setAttribute("style", "display: flex; gap: 6px; flex-shrink: 0;");
+        setCssProps(buttonsContainer, {
+          display: "flex",
+          gap: "6px",
+          flexShrink: "0",
+        } as Partial<CSSStyleDeclaration>);
 
         const selectButton = buttonsContainer.createEl("button", {
           text: getTranslation(this.language, "locationPicker.selectButton") || "Seleccionar",
           cls: "mod-secondary"
         });
-        selectButton.setAttribute("style", "padding: 4px 12px; font-size: 12px; white-space: nowrap;");
+        setCssProps(selectButton, {
+          padding: "4px 12px",
+          fontSize: "12px",
+          whiteSpace: "nowrap",
+        });
         selectButton.addEventListener("click", (e) => {
           e.stopPropagation();
           this.selectLocation({
@@ -1194,7 +1351,15 @@ export class NotelertLocationPickerModal extends Modal {
           text: "🗑️",
           title: getTranslation(this.language, "locationPicker.deleteButton") || "Eliminar"
         });
-        deleteButton.setAttribute("style", "padding: 4px 8px; font-size: 14px; background: var(--background-modifier-border); border: 1px solid var(--background-modifier-border); border-radius: 4px; cursor: pointer; color: var(--text-error);");
+        setCssProps(deleteButton, {
+          padding: "4px 8px",
+          fontSize: "14px",
+          background: "var(--background-modifier-border)",
+          border: "1px solid var(--background-modifier-border)",
+          borderRadius: "4px",
+          cursor: "pointer",
+          color: "var(--text-error)",
+        } as Partial<CSSStyleDeclaration>);
         deleteButton.addEventListener("click", async (e) => {
           e.stopPropagation();
           await this.deleteFavorite(location);
