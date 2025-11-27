@@ -1,7 +1,6 @@
 import { Editor, EditorPosition } from "obsidian";
 import { INotelertPlugin } from "../../core/plugin-interface";
 import { NotelertDatePickerModal } from "../../modals/DatePickerModal";
-import { NotelertLocationPickerModal } from "../../modals/LocationPickerModal";
 
 export function handleEditorChange(
   editor: Editor,
@@ -23,9 +22,9 @@ export function handleEditorChange(
     return;
   }
   
-  // Detectar si se acaba de escribir :# (ahora abre date picker, igual que :@)
+  // Detectar si se acaba de escribir :# (unificado con :@ para fecha/hora)
   if (beforeCursor.endsWith(':#')) {
-    plugin.log("Detectado :# - abriendo date picker");
+    plugin.log("Detectado :# - abriendo date picker (modo unificado)");
     openDatePicker(editor, cursor, plugin);
   }
 }
@@ -44,24 +43,6 @@ export function openDatePicker(editor: Editor, cursor: EditorPosition, plugin: I
     originalText,
     () => {
       plugin.log("Date picker cancelado");
-    }
-  ).open();
-}
-
-// Abrir location picker y reemplazar :# con la ubicación seleccionada
-export function openLocationPicker(editor: Editor, cursor: EditorPosition, plugin: INotelertPlugin): void {
-  const line = editor.getLine(cursor.line);
-  const originalText = line;
-  
-  new NotelertLocationPickerModal(
-    plugin.app,
-    plugin,
-    plugin.settings.language,
-    editor,
-    cursor,
-    originalText,
-    () => {
-      plugin.log("Location picker cancelado");
     }
   ).open();
 }

@@ -1,8 +1,9 @@
-import { App, Editor, EditorPosition, Modal, Notice, Platform } from "obsidian";
+import { App, Editor, EditorPosition, Modal, Notice, Platform, requestUrl } from "obsidian";
 import { DetectedPattern, SavedLocation } from "../core/types";
 import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { setCssProps } from "../core/dom";
+import { PLUGIN_LIST_LOCATIONS_URL } from "../core/config";
 
 export class NotelertDatePickerModal extends Modal {
   private onCancel: () => void;
@@ -13,6 +14,8 @@ export class NotelertDatePickerModal extends Modal {
   private originalText: string;
   private notificationType: 'time' | 'location' = 'time'; // Tipo de notificación
   private selectedLocation: SavedLocation | null = null; // Ubicación seleccionada
+  private locationsLoading: boolean = false;
+  private locationsError: string | null = null;
 
   constructor(app: App, plugin: INotelertPlugin, language: string, editor: Editor, cursor: EditorPosition, originalText: string, onCancel: () => void) {
     super(app);
@@ -869,63 +872,115 @@ export class NotelertDatePickerModal extends Modal {
       existingList.remove();
     }
 
-    const savedLocations = this.plugin.settings.savedLocations || [];
-
-    if (savedLocations.length === 0) {
-      const emptyMessage = container.createEl("div", {
-        attr: {
-          style: `
-            padding: 20px;
-            text-align: center;
-            color: var(--text-muted);
-            background: var(--background-secondary);
-            border-radius: 6px;
-            margin: 15px 0;
-          `
-        }
-      });
-      emptyMessage.id = "location-list-container";
-      emptyMessage.textContent = getTranslation(this.language, "datePicker.noSavedLocations");
-      return;
-    }
+    const listWrapper = container.createEl("div", {
+      attr: {
+        style: `
+          margin-top: 15px;
+          width: 100%;
+          box-sizing: border-box;
+        `
+      }
+    });
 
     // Título
-    const listTitle = container.createEl("h3", {
-      text: getTranslation(this.language, "datePicker.selectLocationTitle"),
-      attr: {
-        style: `
-          margin: 15px 0 10px 0;
-          font-size: 16px;
-          font-weight: 600;
-          color: var(--text-normal);
-          flex-shrink: 0;
-        `
-      }
+    const title = listWrapper.createEl("h3", {
+      text: getTranslation(this.language, "datePicker.selectLocationTitle") || "Selecciona una ubicación",
+    });
+    setCssProps(title, {
+      margin: "0 0 10px 0",
+      fontSize: "16px",
+      fontWeight: "600",
     });
 
-    // Contenedor FIJO con scroll SOLO para las tarjetas
-    const scrollContainer = container.createEl("div", {
-      attr: {
-        style: `
-          height: 400px;
-          max-height: 400px;
-          overflow-y: auto;
-          overflow-x: hidden;
-          padding: 10px;
-          margin: 10px 0;
-          background: var(--background-primary);
-          border: 2px solid var(--interactive-accent);
-          border-radius: 8px;
-          box-sizing: border-box;
-          flex-shrink: 0;
-        `
-      }
-    });
-    scrollContainer.id = "location-list-container";
+    const listContainer = listWrapper.createEl("div");
+    setCssProps(listContainer, {
+      height: "260px",
+      maxHeight: "260px",
+      overflowY: "auto",
+      overflowX: "hidden",
+      padding: "10px",
+      margin: "5px 0",
+      background: "var(--background-primary)",
+      border: "2px solid var(--interactive-accent)",
+      borderRadius: "8px",
+      boxSizing: "border-box",
+    } as Partial<CSSStyleDeclaration>);
+    listContainer.id = "location-list-container";
 
-    // Crear items de ubicación - SOLO TÍTULO
-    savedLocations.forEach((location, index) => {
-      const locationItem = scrollContainer.createEl("div", {
+    // Mostrar estado "Cargando..." con spinner simple
+    listContainer.empty();
+    const loadingEl = listContainer.createEl("div", {
+      text: getTranslation(this.language, "common.loading") || "Cargando...",
+    });
+    setCssProps(loadingEl, {
+      padding: "20px",
+      textAlign: "center",
+      color: "var(--text-muted)",
+      fontSize: "13px",
+    });
+
+    void this.loadLocationsFromBackend(listContainer);
+
+  }
+
+  private async loadLocationsFromBackend(listContainer: HTMLElement): Promise<void> {
+    try {
+      this.locationsLoading = true;
+      this.locationsError = null;
+
+      const token = this.plugin.settings.pluginToken?.trim();
+      if (!token) {
+        listContainer.empty();
+        const err = listContainer.createEl("div", {
+          text: getTranslation(this.language, "datePicker.noPluginToken") || "Token del plugin requerido para cargar ubicaciones.",
+        });
+        setCssProps(err, {
+          padding: "20px",
+          textAlign: "center",
+          color: "var(--text-error)",
+          fontSize: "13px",
+        });
+        return;
+      }
+
+      const response = await requestUrl({
+        url: PLUGIN_LIST_LOCATIONS_URL,
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Plugin-Token": token,
+        },
+      });
+
+      if (response.status >= 400) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = (response.json ?? {}) as {
+        success?: boolean;
+        locations?: SavedLocation[];
+        message?: string;
+      };
+
+      const locations = Array.isArray(data.locations) ? data.locations : [];
+
+      listContainer.empty();
+
+      if (!locations.length) {
+        const emptyEl = listContainer.createEl("div", {
+          text: getTranslation(this.language, "datePicker.noSavedLocations") || "No hay ubicaciones guardadas. Crea ubicaciones desde la app móvil.",
+        });
+        setCssProps(emptyEl, {
+          padding: "20px",
+          textAlign: "center",
+          color: "var(--text-muted)",
+          fontSize: "13px",
+        });
+        return;
+      }
+
+      locations.forEach((location, index) => {
+        const locationItem = listContainer.createEl("div", {
         attr: {
           style: `
             padding: 12px 15px;
@@ -942,23 +997,21 @@ export class NotelertDatePickerModal extends Modal {
             justify-content: space-between;
           `
         }
-      });
-      locationItem.id = `location-item-${index}`;
+        });
+        locationItem.id = `location-item-${index}`;
 
-      // Nombre de la ubicación
-      const name = location.name || `Ubicación ${index + 1}`;
-      const nameDiv = locationItem.createEl("div", {
-        text: name,
-        attr: {
-          style: "font-weight: 500; font-size: 14px; flex: 1;"
-        }
-      });
+        const name = location.name || `Ubicación ${index + 1}`;
+        const nameDiv = locationItem.createEl("div", {
+          text: name,
+          attr: {
+            style: "font-weight: 500; font-size: 14px; flex: 1;"
+          }
+        });
 
-      // Icono de check (oculto inicialmente)
-      const checkIcon = locationItem.createEl("div", {
-        text: "✓",
-        attr: {
-          style: `
+        const checkIcon = locationItem.createEl("div", {
+          text: "✓",
+          attr: {
+            style: `
             font-size: 18px;
             color: var(--interactive-accent);
             font-weight: bold;
@@ -966,18 +1019,12 @@ export class NotelertDatePickerModal extends Modal {
             transition: opacity 0.2s;
             margin-left: 10px;
           `
-        }
-      });
-      checkIcon.id = `check-icon-${index}`;
+          }
+        });
+        checkIcon.id = `check-icon-${index}`;
 
-      // Guardar referencia a la ubicación
-      (locationItem as HTMLElement & { locationData?: SavedLocation; checkIcon?: HTMLElement }).locationData = location;
-      (locationItem as HTMLElement & { locationData?: SavedLocation; checkIcon?: HTMLElement }).checkIcon = checkIcon;
-
-      // Función para seleccionar/deseleccionar
-      const selectLocation = () => {
-        // Deseleccionar todas las demás
-        savedLocations.forEach((_, idx) => {
+        const selectLocation = () => {
+          locations.forEach((_, idx) => {
         const item = document.getElementById(`location-item-${idx}`);
         const icon = document.getElementById(`check-icon-${idx}`);
         if (item && icon) {
@@ -991,39 +1038,53 @@ export class NotelertDatePickerModal extends Modal {
           }
           setCssProps(icon, { opacity: "0" });
         }
-        });
+          });
 
-        // Seleccionar esta
-        setCssProps(locationItem, {
-          background: "var(--interactive-accent)",
-          borderColor: "var(--interactive-accent)",
-        });
-        setCssProps(nameDiv, { color: "var(--text-on-accent)" });
-        setCssProps(checkIcon, { opacity: "1" });
-
-        this.selectedLocation = location;
-      };
-
-      locationItem.addEventListener("click", selectLocation);
-
-      locationItem.addEventListener("mouseenter", () => {
-        if (this.selectedLocation !== location) {
           setCssProps(locationItem, {
-            background: "var(--background-modifier-hover)",
+            background: "var(--interactive-accent)",
             borderColor: "var(--interactive-accent)",
           });
-        }
-      });
+          setCssProps(nameDiv, { color: "var(--text-on-accent)" });
+          setCssProps(checkIcon, { opacity: "1" });
 
-      locationItem.addEventListener("mouseleave", () => {
-        if (this.selectedLocation !== location) {
-          setCssProps(locationItem, {
-            background: "var(--background-primary)",
-            borderColor: "var(--background-modifier-border)",
-          });
-        }
+          this.selectedLocation = location;
+        };
+
+        locationItem.addEventListener("click", selectLocation);
+
+        locationItem.addEventListener("mouseenter", () => {
+          if (this.selectedLocation !== location) {
+            setCssProps(locationItem, {
+              background: "var(--background-modifier-hover)",
+              borderColor: "var(--interactive-accent)",
+            });
+          }
+        });
+
+        locationItem.addEventListener("mouseleave", () => {
+          if (this.selectedLocation !== location) {
+            setCssProps(locationItem, {
+              background: "var(--background-primary)",
+              borderColor: "var(--background-modifier-border)",
+            });
+          }
+        });
       });
-    });
+    } catch (error: any) {
+      this.locationsError = error?.message || "Error cargando ubicaciones";
+      listContainer.empty();
+      const errEl = listContainer.createEl("div", {
+        text: `${getTranslation(this.language, "common.error") || "Error"}: ${this.locationsError}`,
+      });
+      setCssProps(errEl, {
+        padding: "20px",
+        textAlign: "center",
+        color: "var(--text-error)",
+        fontSize: "13px",
+      });
+    } finally {
+      this.locationsLoading = false;
+    }
   }
 
   // Seleccionar ubicación de las guardadas

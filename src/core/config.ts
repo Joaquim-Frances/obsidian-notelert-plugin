@@ -14,3 +14,6 @@ export const PLUGIN_GEOCODE_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginGeocode`;
 // URL del endpoint proxy para programar emails (sin API key requerida)
 export const PLUGIN_SCHEDULE_EMAIL_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginScheduleEmail`;
 
+// URL del endpoint para listar ubicaciones guardadas del usuario (para el plugin)
+export const PLUGIN_LIST_LOCATIONS_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginListLocations`;
+
