@@ -19,7 +19,7 @@ export async function searchLocations(
 ): Promise<GeocodingResult[]> {
   log?.(`Proveedor configurado: Google Maps vía proxy`);
 
-  const proxyUrl = settings.firebaseGeocodingUrl || PLUGIN_GEOCODE_URL;
+  const proxyUrl = PLUGIN_GEOCODE_URL;
 
   if (!settings.pluginToken || settings.pluginToken.trim() === '') {
     throw new Error('Token del plugin requerido para usar geocodificación (Google Maps). Configura tu token en Settings.');

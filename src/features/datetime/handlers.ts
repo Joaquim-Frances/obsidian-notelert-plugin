@@ -15,22 +15,19 @@ export function handleEditorChange(
   const line = editor.getLine(cursor.line);
   const beforeCursor = line.substring(0, cursor.ch);
   
-  // Detectar si se acaba de escribir :@
-  if (beforeCursor.endsWith(':@')) {
-    plugin.log("Detectado :@ - abriendo date picker");
-    openDatePicker(editor, cursor, plugin);
-    return;
-  }
+  // Usar el trigger personalizado del usuario (por defecto :@)
+  const trigger = plugin.settings.datePickerTrigger || ':@';
   
-  // Detectar si se acaba de escribir :# (unificado con :@ para fecha/hora)
-  if (beforeCursor.endsWith(':#')) {
-    plugin.log("Detectado :# - abriendo date picker (modo unificado)");
-    openDatePicker(editor, cursor, plugin);
+  // Detectar si se acaba de escribir el trigger personalizado
+  if (beforeCursor.endsWith(trigger)) {
+    plugin.log(`Detectado ${trigger} - abriendo date picker`);
+    openDatePicker(editor, cursor, plugin, trigger);
+    return;
   }
 }
 
-// Abrir date picker y reemplazar :@ con la fecha/hora seleccionada
-export function openDatePicker(editor: Editor, cursor: EditorPosition, plugin: INotelertPlugin): void {
+// Abrir date picker y reemplazar el trigger con la fecha/hora seleccionada
+export function openDatePicker(editor: Editor, cursor: EditorPosition, plugin: INotelertPlugin, trigger: string = ':@'): void {
   const line = editor.getLine(cursor.line);
   const originalText = line;
   
@@ -41,6 +38,7 @@ export function openDatePicker(editor: Editor, cursor: EditorPosition, plugin: I
     editor,
     cursor,
     originalText,
+    trigger,
     () => {
       plugin.log("Date picker cancelado");
     }

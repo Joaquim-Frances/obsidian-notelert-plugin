@@ -29,16 +29,13 @@ export interface NotelertSettings {
   addVisualIndicators: boolean; // Añadir iconos visuales a recordatorios procesados
   visualIndicatorIcon: string; // Icono a usar para indicar recordatorios procesados
   useNewSyntax: boolean; // Usar nuevo sistema de sintaxis {@fecha, hora}
-  enableDatePicker: boolean; // Activar date picker al escribir {@
-  savedLocations: SavedLocation[]; // Ubicaciones favoritas guardadas (solo móvil)
-  googleMapsApiKey?: string; // API key de Google Maps (opcional, para mejor funcionalidad)
+  enableDatePicker: boolean; // Activar date picker al escribir el trigger
+  datePickerTrigger: string; // Combinación de caracteres para disparar el modal (por defecto :@)
   // Configuración para Desktop (emails)
   userEmail?: string; // Email del usuario para recibir notificaciones (DEPRECATED: usar pluginToken)
   userId?: string; // ID del usuario de Google (DEPRECATED: usar pluginToken)
   pluginToken?: string; // Token del plugin para autenticación (requerido para premium features: geocodificación y emails)
   notelertApiKey?: string; // API Key de Notelert (opcional, solo para cancelar emails - programar usa proxy sin API key)
-  useFirebaseProxy?: boolean; // Usar Firebase Functions como proxy para geocodificación (más seguro)
-  firebaseGeocodingUrl?: string; // URL del endpoint proxy de geocodificación
   scheduledEmails: ScheduledEmail[]; // Lista de emails programados
 }
 

@@ -1,9 +1,9 @@
 import { App, Plugin, PluginSettingTab, Setting, Modal, Platform, Notice } from "obsidian";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
-import { SavedLocation, ScheduledEmail } from "../core/types";
+import { ScheduledEmail } from "../core/types";
 import { cancelScheduledEmail } from "../features/notifications/firebase-api";
-import { NotelertLocationPickerModal } from "../modals/LocationPickerModal";
+import { setCssProps } from "../core/dom";
 
 export class NotelertSettingTab extends PluginSettingTab {
   plugin: INotelertPlugin;
@@ -177,132 +177,26 @@ export class NotelertSettingTab extends PluginSettingTab {
       this.renderScheduledEmails(emailsContainer);
     }
 
-    // ========== CONFIGURACIÓN MÓVIL ==========
-    if (!isDesktop) {
-      new Setting(containerEl)
-        .setName(getTranslation(this.plugin.settings.language, "settings.mobileSettings.title"))
-        .setHeading();
+    // ========== CONFIGURACIÓN GENERAL ==========
+    new Setting(containerEl)
+      .setName(getTranslation(this.plugin.settings.language, "settings.generalSettings.title") || "Configuración General")
+      .setHeading();
 
-      // Gestión de ubicaciones
-      new Setting(containerEl)
-        .setName(getTranslation(this.plugin.settings.language, "settings.savedLocations.title"))
-        .setHeading();
-
-      const locationsDesc = containerEl.createEl("p", {
-        text: getTranslation(this.plugin.settings.language, "settings.savedLocations.desc"),
-        attr: { style: "color: var(--text-muted); font-size: 13px; margin-bottom: 15px;" }
+    // Trigger personalizado para el date picker
+    new Setting(containerEl)
+      .setName("Combinación de caracteres para abrir el modal")
+      .setDesc("Escribe la combinación de caracteres que quieres usar para abrir el modal de notificaciones (por defecto: :@)")
+      .addText((text) => {
+        text
+          .setPlaceholder(":@")
+          .setValue(this.plugin.settings.datePickerTrigger || ":@")
+          .onChange((value) => {
+            void (async () => {
+              this.plugin.settings.datePickerTrigger = value.trim() || ":@";
+              await this.plugin.saveSettings();
+            })();
+          });
       });
-
-      // Botón para añadir nueva ubicación
-      new Setting(containerEl)
-        .setName(getTranslation(this.plugin.settings.language, "settings.savedLocations.addTitle"))
-        .setDesc(getTranslation(this.plugin.settings.language, "settings.savedLocations.addDesc"))
-        .addButton((button) => {
-          button
-            .setButtonText(getTranslation(this.plugin.settings.language, "settings.savedLocations.addButton"))
-            .setCta()
-            .onClick(() => {
-              this.openLocationPicker();
-            });
-        });
-
-      // Lista de ubicaciones guardadas
-      const locationsContainer = containerEl.createEl("div", {
-        attr: {
-          style: `
-            margin: 15px 0;
-            padding: 15px;
-            background: var(--background-secondary);
-            border-radius: 8px;
-            border: 1px solid var(--background-modifier-border);
-          `
-        }
-      });
-
-      this.renderSavedLocations(locationsContainer);
-    }
-  }
-
-  // Renderizar lista de ubicaciones guardadas
-  private renderSavedLocations(container: HTMLElement) {
-    // Limpiar completamente el contenedor
-    container.empty();
-
-    // Obtener ubicaciones actualizadas de settings
-    const locations = this.plugin.settings.savedLocations || [];
-
-    if (locations.length === 0) {
-      container.createEl("p", {
-        text: getTranslation(this.plugin.settings.language, "settings.savedLocations.empty"),
-        attr: { style: "color: var(--text-muted); text-align: center; padding: 20px;" }
-      });
-      return;
-    }
-
-    // Crear lista de ubicaciones
-    locations.forEach((location, index) => {
-      const locationItem = container.createEl("div", {
-        attr: {
-          style: `
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid var(--background-modifier-border);
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            background: var(--background-primary);
-          `
-        }
-      });
-
-      const locationInfo = locationItem.createEl("div", {
-        attr: { style: "flex: 1; min-width: 200px;" }
-      });
-
-      locationInfo.createEl("div", {
-        text: location.name,
-        attr: { style: "font-weight: 500; margin-bottom: 4px; font-size: 14px;" }
-      });
-
-      if (location.address) {
-        locationInfo.createEl("div", {
-          text: location.address.length > 60 ? location.address.substring(0, 60) + "..." : location.address,
-          attr: { style: "font-size: 12px; color: var(--text-muted); margin-bottom: 4px; word-wrap: break-word;" }
-        });
-      }
-
-      locationInfo.createEl("div", {
-        text: `📍 ${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`,
-        attr: { style: "font-size: 11px; color: var(--text-muted);" }
-      });
-
-      const buttonsContainer = locationItem.createEl("div", {
-        attr: { style: "display: flex; gap: 6px; flex-shrink: 0;" }
-      });
-
-      const editButton = buttonsContainer.createEl("button", {
-        text: getTranslation(this.plugin.settings.language, "settings.savedLocations.editButton"),
-        attr: { style: "padding: 6px 12px; font-size: 12px; white-space: nowrap;" }
-      });
-      editButton.addEventListener("click", () => {
-        this.editLocation(location, index);
-      });
-
-      const deleteButton = buttonsContainer.createEl("button", {
-        text: "🗑️",
-        attr: { style: "padding: 6px 10px; font-size: 14px; color: var(--text-error);" }
-      });
-      deleteButton.addEventListener("click", () => {
-        void (async () => {
-          await this.deleteLocation(index);
-          // Recargar toda la configuración para actualizar la lista
-          this.display();
-        })();
-      });
-    });
   }
 
   // Renderizar lista de emails programados
@@ -484,45 +378,4 @@ export class NotelertSettingTab extends PluginSettingTab {
     });
   }
 
-  // Abrir selector de ubicaciones
-  private openLocationPicker() {
-    const modal = new NotelertLocationPickerModal(
-      this.app,
-      this.plugin,
-      this.plugin.settings.language,
-      async (location) => {
-        // Callback cuando se guarda una ubicación
-        if (!this.plugin.settings.savedLocations) {
-          this.plugin.settings.savedLocations = [];
-        }
-        this.plugin.settings.savedLocations.push(location);
-        await this.plugin.saveSettings();
-        this.display(); // Recargar para mostrar la nueva ubicación
-      }
-    );
-    modal.open();
-  }
-
-  // Editar ubicación
-  private editLocation(location: SavedLocation, index: number) {
-    const modal = new NotelertLocationPickerModal(
-      this.app,
-      this.plugin,
-      this.plugin.settings.language,
-      async (newLocation) => {
-        // Reemplazar la ubicación existente
-        this.plugin.settings.savedLocations[index] = newLocation;
-        await this.plugin.saveSettings();
-        this.display();
-      },
-      location // Pasar ubicación existente para editar
-    );
-    modal.open();
-  }
-
-  // Eliminar ubicación
-  private async deleteLocation(index: number) {
-    this.plugin.settings.savedLocations.splice(index, 1);
-    await this.plugin.saveSettings();
-  }
 }

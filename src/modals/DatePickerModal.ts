@@ -18,14 +18,16 @@ export class NotelertDatePickerModal extends Modal {
   private locationsError: string | null = null;
   private debugLogs: string[] = []; // Array para almacenar logs
   private showDebugPanel: boolean = false; // Estado del panel de debug
+  private trigger: string; // Trigger personalizado (por defecto :@)
 
-  constructor(app: App, plugin: INotelertPlugin, language: string, editor: Editor, cursor: EditorPosition, originalText: string, onCancel: () => void) {
+  constructor(app: App, plugin: INotelertPlugin, language: string, editor: Editor, cursor: EditorPosition, originalText: string, trigger: string, onCancel: () => void) {
     super(app);
     this.plugin = plugin;
     this.language = language;
     this.editor = editor;
     this.cursor = cursor;
     this.originalText = originalText;
+    this.trigger = trigger || ':@';
     this.onCancel = onCancel;
   }
 
@@ -711,10 +713,10 @@ export class NotelertDatePickerModal extends Modal {
             const time = timeInput.value;
 
             if (date && time) {
-              // Reemplazar :@ o :# con :@fecha, hora
-              const replacement = `:@${date}, ${time}`;
+              // Reemplazar el trigger con trigger+fecha, hora
+              const replacement = `${this.trigger}${date}, ${time}`;
               const line = this.editor.getLine(this.cursor.line);
-              const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
+              const beforeCursor = line.substring(0, this.cursor.ch - this.trigger.length); // Quitar el trigger
               const afterCursor = line.substring(this.cursor.ch);
               const newLine = beforeCursor + replacement + afterCursor;
 
@@ -799,9 +801,11 @@ export class NotelertDatePickerModal extends Modal {
       const activeFile = this.plugin.app.workspace.getActiveFile();
       const noteTitle = activeFile ? activeFile.basename : 'Nota';
 
-      // Obtener la línea actual y limpiarla de los patrones :@fecha, hora
+      // Obtener la línea actual y limpiarla de los patrones trigger+fecha, hora
       const currentLine = this.editor.getLine(this.cursor.line);
-      const cleanMessage = currentLine.replace(/:@[^,\s]+,\s*[^\s]+/g, '').trim();
+      // Escapar el trigger para usar en regex
+      const escapedTrigger = this.trigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const cleanMessage = currentLine.replace(new RegExp(`${escapedTrigger}[^,\\s]+,\\s*[^\\s]+`, 'g'), '').trim();
 
       // Crear el patrón detectado
       const pattern: DetectedPattern = {
@@ -810,7 +814,7 @@ export class NotelertDatePickerModal extends Modal {
         message: cleanMessage,
         date: date,
         time: time,
-        fullMatch: `:@${date}, ${time}`,
+        fullMatch: `${this.trigger}${date}, ${time}`,
         startIndex: 0,
         endIndex: fullText.length,
         filePath: activeFile?.path,
@@ -828,7 +832,7 @@ export class NotelertDatePickerModal extends Modal {
       // // Esto permite que Obsidian termine de procesar el deeplink antes de modificar el editor
       // setTimeout(() => {
       //   try {
-      //     this.addVisualFeedback(fullText, `:@${date}, ${time}`);
+      //     this.addVisualFeedback(fullText, `${this.trigger}${date}, ${time}`);
       //   } catch (error) {
       //     this.plugin.log(`Error añadiendo feedback visual: ${error}`);
       //   }
@@ -846,7 +850,7 @@ export class NotelertDatePickerModal extends Modal {
 
   // Extraer título del texto
   private extractTitleFromText(text: string, match: string): string {
-    // Remover el patrón :@fecha, hora del texto
+    // Remover el patrón trigger+fecha, hora del texto
     let title = text.replace(match, '').trim();
 
     // Limpiar espacios extra
@@ -1428,7 +1432,8 @@ export class NotelertDatePickerModal extends Modal {
         }
 
         // Obtener ubicaciones guardadas directamente de settings
-        const locations = this.plugin.settings.savedLocations || [];
+        // Las ubicaciones ahora vienen de la API, no de settings
+        const locations: SavedLocation[] = [];
 
         addLog(`📊 Ubicaciones encontradas: ${locations.length}`);
         addLog(`📋 Settings object: ${JSON.stringify(this.plugin.settings).substring(0, 200)}...`);
@@ -1438,9 +1443,7 @@ export class NotelertDatePickerModal extends Modal {
             addLog(`📍 [${idx + 1}] ${loc.name || 'Sin nombre'} - Lat: ${loc.latitude}, Lon: ${loc.longitude}`);
           });
         } else {
-          addLog('❌ No se encontraron ubicaciones en savedLocations');
-          addLog(`🔍 Tipo de savedLocations: ${typeof this.plugin.settings.savedLocations}`);
-          addLog(`🔍 savedLocations es null/undefined: ${this.plugin.settings.savedLocations === null || this.plugin.settings.savedLocations === undefined}`);
+          addLog('❌ No se encontraron ubicaciones en la API');
         }
 
         if (locations.length === 0) {
@@ -1586,10 +1589,10 @@ export class NotelertDatePickerModal extends Modal {
   // Retorna true si fue exitoso, false si hubo error
   private async createNotificationFromLocation(location: SavedLocation): Promise<boolean> {
     try {
-      // Reemplazar :@ o :# con :#nombreUbicacion
+      // Reemplazar el trigger con :#nombreUbicacion (siempre usamos :# para ubicaciones)
       const replacement = `:#${location.name}`;
       const line = this.editor.getLine(this.cursor.line);
-      const beforeCursor = line.substring(0, this.cursor.ch - 2); // Quitar :@ o :#
+      const beforeCursor = line.substring(0, this.cursor.ch - this.trigger.length); // Quitar el trigger
       const afterCursor = line.substring(this.cursor.ch);
       const newLine = beforeCursor + replacement + afterCursor;
 
@@ -1676,11 +1679,12 @@ export class NotelertDatePickerModal extends Modal {
     });
   }
 
-  // Añadir feedback visual: reemplazar :@ con icono de despertador y resaltar solo fecha/hora
+  // Añadir feedback visual: reemplazar el trigger con icono de despertador y resaltar solo fecha/hora
   private addVisualFeedback(fullText: string, match: string) {
     try {
-      // Extraer fecha y hora del match
-      const matchParts = match.match(/:@([^,]+),\s*([^\s]+)/);
+      // Extraer fecha y hora del match (escapar el trigger para regex)
+      const escapedTrigger = this.trigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const matchParts = match.match(new RegExp(`${escapedTrigger}([^,]+),\\s*([^\\s]+)`));
       if (matchParts) {
         const date = matchParts[1];
         const time = matchParts[2];
