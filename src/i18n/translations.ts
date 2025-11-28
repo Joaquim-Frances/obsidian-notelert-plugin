@@ -93,7 +93,10 @@ export const TRANSLATIONS = {
       defaultTitle: 'Recordatorio',
       desktopConfigRequired: '❌ Configura tu email y API Key en Settings para usar Notelert en desktop',
       locationNotSupportedDesktop: '❌ Las notificaciones de ubicación solo están disponibles en móvil',
-      emailScheduled: '✅ Email programado correctamente'
+      emailScheduled: '✅ Email programado correctamente',
+      tokenLinked: '✅ Token vinculado correctamente desde la app móvil',
+      tokenLinkError: '❌ Error al vincular token',
+      tokenInvalidFormat: '❌ Formato de token inválido'
     },
     modal: {
       title: '¿Crear notificación en Notelert?',
@@ -250,7 +253,10 @@ export const TRANSLATIONS = {
       defaultTitle: 'Reminder',
       desktopConfigRequired: '❌ Configure your email and API Key in Settings to use Notelert on desktop',
       locationNotSupportedDesktop: '❌ Location notifications are only available on mobile',
-      emailScheduled: '✅ Email scheduled successfully'
+      emailScheduled: '✅ Email scheduled successfully',
+      tokenLinked: '✅ Token linked successfully from mobile app',
+      tokenLinkError: '❌ Error linking token',
+      tokenInvalidFormat: '❌ Invalid token format'
     },
     modal: {
       title: 'Create notification in Notelert?',

@@ -1,9 +1,10 @@
-import { Plugin } from "obsidian";
+import { Plugin, Notice } from "obsidian";
 import { NotelertSettings, DetectedPattern } from "./core/types";
 import { DEFAULT_SETTINGS } from "./core/settings";
 import { NotelertSettingTab } from "./settings/SettingTab";
 import { handleEditorChange } from "./features/datetime/handlers";
 import { createNotification, generateDeepLink } from "./features/notifications";
+import { getTranslation } from "./i18n";
 
 export class NotelertPlugin extends Plugin {
   settings: NotelertSettings;
@@ -26,6 +27,11 @@ export class NotelertPlugin extends Plugin {
         })
       );
     }
+
+    // Registrar handler para deep links de vinculación con la app móvil
+    this.registerObsidianProtocolHandler("notelert-link", async (params) => {
+      await this.handleTokenLink(params);
+    });
 
     console.debug("Plugin Notelert cargado correctamente");
   }
@@ -83,6 +89,53 @@ export class NotelertPlugin extends Plugin {
   public log(message: string) {
     if (this.settings.debugMode) {
       console.debug(`[Notelert] ${message}`);
+    }
+  }
+
+  // Manejar deep link de vinculación con la app móvil
+  private async handleTokenLink(params: Record<string, string>) {
+    const token = params.token;
+    
+    if (!token) {
+      new Notice(
+        getTranslation(this.settings.language, "notices.tokenLinkError") || 
+        "❌ Token no encontrado en el enlace"
+      );
+      this.log("Error: Token no encontrado en deep link");
+      return;
+    }
+
+    try {
+      // Validar formato del token (debe tener 64 caracteres)
+      if (token.length !== 64) {
+        new Notice(
+          getTranslation(this.settings.language, "notices.tokenInvalidFormat") || 
+          "❌ Formato de token inválido"
+        );
+        this.log(`Error: Token con formato inválido (longitud: ${token.length})`);
+        return;
+      }
+
+      // Guardar token en settings
+      this.settings.pluginToken = token.trim();
+      await this.saveSettings();
+
+      // Mostrar notificación de éxito
+      new Notice(
+        getTranslation(this.settings.language, "notices.tokenLinked") || 
+        "✅ Token vinculado correctamente"
+      );
+      this.log("Token vinculado correctamente desde la app móvil");
+
+      // Opcional: Abrir la configuración del plugin para que el usuario vea el token
+      // this.app.setting.openTabById("notelert");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      new Notice(
+        getTranslation(this.settings.language, "notices.tokenLinkError") || 
+        `❌ Error al vincular token: ${errorMessage}`
+      );
+      this.log(`Error al vincular token: ${errorMessage}`);
     }
   }
 }

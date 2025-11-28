@@ -16,6 +16,8 @@ export class NotelertDatePickerModal extends Modal {
   private selectedLocation: SavedLocation | null = null; // Ubicación seleccionada
   private locationsLoading: boolean = false;
   private locationsError: string | null = null;
+  private debugLogs: string[] = []; // Array para almacenar logs
+  private showDebugPanel: boolean = false; // Estado del panel de debug
 
   constructor(app: App, plugin: INotelertPlugin, language: string, editor: Editor, cursor: EditorPosition, originalText: string, onCancel: () => void) {
     super(app);
@@ -534,6 +536,32 @@ export class NotelertDatePickerModal extends Modal {
 
     updateTypeButtons();
 
+    // Botón para mostrar/ocultar logs de debug (solo en móvil)
+    if (!isDesktop) {
+      const debugToggleContainer = container.createEl("div");
+      setCssProps(debugToggleContainer, {
+        marginBottom: "10px",
+        display: "flex",
+        justifyContent: "flex-end",
+      });
+
+      const debugToggleBtn = debugToggleContainer.createEl("button", {
+        text: "🔍 Ver logs",
+        cls: "mod-secondary"
+      });
+      setCssProps(debugToggleBtn, {
+        padding: "6px 12px",
+        fontSize: "12px",
+      });
+      debugToggleBtn.id = "debug-toggle-btn";
+
+      debugToggleBtn.addEventListener("click", () => {
+        this.showDebugPanel = !this.showDebugPanel;
+        this.renderDebugPanel(container);
+        debugToggleBtn.textContent = this.showDebugPanel ? "🔍 Ocultar logs" : "🔍 Ver logs";
+      });
+    }
+
     // Botones de acción rápida (solo para tipo 'time')
     const quickActions = container.createEl("div", { cls: "notelert-quick-actions" });
     setCssProps(quickActions, {
@@ -838,6 +866,7 @@ export class NotelertDatePickerModal extends Modal {
     const timeContainer = container.querySelector('.notelert-time-container');
     const quickActions = container.querySelector('#quick-actions-container');
     const locationListContainer = container.querySelector('#location-list-container');
+    const debugPanel = container.querySelector('#debug-panel-container');
 
     if (this.notificationType === 'location') {
       // Ocultar fecha, hora y acciones rápidas para ubicación
@@ -862,9 +891,131 @@ export class NotelertDatePickerModal extends Modal {
         (locationListContainer as HTMLElement).style.display = 'none';
       }
     }
+    
+    // Mantener el panel de debug visible si estaba visible
+    if (this.showDebugPanel && debugPanel) {
+      (debugPanel as HTMLElement).style.display = 'block';
+    } else if (this.showDebugPanel && !debugPanel) {
+      this.renderDebugPanel(container);
+    }
   }
 
   // Renderizar lista de ubicaciones en el modal
+  /**
+   * Añade un log al panel de debug y también lo registra en la consola
+   */
+  private addDebugLog(message: string) {
+    const timestamp = new Date().toLocaleTimeString();
+    const logEntry = `[${timestamp}] ${message}`;
+    this.debugLogs.push(logEntry);
+    
+    // Mantener solo los últimos 50 logs
+    if (this.debugLogs.length > 50) {
+      this.debugLogs.shift();
+    }
+    
+    // También loggear en consola si está disponible
+    this.plugin.log(message);
+    
+    // Si el panel está visible, actualizarlo
+    if (this.showDebugPanel) {
+      const container = document.querySelector('.notelert-datepicker-container');
+      if (container instanceof HTMLElement) {
+        this.renderDebugPanel(container);
+      }
+    }
+  }
+
+  /**
+   * Renderiza el panel de debug con los logs
+   */
+  private renderDebugPanel(container: HTMLElement) {
+    // Eliminar panel anterior si existe
+    const existingPanel = container.querySelector('#debug-panel-container');
+    if (existingPanel) {
+      existingPanel.remove();
+    }
+
+    if (!this.showDebugPanel) {
+      return;
+    }
+
+    const panelWrapper = container.createEl("div", {
+      attr: {
+        style: `
+          margin-top: 15px;
+          width: 100%;
+          box-sizing: border-box;
+        `
+      }
+    });
+    panelWrapper.id = "debug-panel-container";
+
+    // Título
+    const title = panelWrapper.createEl("h3", {
+      text: "📋 Logs de Debug",
+    });
+    setCssProps(title, {
+      margin: "0 0 10px 0",
+      fontSize: "16px",
+      fontWeight: "600",
+    });
+
+    const logContainer = panelWrapper.createEl("div");
+    setCssProps(logContainer, {
+      height: "200px",
+      maxHeight: "200px",
+      overflowY: "auto",
+      overflowX: "hidden",
+      padding: "10px",
+      margin: "5px 0",
+      background: "var(--background-primary)",
+      border: "2px solid var(--interactive-accent)",
+      borderRadius: "8px",
+      boxSizing: "border-box",
+      fontFamily: "monospace",
+      fontSize: "11px",
+    } as Partial<CSSStyleDeclaration>);
+    logContainer.id = "debug-log-container";
+
+    if (this.debugLogs.length === 0) {
+      const emptyEl = logContainer.createEl("div", {
+        text: "No hay logs aún. Los logs aparecerán aquí cuando se carguen las ubicaciones.",
+      });
+      setCssProps(emptyEl, {
+        padding: "10px",
+        textAlign: "center",
+        color: "var(--text-muted)",
+        fontSize: "12px",
+      });
+    } else {
+      this.debugLogs.forEach((log) => {
+        const color = log.includes('❌') || log.includes('Error') ? 'var(--text-error)' :
+          log.includes('✅') ? 'var(--text-success)' :
+          log.includes('⚠️') ? 'var(--text-warning)' :
+          'var(--text-normal)';
+        const bgColor = log.includes('❌') || log.includes('Error') ? 'rgba(255, 0, 0, 0.1)' :
+          log.includes('✅') ? 'rgba(0, 255, 0, 0.1)' : 'transparent';
+
+        const logLine = logContainer.createEl("div");
+        setCssProps(logLine, {
+          margin: "2px 0",
+          padding: "4px 6px",
+          color,
+          background: bgColor,
+          borderLeft: `2px solid ${color}`,
+          borderRadius: "2px",
+          wordWrap: "break-word",
+          whiteSpace: "pre-wrap",
+        } as Partial<CSSStyleDeclaration>);
+        logLine.textContent = log;
+      });
+      
+      // Auto-scroll al final
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+  }
+
   private renderLocationList(container: HTMLElement) {
     // Eliminar lista anterior si existe
     const existingList = container.querySelector('#location-list-container');
@@ -929,6 +1080,8 @@ export class NotelertDatePickerModal extends Modal {
       this.locationsError = null;
 
       const token = this.plugin.settings.pluginToken?.trim();
+      this.addDebugLog(`[Ubicaciones] Iniciando carga de ubicaciones. Token presente: ${!!token}, Longitud: ${token?.length || 0}`);
+      
       if (!token) {
         listContainer.empty();
         const err = listContainer.createEl("div", {
@@ -940,8 +1093,12 @@ export class NotelertDatePickerModal extends Modal {
           color: "var(--text-error)",
           fontSize: "13px",
         });
+        this.addDebugLog(`[Ubicaciones] ❌ No hay token configurado`);
         return;
       }
+
+      this.addDebugLog(`[Ubicaciones] Llamando a: ${PLUGIN_LIST_LOCATIONS_URL}`);
+      this.addDebugLog(`[Ubicaciones] Token (primeros 8 chars): ${token.substring(0, 8)}...`);
 
       const response = await requestUrl({
         url: PLUGIN_LIST_LOCATIONS_URL,
@@ -952,17 +1109,52 @@ export class NotelertDatePickerModal extends Modal {
         },
       });
 
+      this.addDebugLog(`[Ubicaciones] Respuesta recibida: status=${response.status}`);
+
       if (response.status >= 400) {
-        throw new Error(`HTTP ${response.status}`);
+        const errorData = (response.json ?? {}) as { error?: string; message?: string };
+        const errorMessage = errorData.message || errorData.error || `HTTP ${response.status}`;
+        this.addDebugLog(`[Ubicaciones] ❌ Error HTTP ${response.status}: ${errorMessage}`);
+        console.error('[Notelert] Error cargando ubicaciones:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+          fullResponse: response.json
+        });
+        throw new Error(errorMessage);
       }
 
       const data = (response.json ?? {}) as {
         success?: boolean;
         locations?: SavedLocation[];
+        count?: number;
         message?: string;
+        error?: string;
       };
 
+      this.addDebugLog(`[Ubicaciones] Respuesta parseada: success=${data.success}, count=${data.count}, locations=${data.locations?.length || 0}`);
+      this.addDebugLog(`[Ubicaciones] Respuesta completa: ${JSON.stringify(data, null, 2)}`);
+      console.log('[Notelert] Respuesta completa del backend:', data);
+
+      if (!data.success) {
+        const errorMessage = data.message || data.error || 'Error desconocido al cargar ubicaciones';
+        this.addDebugLog(`[Ubicaciones] ❌ Backend reportó error: ${errorMessage}`);
+        console.error('[Notelert] Backend reportó error:', errorMessage);
+        throw new Error(errorMessage);
+      }
+
       const locations = Array.isArray(data.locations) ? data.locations : [];
+      this.addDebugLog(`[Ubicaciones] ✅ Ubicaciones cargadas: ${locations.length}`);
+      
+      if (locations.length > 0) {
+        locations.forEach((loc, idx) => {
+          this.addDebugLog(`[Ubicaciones]   ${idx + 1}. ${loc.name} (${loc.latitude}, ${loc.longitude})`);
+        });
+      } else {
+        this.addDebugLog(`[Ubicaciones] ⚠️ Array de ubicaciones vacío`);
+        this.addDebugLog(`[Ubicaciones] ⚠️ Verifica que el userId del token coincida con el de la app`);
+        this.addDebugLog(`[Ubicaciones] ⚠️ Revisa los logs del backend para ver qué userId se está usando`);
+      }
 
       listContainer.empty();
 
@@ -1072,18 +1264,50 @@ export class NotelertDatePickerModal extends Modal {
       });
     } catch (error: any) {
       this.locationsError = error?.message || "Error cargando ubicaciones";
+      this.addDebugLog(`[Ubicaciones] ❌ Excepción: ${error?.message || String(error)}`);
+      this.addDebugLog(`[Ubicaciones] ❌ Error completo: ${JSON.stringify(error)}`);
       listContainer.empty();
-      const errEl = listContainer.createEl("div", {
-        text: `${getTranslation(this.language, "common.error") || "Error"}: ${this.locationsError}`,
-      });
-      setCssProps(errEl, {
+      
+      // Mostrar error detallado
+      const errContainer = listContainer.createEl("div");
+      setCssProps(errContainer, {
         padding: "20px",
         textAlign: "center",
-        color: "var(--text-error)",
-        fontSize: "13px",
       });
+      
+      const errTitle = errContainer.createEl("div", {
+        text: `${getTranslation(this.language, "common.error") || "Error"}: ${this.locationsError}`,
+      });
+      setCssProps(errTitle, {
+        color: "var(--text-error)",
+        fontSize: "14px",
+        fontWeight: "600",
+        marginBottom: "8px",
+      });
+      
+      const errDesc = errContainer.createEl("div", {
+        text: "Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. Usa el botón 'Ver logs' para más detalles",
+      });
+      setCssProps(errDesc, {
+        color: "var(--text-muted)",
+        fontSize: "12px",
+        lineHeight: "1.6",
+        whiteSpace: "pre-line",
+      });
+      
+      // Mostrar también en consola si debug está activado
+      if (this.plugin.settings.debugMode) {
+        console.error("[Notelert] Error cargando ubicaciones:", error);
+      }
     } finally {
       this.locationsLoading = false;
+      // Si el panel de debug está visible, actualizarlo
+      if (this.showDebugPanel) {
+        const container = document.querySelector('.notelert-datepicker-container');
+        if (container instanceof HTMLElement) {
+          this.renderDebugPanel(container);
+        }
+      }
     }
   }
 
