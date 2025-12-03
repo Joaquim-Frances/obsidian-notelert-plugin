@@ -1062,14 +1062,42 @@ export class NotelertDatePickerModal extends Modal {
     } as Partial<CSSStyleDeclaration>);
     listContainer.id = "location-list-container";
 
-    // Mostrar estado "Cargando..." con spinner simple
+    // Mostrar estado "Cargando..." con spinner visual animado
     listContainer.empty();
-    const loadingEl = listContainer.createEl("div", {
-      text: getTranslation(this.language, "common.loading") || "Cargando...",
-    });
-    setCssProps(loadingEl, {
-      padding: "20px",
+    const loadingContainer = listContainer.createEl("div");
+    setCssProps(loadingContainer, {
+      padding: "30px 20px",
       textAlign: "center",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: "12px",
+    });
+
+    // Spinner animado (CSS)
+    const spinner = loadingContainer.createEl("div");
+    spinner.innerHTML = `
+      <div style="
+        width: 32px;
+        height: 32px;
+        border: 3px solid var(--background-modifier-border);
+        border-top-color: var(--interactive-accent);
+        border-top-color: var(--interactive-accent);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      "></div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    `;
+
+    const loadingText = loadingContainer.createEl("div", {
+      text: getTranslation(this.language, "datePicker.loadingLocations") || "Cargando ubicaciones...",
+    });
+    setCssProps(loadingText, {
       color: "var(--text-muted)",
       fontSize: "13px",
     });
@@ -1116,7 +1144,7 @@ export class NotelertDatePickerModal extends Modal {
       this.addDebugLog(`[Ubicaciones] Respuesta recibida: status=${response.status}`);
 
       if (response.status >= 400) {
-        const errorData = (response.json ?? {}) as { error?: string; message?: string };
+        const errorData = (response.json ?? {}) as { error?: string; message?: string; isPremium?: boolean };
         const errorMessage = errorData.message || errorData.error || `HTTP ${response.status}`;
         this.addDebugLog(`[Ubicaciones] ❌ Error HTTP ${response.status}: ${errorMessage}`);
         console.error('[Notelert] Error cargando ubicaciones:', {
@@ -1125,6 +1153,15 @@ export class NotelertDatePickerModal extends Modal {
           error: errorData,
           fullResponse: response.json
         });
+        
+        // Si es error 403, probablemente es porque el usuario no es premium
+        if (response.status === 403) {
+          const premiumError = new Error('PREMIUM_REQUIRED');
+          (premiumError as any).status = 403;
+          (premiumError as any).errorData = errorData;
+          throw premiumError;
+        }
+        
         throw new Error(errorMessage);
       }
 
@@ -1163,15 +1200,59 @@ export class NotelertDatePickerModal extends Modal {
       listContainer.empty();
 
       if (!locations.length) {
-        const emptyEl = listContainer.createEl("div", {
-          text: getTranslation(this.language, "datePicker.noSavedLocations") || "No hay ubicaciones guardadas. Crea ubicaciones desde la app móvil.",
-        });
-        setCssProps(emptyEl, {
+        const emptyContainer = listContainer.createEl("div");
+        setCssProps(emptyContainer, {
           padding: "20px",
           textAlign: "center",
-          color: "var(--text-muted)",
-          fontSize: "13px",
         });
+
+        const emptyIcon = emptyContainer.createEl("div", {
+          text: "📍",
+        });
+        setCssProps(emptyIcon, {
+          fontSize: "32px",
+          marginBottom: "12px",
+        });
+
+        const emptyTitle = emptyContainer.createEl("div", {
+          text: getTranslation(this.language, "datePicker.noSavedLocationsTitle") || "No hay ubicaciones guardadas",
+        });
+        setCssProps(emptyTitle, {
+          color: "var(--text-normal)",
+          fontSize: "15px",
+          fontWeight: "600",
+          marginBottom: "8px",
+        });
+
+        const emptyDesc = emptyContainer.createEl("div", {
+          text: getTranslation(this.language, "datePicker.noSavedLocationsDesc") || 
+            "Para crear ubicaciones:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > Mis Ubicaciones\n3. Añade ubicaciones desde el mapa\n4. Vuelve aquí y recarga la lista",
+        });
+        setCssProps(emptyDesc, {
+          color: "var(--text-muted)",
+          fontSize: "12px",
+          lineHeight: "1.6",
+          whiteSpace: "pre-line",
+          marginBottom: "12px",
+        });
+
+        const reloadButton = emptyContainer.createEl("button", {
+          text: getTranslation(this.language, "datePicker.reloadLocations") || "🔄 Recargar ubicaciones",
+        });
+        setCssProps(reloadButton, {
+          padding: "8px 16px",
+          borderRadius: "6px",
+          border: "1px solid var(--interactive-accent)",
+          background: "var(--interactive-accent)",
+          color: "var(--text-on-accent)",
+          fontSize: "13px",
+          cursor: "pointer",
+          marginTop: "8px",
+        });
+        reloadButton.addEventListener("click", () => {
+          this.renderLocationList(listContainer.parentElement as HTMLElement);
+        });
+
         return;
       }
 
@@ -1272,7 +1353,101 @@ export class NotelertDatePickerModal extends Modal {
       this.addDebugLog(`[Ubicaciones] ❌ Error completo: ${JSON.stringify(error)}`);
       listContainer.empty();
       
-      // Mostrar error detallado
+      // Detectar si es error de premium requerido
+      if (error?.message === 'PREMIUM_REQUIRED' || error?.status === 403) {
+        const premiumContainer = listContainer.createEl("div");
+        setCssProps(premiumContainer, {
+          padding: "20px",
+          textAlign: "center",
+        });
+
+        const premiumIcon = premiumContainer.createEl("div", {
+          text: "💎",
+        });
+        setCssProps(premiumIcon, {
+          fontSize: "32px",
+          marginBottom: "12px",
+        });
+
+        const premiumTitle = premiumContainer.createEl("div", {
+          text: getTranslation(this.language, "datePicker.premiumRequiredTitle") || "Plan Premium requerido",
+        });
+        setCssProps(premiumTitle, {
+          color: "var(--text-normal)",
+          fontSize: "16px",
+          fontWeight: "600",
+          marginBottom: "8px",
+        });
+
+        const premiumDesc = premiumContainer.createEl("div", {
+          text: getTranslation(this.language, "datePicker.premiumRequiredDesc") || 
+            "Las notificaciones de ubicación solo están disponibles en el plan Premium.\n\nActualiza a Premium para usar esta función.",
+        });
+        setCssProps(premiumDesc, {
+          color: "var(--text-muted)",
+          fontSize: "13px",
+          lineHeight: "1.6",
+          whiteSpace: "pre-line",
+          marginBottom: "16px",
+        });
+
+        // Botón para abrir paywall en la app
+        const openAppButton = premiumContainer.createEl("button", {
+          text: getTranslation(this.language, "datePicker.openAppToUpgrade") || "📱 Abrir app para actualizar",
+        });
+        setCssProps(openAppButton, {
+          padding: "10px 20px",
+          borderRadius: "6px",
+          border: "1px solid var(--interactive-accent)",
+          background: "var(--interactive-accent)",
+          color: "var(--text-on-accent)",
+          fontSize: "14px",
+          fontWeight: "500",
+          cursor: "pointer",
+          marginBottom: "8px",
+          width: "100%",
+        });
+        openAppButton.addEventListener("click", async () => {
+          // Intentar abrir deeplink al paywall de la app
+          const paywallLink = "notelert://paywall";
+          try {
+            // Intentar abrir la app
+            window.location.href = paywallLink;
+            // Si falla, redirigir a Play Store después de un delay
+            setTimeout(() => {
+              const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
+              window.open(playStoreLink, "_blank");
+            }, 2000);
+          } catch (e) {
+            // Si falla, abrir Play Store directamente
+            const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
+            window.open(playStoreLink, "_blank");
+          }
+        });
+
+        // Botón alternativo para Play Store si no tiene la app
+        const playStoreButton = premiumContainer.createEl("button", {
+          text: getTranslation(this.language, "datePicker.installApp") || "📥 Instalar app desde Play Store",
+        });
+        setCssProps(playStoreButton, {
+          padding: "8px 16px",
+          borderRadius: "6px",
+          border: "1px solid var(--background-modifier-border)",
+          background: "var(--background-primary)",
+          color: "var(--text-normal)",
+          fontSize: "13px",
+          cursor: "pointer",
+          width: "100%",
+        });
+        playStoreButton.addEventListener("click", () => {
+          const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
+          window.open(playStoreLink, "_blank");
+        });
+
+        return;
+      }
+      
+      // Mostrar error detallado para otros errores
       const errContainer = listContainer.createEl("div");
       setCssProps(errContainer, {
         padding: "20px",
@@ -1290,7 +1465,8 @@ export class NotelertDatePickerModal extends Modal {
       });
       
       const errDesc = errContainer.createEl("div", {
-        text: "Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. Usa el botón 'Ver logs' para más detalles",
+        text: getTranslation(this.language, "datePicker.locationsErrorDesc") || 
+          "Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. Usa el botón 'Ver logs' para más detalles",
       });
       setCssProps(errDesc, {
         color: "var(--text-muted)",
