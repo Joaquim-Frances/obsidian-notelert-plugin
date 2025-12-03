@@ -1116,15 +1116,62 @@ export class NotelertDatePickerModal extends Modal {
       
       if (!token) {
         listContainer.empty();
-        const err = listContainer.createEl("div", {
-          text: getTranslation(this.language, "datePicker.noPluginToken") || "Token del plugin requerido para cargar ubicaciones.",
-        });
-        setCssProps(err, {
+        const tokenContainer = listContainer.createEl("div");
+        setCssProps(tokenContainer, {
           padding: "20px",
           textAlign: "center",
-          color: "var(--text-error)",
-          fontSize: "13px",
         });
+
+        const tokenIcon = tokenContainer.createEl("div", {
+          text: "🔑",
+        });
+        setCssProps(tokenIcon, {
+          fontSize: "32px",
+          marginBottom: "12px",
+        });
+
+        const tokenTitle = tokenContainer.createEl("div", {
+          text: getTranslation(this.language, "datePicker.tokenRequiredTitle") || "Token del plugin requerido",
+        });
+        setCssProps(tokenTitle, {
+          color: "var(--text-normal)",
+          fontSize: "16px",
+          fontWeight: "600",
+          marginBottom: "8px",
+        });
+
+        const tokenDesc = tokenContainer.createEl("div", {
+          text: getTranslation(this.language, "datePicker.tokenRequiredDesc") || 
+            "Las notificaciones de ubicación requieren un usuario Premium con token válido.\n\nPara obtener tu token:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > Token del Plugin\n3. Copia el token y pégalo en Settings > Notelert > Plugin Token",
+        });
+        setCssProps(tokenDesc, {
+          color: "var(--text-muted)",
+          fontSize: "13px",
+          lineHeight: "1.6",
+          whiteSpace: "pre-line",
+          marginBottom: "12px",
+        });
+
+        const settingsButton = tokenContainer.createEl("button", {
+          text: getTranslation(this.language, "datePicker.openSettings") || "⚙️ Abrir Settings",
+        });
+        setCssProps(settingsButton, {
+          padding: "10px 20px",
+          borderRadius: "6px",
+          border: "1px solid var(--interactive-accent)",
+          background: "var(--interactive-accent)",
+          color: "var(--text-on-accent)",
+          fontSize: "14px",
+          fontWeight: "500",
+          cursor: "pointer",
+          width: "100%",
+        });
+        settingsButton.addEventListener("click", () => {
+          // Abrir settings del plugin
+          this.app.setting.openTabById("notelert");
+          this.close();
+        });
+
         this.addDebugLog(`[Ubicaciones] ❌ No hay token configurado`);
         return;
       }
