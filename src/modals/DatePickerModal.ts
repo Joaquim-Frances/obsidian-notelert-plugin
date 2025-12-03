@@ -1166,10 +1166,31 @@ export class NotelertDatePickerModal extends Modal {
           cursor: "pointer",
           width: "100%",
         });
-        settingsButton.addEventListener("click", () => {
-          // Abrir settings del plugin
-          this.app.setting.openTabById("notelert");
+        settingsButton.addEventListener("click", async () => {
+          // Cerrar el modal primero
           this.close();
+          
+          // Abrir la app Notelert en la pantalla de Account (donde está el token del plugin)
+          const accountLink = "notelert://account";
+          
+          try {
+            // Intentar abrir la app móvil
+            if (typeof window !== 'undefined') {
+              window.location.href = accountLink;
+              
+              // Si falla después de 2 segundos, abrir Play Store
+              setTimeout(() => {
+                const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
+                window.open(playStoreLink, "_blank");
+              }, 2000);
+            }
+          } catch (error) {
+            // Si falla, abrir Play Store directamente
+            const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
+            if (typeof window !== 'undefined') {
+              window.open(playStoreLink, "_blank");
+            }
+          }
         });
 
         this.addDebugLog(`[Ubicaciones] ❌ No hay token configurado`);
