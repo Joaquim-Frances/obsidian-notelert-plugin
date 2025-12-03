@@ -3,6 +3,7 @@ import { DetectedPattern, NotelertSettings, ScheduledEmail } from "../../core/ty
 import { getTranslation } from "../../i18n";
 import { scheduleEmailReminderProxy, generateNotificationId } from "./firebase-api";
 import { PLUGIN_SCHEDULE_EMAIL_URL } from "../../core/config";
+import { isIOS, getMobilePlatform } from "./utils";
 
 export function generateDeepLink(pattern: DetectedPattern, app: App): string {
   const title = encodeURIComponent(pattern.title);
@@ -154,22 +155,38 @@ export async function createNotification(
         throw new Error(errorMessage);
       }
     } else {
-      // Móvil: Usar deep link como antes
+      // Móvil: Detectar plataforma y validar
+      const mobilePlatform = getMobilePlatform();
+      log(`Plataforma móvil detectada: ${mobilePlatform}`);
+      
+      // Verificar si es iOS
+      if (isIOS()) {
+        new Notice(
+          getTranslation(settings.language, "notices.iosNotSupported") || 
+          "⚠️ iOS detectado\n\n" +
+          "Notelert actualmente solo está disponible para Android.\n" +
+          "La app de iOS está en desarrollo. Por favor, usa un dispositivo Android para crear notificaciones."
+        );
+        log(`iOS detectado - Notelert no está disponible para iOS aún`);
+        return;
+      }
+      
+      // Móvil (Android): Usar deep link como antes
       const deeplink = generateDeepLink(pattern, app);
-      log(`Ejecutando deeplink: ${deeplink}`);
+      log(`Ejecutando deeplink en ${mobilePlatform}: ${deeplink}`);
       
       // Método simplificado para abrir el deeplink sin causar problemas de guardado
       if (typeof window !== 'undefined') {
         window.location.href = deeplink;
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Solo loggear errores inesperados, los errores de negocio ya se mostraron
-    if (error?.message && error.message.includes('Error al programar email')) {
+    if (error instanceof Error && error.message.includes('Error al programar email')) {
       // Re-lanzar errores de negocio para que el modal no se cierre
       throw error;
     }
-    log(`Error creando notificación: ${error}`);
+    log(`Error creando notificación: ${error instanceof Error ? error.message : String(error)}`);
     new Notice(getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
     // Re-lanzar para que el modal no se cierre
     throw error;

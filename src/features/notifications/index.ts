@@ -1,3 +1,3 @@
 export { generateDeepLink, createNotification } from "./deeplink";
-export { createNotificationId, simpleHash, hasVisualIndicator } from "./utils";
+export { isIOS, isAndroid, getMobilePlatform } from "./utils";
 

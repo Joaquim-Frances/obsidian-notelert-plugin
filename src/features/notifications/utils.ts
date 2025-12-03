@@ -1,32 +1,60 @@
-import { DetectedPattern } from "../../core/types";
+import { Platform } from "obsidian";
 
-// Crear identificador único para una notificación
-export function createNotificationId(pattern: DetectedPattern): string {
-  // Usar título, fecha, hora y contenido del mensaje para crear un ID único
-  // No usar posición porque puede cambiar al editar el texto
-  const contentHash = simpleHash(pattern.message);
-  return `${pattern.title}|${pattern.date}|${pattern.time}|${contentHash}`;
-}
-
-// Función simple para crear hash del contenido
-export function simpleHash(str: string): string {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convertir a 32bit integer
+/**
+ * Detecta si la app de Obsidian está corriendo en iOS
+ * @returns true si es iOS, false en caso contrario
+ */
+export function isIOS(): boolean {
+  // Intentar usar Platform.isIOS si está disponible (API de Obsidian)
+  if (typeof (Platform as any).isIOS === 'boolean') {
+    return (Platform as any).isIOS;
   }
-  return Math.abs(hash).toString(36);
+  
+  // Fallback: usar navigator.userAgent
+  if (typeof navigator !== 'undefined' && navigator.userAgent) {
+    const ua = navigator.userAgent.toLowerCase();
+    return /iphone|ipad|ipod/.test(ua) && !(window as any).MSStream;
+  }
+  
+  return false;
 }
 
-// Verificar si una línea ya tiene un icono visual
-export function hasVisualIndicator(line: string): boolean {
-  // Lista de iconos comunes que podrían indicar que ya fue procesado
-  const visualIndicators = [
-    "⏰", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚", "🕛",
-    "📅", "📆", "🗓️", "⏱️", "⏲️", "⏳", "⌚", "🔔", "✅", "✓", "✔️", "🎯"
-  ];
+/**
+ * Detecta si la app de Obsidian está corriendo en Android
+ * @returns true si es Android, false en caso contrario
+ */
+export function isAndroid(): boolean {
+  // Intentar usar Platform.isAndroid si está disponible (API de Obsidian)
+  if (typeof (Platform as any).isAndroid === 'boolean') {
+    return (Platform as any).isAndroid;
+  }
   
-  return visualIndicators.some(icon => line.includes(icon));
+  // Fallback: usar navigator.userAgent
+  if (typeof navigator !== 'undefined' && navigator.userAgent) {
+    const ua = navigator.userAgent.toLowerCase();
+    return /android/.test(ua);
+  }
+  
+  return false;
+}
+
+/**
+ * Obtiene información sobre la plataforma móvil
+ * @returns 'ios' | 'android' | 'unknown' | 'desktop'
+ */
+export function getMobilePlatform(): 'ios' | 'android' | 'unknown' | 'desktop' {
+  if (!Platform.isMobile) {
+    return 'desktop';
+  }
+  
+  if (isIOS()) {
+    return 'ios';
+  }
+  
+  if (isAndroid()) {
+    return 'android';
+  }
+  
+  return 'unknown';
 }
 
