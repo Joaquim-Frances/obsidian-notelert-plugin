@@ -1,9 +1,8 @@
-import { App, Plugin, PluginSettingTab, Setting, Modal, Platform, Notice } from "obsidian";
+import { App, Plugin, PluginSettingTab, Setting, Platform } from "obsidian";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
-import { ScheduledEmail } from "../core/types";
-import { cancelScheduledEmail } from "../features/notifications/firebase-api";
 import { setCssProps } from "../core/dom";
+import { isIOS, getMobilePlatform } from "../features/notifications/utils";
 
 export class NotelertSettingTab extends PluginSettingTab {
   plugin: INotelertPlugin;
@@ -18,6 +17,8 @@ export class NotelertSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     const isDesktop = !Platform.isMobile;
+    const mobilePlatform = getMobilePlatform();
+    const isIOSDevice = isIOS();
 
     // Título principal como heading de Setting
     new Setting(containerEl)
@@ -45,7 +46,19 @@ export class NotelertSettingTab extends PluginSettingTab {
         text: getTranslation(this.plugin.settings.language, "settings.platformInfo.desktopDesc"),
         attr: { style: "margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;" }
       });
+    } else if (isIOSDevice) {
+      // Información específica para iOS
+      new Setting(platformInfo)
+        .setName(getTranslation(this.plugin.settings.language, "settings.platformInfo.iosTitle") || "⚠️ iOS Detectado")
+        .setHeading();
+      platformInfo.createEl("p", {
+        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.iosDesc") || 
+          "Notelert actualmente solo está disponible para Android. La app de iOS está en desarrollo. " +
+          "Por favor, usa un dispositivo Android para crear notificaciones push.",
+        attr: { style: "margin: 0; color: var(--text-warning); font-size: 13px; line-height: 1.5;" }
+      });
     } else {
+      // Android u otra plataforma móvil
       new Setting(platformInfo)
         .setName(getTranslation(this.plugin.settings.language, "settings.platformInfo.mobileTitle"))
         .setHeading();
@@ -152,29 +165,6 @@ export class NotelertSettingTab extends PluginSettingTab {
             });
         });
 
-      // Lista de emails programados
-      new Setting(containerEl)
-        .setName(getTranslation(this.plugin.settings.language, "settings.scheduledEmails.title"))
-        .setHeading();
-
-      const emailsDesc = containerEl.createEl("p", {
-        text: getTranslation(this.plugin.settings.language, "settings.scheduledEmails.desc"),
-        attr: { style: "color: var(--text-muted); font-size: 13px; margin-bottom: 15px;" }
-      });
-
-      const emailsContainer = containerEl.createEl("div", {
-        attr: {
-          style: `
-            margin: 15px 0;
-            padding: 15px;
-            background: var(--background-secondary);
-            border-radius: 8px;
-            border: 1px solid var(--background-modifier-border);
-          `
-        }
-      });
-
-      this.renderScheduledEmails(emailsContainer);
     }
 
     // ========== CONFIGURACIÓN GENERAL ==========
@@ -199,183 +189,5 @@ export class NotelertSettingTab extends PluginSettingTab {
       });
   }
 
-  // Renderizar lista de emails programados
-  private renderScheduledEmails(container: HTMLElement) {
-    container.empty();
-
-    const emails = this.plugin.settings.scheduledEmails || [];
-
-    if (emails.length === 0) {
-      container.createEl("p", {
-        text: getTranslation(this.plugin.settings.language, "settings.scheduledEmails.empty"),
-        attr: { style: "color: var(--text-muted); text-align: center; padding: 20px;" }
-      });
-      return;
-    }
-
-    // Ordenar por fecha programada (más próximos primero)
-    const sortedEmails = [...emails].sort((a, b) =>
-      new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
-    );
-
-    sortedEmails.forEach((email, index) => {
-      const emailItem = container.createEl("div", {
-        attr: {
-          style: `
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid var(--background-modifier-border);
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            background: var(--background-primary);
-          `
-        }
-      });
-
-      const emailInfo = emailItem.createEl("div", {
-        attr: { style: "flex: 1; min-width: 200px;" }
-      });
-
-      emailInfo.createEl("div", {
-        text: email.title,
-        attr: { style: "font-weight: 500; margin-bottom: 4px; font-size: 14px;" }
-      });
-
-      if (email.message) {
-        emailInfo.createEl("div", {
-          text: email.message.length > 60 ? email.message.substring(0, 60) + "..." : email.message,
-          attr: { style: "font-size: 12px; color: var(--text-muted); margin-bottom: 4px; word-wrap: break-word;" }
-        });
-      }
-
-      const scheduledDate = new Date(email.scheduledDate);
-      const now = new Date();
-      const isPast = scheduledDate < now;
-
-      emailInfo.createEl("div", {
-        text: `📅 ${scheduledDate.toLocaleString('es-ES', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })} ${isPast ? getTranslation(this.plugin.settings.language, "settings.scheduledEmails.past") : ''}`,
-        attr: {
-          style: `font-size: 11px; color: ${isPast ? 'var(--text-error)' : 'var(--text-muted)'};`
-        }
-      });
-
-      const buttonsContainer = emailItem.createEl("div", {
-        attr: { style: "display: flex; gap: 6px; flex-shrink: 0;" }
-      });
-
-      const cancelButton = buttonsContainer.createEl("button", {
-        text: getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelButton"),
-        attr: {
-          style: "padding: 6px 12px; font-size: 12px; white-space: nowrap; color: var(--text-error);",
-          id: `cancel-email-btn-${email.notificationId}`
-        }
-      });
-      cancelButton.addEventListener("click", () => {
-        void (async () => {
-          // Encontrar el índice real en la lista original
-          const realIndex = emails.findIndex(e => e.notificationId === email.notificationId);
-          await this.cancelScheduledEmail(email, realIndex, cancelButton);
-        })();
-      });
-    });
-  }
-
-  // Cancelar email programado
-  private async cancelScheduledEmail(email: ScheduledEmail, index: number, button?: HTMLButtonElement) {
-    // NOTA: cancelScheduledEmail todavía requiere API key del endpoint antiguo
-    // TODO: Crear endpoint /plugin/cancelEmail que use autenticación por usuario
-    // Por ahora, si no hay API key configurada, mostrar error
-    const apiKey = this.plugin.settings.notelertApiKey;
-
-    if (!apiKey) {
-      new Notice("❌ Para cancelar emails, necesitas configurar una API key en Settings (o esperar a que se envíe automáticamente).");
-      return;
-    }
-
-    // Mostrar spinner en el botón si está disponible
-    if (button) {
-      this.showLoadingState(button);
-    }
-
-    // Mostrar feedback visual inmediato
-    const loadingNotice = new Notice("⏳ Cancelando email...", 0); // 0 = no auto-close
-
-    try {
-      const result = await cancelScheduledEmail(
-        email.notificationId,
-        apiKey
-      );
-
-      // Cerrar el notice de carga
-      loadingNotice.hide();
-
-      // Restaurar botón
-      if (button) {
-        this.hideLoadingState(button);
-      }
-
-      if (result.success) {
-        // Eliminar de la lista local
-        this.plugin.settings.scheduledEmails.splice(index, 1);
-        await this.plugin.saveSettings();
-        this.display(); // Recargar para actualizar la lista
-        new Notice(getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelSuccess"));
-      } else {
-        new Notice(`❌ Error: ${result.error || getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelError")}`);
-      }
-    } catch (error) {
-      // Cerrar el notice de carga
-      loadingNotice.hide();
-
-      // Restaurar botón en caso de error
-      if (button) {
-        this.hideLoadingState(button);
-      }
-
-      new Notice(`❌ Error: ${error instanceof Error ? error.message : getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelError")}`);
-    }
-  }
-
-  // Mostrar estado de carga (spinner) en el botón
-  private showLoadingState(button: HTMLButtonElement) {
-    // Guardar el texto original
-    (button as HTMLButtonElement & { __originalText?: string }).__originalText = button.textContent || undefined;
-
-    // Deshabilitar botón
-    button.disabled = true;
-    setCssProps(button, {
-      opacity: '0.6',
-      cursor: 'not-allowed',
-    });
-
-    // Texto de carga sencillo
-    button.textContent = getTranslation(this.plugin.settings.language, "settings.scheduledEmails.canceling");
-  }
-
-  // Ocultar estado de carga y restaurar botón
-  private hideLoadingState(button: HTMLButtonElement) {
-    // Restaurar texto original
-    const originalText =
-      (button as HTMLButtonElement & { __originalText?: string }).__originalText ||
-      getTranslation(this.plugin.settings.language, "settings.scheduledEmails.cancelButton");
-    button.textContent = originalText;
-
-    // Restaurar estado del botón
-    button.disabled = false;
-    setCssProps(button, {
-      opacity: '1',
-      cursor: 'pointer',
-    });
-  }
 
 }

@@ -15,7 +15,7 @@ Many thanks!
 The user triggers a pop-up using `:@` then in the pop-up the user can select the date and time that he/she wants to be notified and confirms. After confirming a deeplink is generated and the Notelert app catches it and parses the link. If the link contains a valid future date and time, the app sets a notification in the system.
 
 ### Location Notifications
-If the user chooses to set a location based notification the process is the same but instead of using date and time the deeplink contains at latitude and longitude. When pressing the location button in the pop-up, appears the list of pre-selected locations that previously the user has selected in the options of the plugin.
+If the user chooses to set a location based notification the process is the same but instead of using date and time the deeplink contains at latitude and longitude. When pressing the location button in the pop-up, appears the list of pre-selected locations that previously the user has selected in the app and stored in the database, the plugin fetches the user preselected locations from the database.
 The app uses Google Maps API and geofencing to detect the position of the device and triggers the notification when arriving.
 
 ### Email Notifications

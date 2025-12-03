@@ -6,12 +6,9 @@
  */
 
 // URL base de Firebase Functions
-export const FIREBASE_FUNCTION_BASE_URL = 'https://us-central1-notalert-2a44a.cloudfunctions.net';
+const FIREBASE_FUNCTION_BASE_URL = 'https://us-central1-notalert-2a44a.cloudfunctions.net';
 
-// URL del endpoint proxy para geocodificación (sin API key requerida)
-export const PLUGIN_GEOCODE_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginGeocode`;
-
-// URL del endpoint proxy para programar emails (sin API key requerida)
+// URL del endpoint proxy para programar emails (sin API key requerida, usa plugin token)
 export const PLUGIN_SCHEDULE_EMAIL_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginScheduleEmail`;
 
 // URL del endpoint para listar ubicaciones guardadas del usuario (para el plugin)

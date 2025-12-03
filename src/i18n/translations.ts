@@ -39,7 +39,9 @@ export const TRANSLATIONS = {
         desktopTitle: '💻 Modo Desktop',
         desktopDesc: 'En desktop, Notelert envía notificaciones por email. Las notificaciones de ubicación solo están disponibles en móvil.',
         mobileTitle: '📱 Modo Móvil',
-        mobileDesc: 'En móvil, Notelert usa la app para enviar notificaciones push y emails. Puedes configurar ubicaciones favoritas para recordatorios basados en ubicación.'
+        mobileDesc: 'En móvil, Notelert usa la app para enviar notificaciones push y emails. Puedes configurar ubicaciones favoritas para recordatorios basados en ubicación.',
+        iosTitle: '⚠️ iOS Detectado',
+        iosDesc: 'Notelert actualmente solo está disponible para Android. La app de iOS está en desarrollo. Por favor, usa un dispositivo Android para crear notificaciones push.'
       },
       basicSettings: 'Configuración básica',
       pluginToken: {
@@ -96,7 +98,8 @@ export const TRANSLATIONS = {
       emailScheduled: '✅ Email programado correctamente',
       tokenLinked: '✅ Token vinculado correctamente desde la app móvil',
       tokenLinkError: '❌ Error al vincular token',
-      tokenInvalidFormat: '❌ Formato de token inválido'
+      tokenInvalidFormat: '❌ Formato de token inválido',
+      iosNotSupported: '⚠️ iOS detectado\n\nNotelert actualmente solo está disponible para Android.\nLa app de iOS está en desarrollo. Por favor, usa un dispositivo Android para crear notificaciones.'
     },
     modal: {
       title: '¿Crear notificación en Notelert?',
@@ -199,7 +202,9 @@ export const TRANSLATIONS = {
         desktopTitle: '💻 Desktop Mode',
         desktopDesc: 'On desktop, Notelert sends email notifications. Location notifications are only available on mobile.',
         mobileTitle: '📱 Mobile Mode',
-        mobileDesc: 'On mobile, Notelert uses the app to send push notifications and emails. You can configure favorite locations for location-based reminders.'
+        mobileDesc: 'On mobile, Notelert uses the app to send push notifications and emails. You can configure favorite locations for location-based reminders.',
+        iosTitle: '⚠️ iOS Detected',
+        iosDesc: 'Notelert is currently only available for Android. The iOS app is under development. Please use an Android device to create push notifications.'
       },
       basicSettings: 'Basic settings',
       pluginToken: {
@@ -256,7 +261,8 @@ export const TRANSLATIONS = {
       emailScheduled: '✅ Email scheduled successfully',
       tokenLinked: '✅ Token linked successfully from mobile app',
       tokenLinkError: '❌ Error linking token',
-      tokenInvalidFormat: '❌ Invalid token format'
+      tokenInvalidFormat: '❌ Invalid token format',
+      iosNotSupported: '⚠️ iOS detected\n\nNotelert is currently only available for Android.\nThe iOS app is under development. Please use an Android device to create notifications.'
     },
     modal: {
       title: 'Create notification in Notelert?',
@@ -359,7 +365,9 @@ export const TRANSLATIONS = {
         desktopTitle: '💻 Mode Escriptori',
         desktopDesc: 'A l\'escriptori, Notelert envia notificacions per correu electrònic. Les notificacions d\'ubicació només estan disponibles al mòbil.',
         mobileTitle: '📱 Mode Mòbil',
-        mobileDesc: 'Al mòbil, Notelert utilitza l\'aplicació per enviar notificacions push i correus electrònics. Pots configurar ubicacions preferides per a recordatoris basats en la ubicació.'
+        mobileDesc: 'Al mòbil, Notelert utilitza l\'aplicació per enviar notificacions push i correus electrònics. Pots configurar ubicacions preferides per a recordatoris basats en la ubicació.',
+        iosTitle: '⚠️ iOS Detectat',
+        iosDesc: 'Notelert actualment només està disponible per a Android. L\'app d\'iOS està en desenvolupament. Si us plau, utilitza un dispositiu Android per crear notificacions push.'
       },
       basicSettings: 'Configuració Bàsica',
       pluginToken: {
@@ -413,7 +421,11 @@ export const TRANSLATIONS = {
       defaultTitle: 'Recordatori',
       desktopConfigRequired: '❌ Configura el teu email i API Key a Settings per usar Notelert a desktop',
       locationNotSupportedDesktop: '❌ Les notificacions d\'ubicació només estan disponibles a mòbil',
-      emailScheduled: '✅ Email programat correctament'
+      emailScheduled: '✅ Email programat correctament',
+      tokenLinked: '✅ Token vinculat correctament des de l\'app mòbil',
+      tokenLinkError: '❌ Error al vincular token',
+      tokenInvalidFormat: '❌ Format de token invàlid',
+      iosNotSupported: '⚠️ iOS detectat\n\nNotelert actualment només està disponible per a Android.\nL\'app d\'iOS està en desenvolupament. Si us plau, utilitza un dispositiu Android per crear notificacions.'
     },
     modal: {
       title: 'Crear notificació a Notelert?',
@@ -502,7 +514,9 @@ export const TRANSLATIONS = {
         desktopTitle: '💻 Mode Bureau',
         desktopDesc: 'Sur bureau, Notelert envoie des notifications par e-mail. Les notifications de localisation sont uniquement disponibles sur mobile.',
         mobileTitle: '📱 Mode Mobile',
-        mobileDesc: 'Sur mobile, Notelert utilise l\'application pour envoyer des notifications push et des e-mails. Vous pouvez configurer des lieux favoris pour les rappels basés sur la localisation.'
+        mobileDesc: 'Sur mobile, Notelert utilise l\'application pour envoyer des notifications push et des e-mails. Vous pouvez configurer des lieux favoris pour les rappels basés sur la localisation.',
+        iosTitle: '⚠️ iOS Détecté',
+        iosDesc: 'Notelert est actuellement uniquement disponible pour Android. L\'application iOS est en cours de développement. Veuillez utiliser un appareil Android pour créer des notifications push.'
       },
       basicSettings: 'Paramètres de base',
       pluginToken: {
@@ -553,7 +567,14 @@ export const TRANSLATIONS = {
       processedNote: 'Traité: {filename} ({count} notifications)',
       clearedHistory: 'Historique de traitement effacé',
       errorCreatingNotification: 'Erreur lors de la création de la notification: {title}',
-      defaultTitle: 'Rappel'
+      defaultTitle: 'Rappel',
+      desktopConfigRequired: '❌ Configurez votre e-mail et votre clé API dans les paramètres pour utiliser Notelert sur le bureau',
+      locationNotSupportedDesktop: '❌ Les notifications de localisation sont uniquement disponibles sur mobile',
+      emailScheduled: '✅ E-mail programmé avec succès',
+      tokenLinked: '✅ Token lié avec succès depuis l\'application mobile',
+      tokenLinkError: '❌ Erreur lors de la liaison du token',
+      tokenInvalidFormat: '❌ Format de token invalide',
+      iosNotSupported: '⚠️ iOS détecté\n\nNotelert est actuellement uniquement disponible pour Android.\nL\'application iOS est en cours de développement. Veuillez utiliser un appareil Android pour créer des notifications.'
     },
     datePicker: {
       title: 'Sélectionner la date et l\'heure',
@@ -633,7 +654,9 @@ export const TRANSLATIONS = {
         desktopTitle: '💻 Desktop-Modus',
         desktopDesc: 'Auf dem Desktop sendet Notelert E-Mail-Benachrichtigungen. Standortbenachrichtigungen sind nur auf Mobilgeräten verfügbar.',
         mobileTitle: '📱 Mobil-Modus',
-        mobileDesc: 'Auf Mobilgeräten verwendet Notelert die App, um Push-Benachrichtigungen und E-Mails zu senden. Sie können Lieblingsorte für standortbezogene Erinnerungen konfigurieren.'
+        mobileDesc: 'Auf Mobilgeräten verwendet Notelert die App, um Push-Benachrichtigungen und E-Mails zu senden. Sie können Lieblingsorte für standortbezogene Erinnerungen konfigurieren.',
+        iosTitle: '⚠️ iOS Erkannt',
+        iosDesc: 'Notelert ist derzeit nur für Android verfügbar. Die iOS-App befindet sich in der Entwicklung. Bitte verwenden Sie ein Android-Gerät, um Push-Benachrichtigungen zu erstellen.'
       },
       basicSettings: 'Grundeinstellungen',
       pluginToken: {
@@ -684,7 +707,14 @@ export const TRANSLATIONS = {
       processedNote: 'Verarbeitet: {filename} ({count} Benachrichtigungen)',
       clearedHistory: 'Verarbeitungshistorie gelöscht',
       errorCreatingNotification: 'Fehler beim Erstellen der Benachrichtigung: {title}',
-      defaultTitle: 'Erinnerung'
+      defaultTitle: 'Erinnerung',
+      desktopConfigRequired: '❌ Konfigurieren Sie Ihre E-Mail und API-Schlüssel in den Einstellungen, um Notelert auf dem Desktop zu verwenden',
+      locationNotSupportedDesktop: '❌ Standortbenachrichtigungen sind nur auf Mobilgeräten verfügbar',
+      emailScheduled: '✅ E-Mail erfolgreich geplant',
+      tokenLinked: '✅ Token erfolgreich von der mobilen App verknüpft',
+      tokenLinkError: '❌ Fehler beim Verknüpfen des Tokens',
+      tokenInvalidFormat: '❌ Ungültiges Token-Format',
+      iosNotSupported: '⚠️ iOS erkannt\n\nNotelert ist derzeit nur für Android verfügbar.\nDie iOS-App befindet sich in der Entwicklung. Bitte verwenden Sie ein Android-Gerät, um Benachrichtigungen zu erstellen.'
     }
   },
   pt: {
@@ -713,7 +743,9 @@ export const TRANSLATIONS = {
         desktopTitle: '💻 Modo Desktop',
         desktopDesc: 'No desktop, Notelert envia notificações por e-mail. As notificações de localização estão disponíveis apenas no celular.',
         mobileTitle: '📱 Modo Móvel',
-        mobileDesc: 'No celular, Notelert usa o aplicativo para enviar notificações push e e-mails. Você pode configurar locais favoritos para lembretes baseados em localização.'
+        mobileDesc: 'No celular, Notelert usa o aplicativo para enviar notificações push e e-mails. Você pode configurar locais favoritos para lembretes baseados em localização.',
+        iosTitle: '⚠️ iOS Detectado',
+        iosDesc: 'Notelert está atualmente disponível apenas para Android. O aplicativo iOS está em desenvolvimento. Por favor, use um dispositivo Android para criar notificações push.'
       },
       basicSettings: 'Configurações Básicas',
       pluginToken: {
@@ -764,7 +796,14 @@ export const TRANSLATIONS = {
       processedNote: 'Processada: {filename} ({count} notificações)',
       clearedHistory: 'Histórico de processamento limpo',
       errorCreatingNotification: 'Erro ao criar notificação: {title}',
-      defaultTitle: 'Lembrete'
+      defaultTitle: 'Lembrete',
+      desktopConfigRequired: '❌ Configure seu e-mail e chave de API nas configurações para usar Notelert no desktop',
+      locationNotSupportedDesktop: '❌ As notificações de localização estão disponíveis apenas no celular',
+      emailScheduled: '✅ E-mail agendado com sucesso',
+      tokenLinked: '✅ Token vinculado com sucesso do aplicativo móvel',
+      tokenLinkError: '❌ Erro ao vincular token',
+      tokenInvalidFormat: '❌ Formato de token inválido',
+      iosNotSupported: '⚠️ iOS detectado\n\nNotelert está atualmente disponível apenas para Android.\nO aplicativo iOS está em desenvolvimento. Por favor, use um dispositivo Android para criar notificações.'
     }
   }
 };
