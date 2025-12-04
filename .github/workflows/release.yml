@@ -1,0 +1,66 @@
+name: Build and Prepare Download
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # Permite ejecutar manualmente
+
+jobs:
+  build-and-prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Necesario para hacer push de los archivos compilados
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build plugin
+        run: npm run build
+      
+      - name: Read version from manifest
+        id: version
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+      
+      - name: Create download ZIP
+        run: |
+          mkdir -p release
+          cp dist/main.js release/
+          cp dist/manifest.json release/
+          cd release
+          zip -r ../notelert-plugin.zip .
+          cd ..
+      
+      - name: Upload ZIP as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: notelert-plugin
+          path: notelert-plugin.zip
+          retention-days: 90
+      
+      - name: Commit built files to repo
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add dist/main.js dist/manifest.json
+          if ! git diff --staged --quiet; then
+            git commit -m "Build: Update dist files [skip ci]"
+            git push
+          else
+            echo "No changes to commit in dist files"
+          fi
+

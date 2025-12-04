@@ -2,6 +2,48 @@
 Notelert is an app that sets notifications and reminders in the Android systems thanks to the Notelert plug-in in Obsidian. This app and plugin act as a bridge between Obsidian and the Android native capavilites regarding notifications. So you want a notification in a certain line of your note, you trigger the pop up select the notification type and confirm. Notelert opens, register the notification in the Android system and return you back to Obsidian in less than two seconds. So the notification is set and you can continue with your notes. The app also acts as list or log of your current active notifications and the old ones, and you can set some preferences also. But that's it.
 Notelert app or plugin does not scans you vault in any way.
 
+## Installation
+
+### Method 1: Download ZIP from GitHub Actions (Recommended)
+
+1. **Download the plugin ZIP**:
+   - Go to the [Actions tab](https://github.com/quimfrances/obsidian-notelert-plugin/actions)
+   - Click on the latest successful workflow run (green checkmark)
+   - Scroll down to "Artifacts" section
+   - Download `notelert-plugin.zip`
+
+2. **Extract and install**:
+   - Extract the ZIP file to get `main.js` and `manifest.json`
+   - Open Obsidian Settings → Community Plugins
+   - Turn off "Safe mode" (if enabled)
+   - Click "Open plugins folder" (or navigate to `.obsidian/plugins/` in your vault)
+   - Create a new folder named `notelert`
+   - Copy `main.js` and `manifest.json` into the `notelert` folder
+   - Go back to Obsidian Settings → Community Plugins
+   - Enable "Notelert"
+
+### Method 2: Download files directly from repository
+
+1. **Download the files**:
+   - Go to the [dist folder](https://github.com/quimfrances/obsidian-notelert-plugin/tree/main/dist) in the repository
+   - Click on `main.js` → Click "Raw" → Right-click → "Save As" → Save as `main.js`
+   - Click on `manifest.json` → Click "Raw" → Right-click → "Save As" → Save as `manifest.json`
+
+2. **Install in Obsidian**:
+   - Open Obsidian Settings → Community Plugins
+   - Turn off "Safe mode" (if enabled)
+   - Click "Open plugins folder" (or navigate to `.obsidian/plugins/` in your vault)
+   - Create a new folder named `notelert`
+   - Copy `main.js` and `manifest.json` into the `notelert` folder
+   - Go back to Obsidian Settings → Community Plugins
+   - Enable "Notelert"
+
+### Requirements
+
+- Obsidian version 0.15.0 or higher
+- Notelert mobile app installed on your Android device (for mobile features)
+- Premium subscription (for location and email notifications)
+
 ### Demo Videos
 - [Demo Video 1](https://youtube.com/shorts/7So2Wmqgnjo)
 - [Demo Video 2](https://youtube.com/shorts/gm-CqmlDU-0)
@@ -64,5 +106,8 @@ The plugin nor the app does NOT scan the vaults. Only gets the title of the note
 - The plugin itself is completely free - no payment required for the plugin
 
 ## Premium Features
-While the plugin is totally free the app has a free mode and premium one. The free mode permit all user to set a maximum of 5 active reminders ( I'm still considering the limits). 
-Also the app will have a Premium mode that will unlimit the push notifications and will enable the location and the email notifications.((both location and email notifications has costs of mantainance attached)
+While the plugin is totally free, the app has a free mode and premium mode:
+- **Free mode**: Unlimited push notifications (date/time only). Location and email notifications require Premium.
+- **Premium mode**: Unlimited push notifications + location-based notifications + email notifications.
+
+Note: Location and email notifications have maintenance costs attached, which is why they require a Premium subscription.

@@ -23,7 +23,8 @@
     "build:install": "npm run build && node scripts/copy-to-obsidian.js",
     "dev": "obsidian-plugin dev src/main.ts",
     "watch": "obsidian-plugin dev src/main.ts --watch",
-    "install:obsidian": "node scripts/copy-to-obsidian.js"
+    "install:obsidian": "node scripts/copy-to-obsidian.js",
+    "release:zip": "node scripts/create-release-zip.js"
   },
   "devDependencies": {
     "typescript": "^4.1.5",
