@@ -10,14 +10,14 @@ export class NotelertPlugin extends Plugin {
   settings: NotelertSettings;
 
   async onload() {
-    console.debug("Cargando plugin Notelert...");
+    console.debug("Cargando plugin Notelert");
     await this.loadSettings();
 
     // Configuración del plugin
     this.addSettingTab(new NotelertSettingTab(this.app, this));
 
     // Barra de estado
-    this.addStatusBarItem().setText("Notelert: Activo");
+    this.addStatusBarItem().setText("Notelert: activo");
 
     // Evento para detectar :@ y :# y abrir modales
     if (this.settings.enableDatePicker) {
@@ -37,7 +37,7 @@ export class NotelertPlugin extends Plugin {
   }
 
   onunload() {
-    console.debug("Descargando plugin Notelert...");
+    console.debug("Descargando plugin Notelert");
   }
 
   async loadSettings() {
@@ -56,12 +56,14 @@ export class NotelertPlugin extends Plugin {
       this.settings, 
       (msg) => this.log(msg),
       // Callback para guardar email programado (solo desktop)
-      async (email) => {
-        if (!this.settings.scheduledEmails) {
-          this.settings.scheduledEmails = [];
-        }
-        this.settings.scheduledEmails.push(email);
-        await this.saveSettings();
+      (email) => {
+        void (async () => {
+          if (!this.settings.scheduledEmails) {
+            this.settings.scheduledEmails = [];
+          }
+          this.settings.scheduledEmails.push(email);
+          await this.saveSettings();
+        })();
       }
     );
   }
@@ -99,9 +101,9 @@ export class NotelertPlugin extends Plugin {
     if (!token) {
       new Notice(
         getTranslation(this.settings.language, "notices.tokenLinkError") || 
-        "❌ Token no encontrado en el enlace"
+        "Token no encontrado en el enlace"
       );
-      this.log("Error: Token no encontrado en deep link");
+      this.log("Error: token no encontrado en deep link");
       return;
     }
 
@@ -110,9 +112,9 @@ export class NotelertPlugin extends Plugin {
       if (token.length !== 64) {
         new Notice(
           getTranslation(this.settings.language, "notices.tokenInvalidFormat") || 
-          "❌ Formato de token inválido"
+          "Formato de token inválido"
         );
-        this.log(`Error: Token con formato inválido (longitud: ${token.length})`);
+        this.log(`Error: token con formato inválido (longitud: ${token.length})`);
         return;
       }
 
@@ -123,7 +125,7 @@ export class NotelertPlugin extends Plugin {
       // Mostrar notificación de éxito
       new Notice(
         getTranslation(this.settings.language, "notices.tokenLinked") || 
-        "✅ Token vinculado correctamente"
+        "Token vinculado correctamente"
       );
       this.log("Token vinculado correctamente desde la app móvil");
 
@@ -133,7 +135,7 @@ export class NotelertPlugin extends Plugin {
       const errorMessage = error instanceof Error ? error.message : String(error);
       new Notice(
         getTranslation(this.settings.language, "notices.tokenLinkError") || 
-        `❌ Error al vincular token: ${errorMessage}`
+        `Error al vincular token: ${errorMessage}`
       );
       this.log(`Error al vincular token: ${errorMessage}`);
     }

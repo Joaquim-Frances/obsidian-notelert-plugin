@@ -49,7 +49,7 @@ export class NotelertSettingTab extends PluginSettingTab {
     } else if (isIOSDevice) {
       // Información específica para iOS
       new Setting(platformInfo)
-        .setName(getTranslation(this.plugin.settings.language, "settings.platformInfo.iosTitle") || "⚠️ iOS Detectado")
+        .setName(getTranslation(this.plugin.settings.language, "settings.platformInfo.iosTitle") || "iOS detectado")
         .setHeading();
       platformInfo.createEl("p", {
         text: getTranslation(this.plugin.settings.language, "settings.platformInfo.iosDesc") || 

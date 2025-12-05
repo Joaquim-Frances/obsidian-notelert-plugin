@@ -1,21 +1,28 @@
 import { Platform } from "obsidian";
 
 /**
+ * Interfaz extendida de Platform que incluye propiedades opcionales
+ * que pueden no estar en todas las versiones de Obsidian
+ */
+interface ExtendedPlatform {
+  isMobile: boolean;
+  isDesktop: boolean;
+  isIOS?: boolean;
+  isAndroid?: boolean;
+}
+
+/**
  * Detecta si la app de Obsidian está corriendo en iOS
  * @returns true si es iOS, false en caso contrario
  */
 export function isIOS(): boolean {
-  // Intentar usar Platform.isIOS si está disponible (API de Obsidian)
-  if (typeof (Platform as any).isIOS === 'boolean') {
-    return (Platform as any).isIOS;
+  // Usar Platform.isIOS si está disponible (API de Obsidian)
+  const platform = Platform as unknown as ExtendedPlatform;
+  if (typeof platform.isIOS === 'boolean') {
+    return platform.isIOS;
   }
   
-  // Fallback: usar navigator.userAgent
-  if (typeof navigator !== 'undefined' && navigator.userAgent) {
-    const ua = navigator.userAgent.toLowerCase();
-    return /iphone|ipad|ipod/.test(ua) && !(window as any).MSStream;
-  }
-  
+  // Si Platform.isIOS no está disponible, retornar false
   return false;
 }
 
@@ -24,17 +31,13 @@ export function isIOS(): boolean {
  * @returns true si es Android, false en caso contrario
  */
 export function isAndroid(): boolean {
-  // Intentar usar Platform.isAndroid si está disponible (API de Obsidian)
-  if (typeof (Platform as any).isAndroid === 'boolean') {
-    return (Platform as any).isAndroid;
+  // Usar Platform.isAndroid si está disponible (API de Obsidian)
+  const platform = Platform as unknown as ExtendedPlatform;
+  if (typeof platform.isAndroid === 'boolean') {
+    return platform.isAndroid;
   }
   
-  // Fallback: usar navigator.userAgent
-  if (typeof navigator !== 'undefined' && navigator.userAgent) {
-    const ua = navigator.userAgent.toLowerCase();
-    return /android/.test(ua);
-  }
-  
+  // Si Platform.isAndroid no está disponible, retornar false
   return false;
 }
 
@@ -56,5 +59,30 @@ export function getMobilePlatform(): 'ios' | 'android' | 'unknown' | 'desktop' {
   }
   
   return 'unknown';
+}
+
+/**
+ * Convierte un error desconocido a string de forma segura
+ * @param error - El error a convertir
+ * @returns String representando el error
+ */
+export function errorToString(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  if (typeof error === 'object' && error !== null) {
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return 'Error desconocido';
+    }
+  }
+  
+  return String(error);
 }
 

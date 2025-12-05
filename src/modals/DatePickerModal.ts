@@ -2,8 +2,11 @@ import { App, Editor, EditorPosition, Modal, Notice, Platform, requestUrl } from
 import { DetectedPattern, SavedLocation } from "../core/types";
 import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
-import { setCssProps } from "../core/dom";
+import { setCssProps, isHTMLElement } from "../core/dom";
 import { PLUGIN_LIST_LOCATIONS_URL } from "../core/config";
+
+// WeakMap para almacenar el texto original de los botones
+const buttonOriginalText = new WeakMap<HTMLButtonElement, string>();
 
 export class NotelertDatePickerModal extends Modal {
   private onCancel: () => void;
@@ -486,7 +489,7 @@ export class NotelertDatePickerModal extends Modal {
     });
 
     const timeButton = typeButtonsContainer.createEl("button", {
-      text: "⏰ " + getTranslation(this.language, "datePicker.timeNotification"),
+      text: getTranslation(this.language, "datePicker.timeNotification"),
       cls: "mod-cta"
     });
     setCssProps(timeButton, {
@@ -499,7 +502,7 @@ export class NotelertDatePickerModal extends Modal {
     timeButton.id = "notification-type-time";
 
     const locationButton = typeButtonsContainer.createEl("button", {
-      text: "📍 " + getTranslation(this.language, "datePicker.locationNotification"),
+      text: getTranslation(this.language, "datePicker.locationNotification"),
       cls: "mod-secondary"
     });
     setCssProps(locationButton, {
@@ -745,7 +748,7 @@ export class NotelertDatePickerModal extends Modal {
           // Restaurar estado del botón en caso de error
           this.hideLoadingState(confirmButton);
           this.plugin.log(`Error en confirmación: ${error}`);
-          new Notice(`❌ Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+          new Notice(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
         }
       })();
     });
@@ -874,31 +877,31 @@ export class NotelertDatePickerModal extends Modal {
 
     if (this.notificationType === 'location') {
       // Ocultar fecha, hora y acciones rápidas para ubicación
-      if (dateContainer) (dateContainer as HTMLElement).style.display = 'none';
-      if (timeContainer) (timeContainer as HTMLElement).style.display = 'none';
-      if (quickActions) (quickActions as HTMLElement).style.display = 'none';
+      if (isHTMLElement(dateContainer)) setCssProps(dateContainer, { display: 'none' });
+      if (isHTMLElement(timeContainer)) setCssProps(timeContainer, { display: 'none' });
+      if (isHTMLElement(quickActions)) setCssProps(quickActions, { display: 'none' });
 
       // Mostrar o crear la lista de ubicaciones
       if (!locationListContainer) {
         this.renderLocationList(container);
-      } else {
-        (locationListContainer as HTMLElement).style.display = 'block';
+      } else if (isHTMLElement(locationListContainer)) {
+        setCssProps(locationListContainer, { display: 'block' });
       }
     } else {
       // Mostrar fecha, hora y acciones rápidas para tiempo
-      if (dateContainer) (dateContainer as HTMLElement).style.display = 'block';
-      if (timeContainer) (timeContainer as HTMLElement).style.display = 'block';
-      if (quickActions) (quickActions as HTMLElement).style.display = 'block';
+      if (isHTMLElement(dateContainer)) setCssProps(dateContainer, { display: 'block' });
+      if (isHTMLElement(timeContainer)) setCssProps(timeContainer, { display: 'block' });
+      if (isHTMLElement(quickActions)) setCssProps(quickActions, { display: 'block' });
 
       // Ocultar lista de ubicaciones
-      if (locationListContainer) {
-        (locationListContainer as HTMLElement).style.display = 'none';
+      if (isHTMLElement(locationListContainer)) {
+        setCssProps(locationListContainer, { display: 'none' });
       }
     }
     
     // Mantener el panel de debug visible si estaba visible
-    if (this.showDebugPanel && debugPanel) {
-      (debugPanel as HTMLElement).style.display = 'block';
+    if (this.showDebugPanel && isHTMLElement(debugPanel)) {
+      setCssProps(debugPanel, { display: 'block' });
     } else if (this.showDebugPanel && !debugPanel) {
       this.renderDebugPanel(container);
     }
@@ -1076,23 +1079,28 @@ export class NotelertDatePickerModal extends Modal {
 
     // Spinner animado (CSS)
     const spinner = loadingContainer.createEl("div");
-    spinner.innerHTML = `
-      <div style="
-        width: 32px;
-        height: 32px;
-        border: 3px solid var(--background-modifier-border);
-        border-top-color: var(--interactive-accent);
-        border-top-color: var(--interactive-accent);
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-      "></div>
-      <style>
+    const spinnerCircle = spinner.createEl("div");
+    setCssProps(spinnerCircle, {
+      width: '32px',
+      height: '32px',
+      border: '3px solid var(--background-modifier-border)',
+      borderTopColor: 'var(--interactive-accent)',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite'
+    });
+    
+    // Añadir keyframes al documento si no existen
+    if (!document.getElementById('notelert-spinner-keyframes')) {
+      const style = document.createElement('style');
+      style.id = 'notelert-spinner-keyframes';
+      style.textContent = `
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-      </style>
-    `;
+      `;
+      document.head.appendChild(style);
+    }
 
     const loadingText = loadingContainer.createEl("div", {
       text: getTranslation(this.language, "datePicker.loadingLocations") || "Cargando ubicaciones...",
@@ -1166,7 +1174,7 @@ export class NotelertDatePickerModal extends Modal {
           cursor: "pointer",
           width: "100%",
         });
-        settingsButton.addEventListener("click", async () => {
+        settingsButton.addEventListener("click", () => {
           // Cerrar el modal primero
           this.close();
           
@@ -1243,7 +1251,7 @@ export class NotelertDatePickerModal extends Modal {
 
       this.addDebugLog(`[Ubicaciones] Respuesta parseada: success=${data.success}, count=${data.count}, locations=${data.locations?.length || 0}`);
       this.addDebugLog(`[Ubicaciones] Respuesta completa: ${JSON.stringify(data, null, 2)}`);
-      console.log('[Notelert] Respuesta completa del backend:', data);
+      console.debug('[Notelert] Respuesta completa del backend:', data);
 
       if (!data.success) {
         const errorMessage = data.message || data.error || 'Error desconocido al cargar ubicaciones';
@@ -1318,7 +1326,9 @@ export class NotelertDatePickerModal extends Modal {
           marginTop: "8px",
         });
         reloadButton.addEventListener("click", () => {
-          this.renderLocationList(listContainer.parentElement as HTMLElement);
+          if (listContainer.parentElement && isHTMLElement(listContainer.parentElement)) {
+            this.renderLocationList(listContainer.parentElement);
+          }
         });
 
         return;
@@ -1475,7 +1485,7 @@ export class NotelertDatePickerModal extends Modal {
           marginBottom: "8px",
           width: "100%",
         });
-        openAppButton.addEventListener("click", async () => {
+        openAppButton.addEventListener("click", () => {
           // Intentar abrir deeplink al paywall de la app
           const paywallLink = "notelert://paywall";
           try {
@@ -1893,7 +1903,9 @@ export class NotelertDatePickerModal extends Modal {
   // Mostrar estado de carga (spinner) en el botón
   private showLoadingState(button: HTMLButtonElement) {
     // Guardar el texto original
-    (button as HTMLButtonElement & { __originalText?: string }).__originalText = button.textContent || undefined;
+    if (button.textContent) {
+      buttonOriginalText.set(button, button.textContent);
+    }
 
     // Deshabilitar botón
     button.disabled = true;
@@ -1910,7 +1922,7 @@ export class NotelertDatePickerModal extends Modal {
   private hideLoadingState(button: HTMLButtonElement) {
     // Restaurar texto original
     const originalText =
-      (button as HTMLButtonElement & { __originalText?: string }).__originalText ||
+      buttonOriginalText.get(button) ||
       getTranslation(this.language, "datePicker.confirmButton") ||
       "Confirmar";
     button.textContent = originalText;

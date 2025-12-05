@@ -3,7 +3,7 @@ import { DetectedPattern, NotelertSettings, ScheduledEmail } from "../../core/ty
 import { getTranslation } from "../../i18n";
 import { scheduleEmailReminderProxy, generateNotificationId } from "./firebase-api";
 import { PLUGIN_SCHEDULE_EMAIL_URL } from "../../core/config";
-import { isIOS, getMobilePlatform } from "./utils";
+import { isIOS, getMobilePlatform, errorToString } from "./utils";
 
 export function generateDeepLink(pattern: DetectedPattern, app: App): string {
   const title = encodeURIComponent(pattern.title);
@@ -60,7 +60,7 @@ export async function createNotification(
       // Validar token del plugin PRIMERO (requerido para premium features)
       if (!settings.pluginToken || settings.pluginToken.trim() === '') {
         new Notice(
-          "🔑 Token del plugin requerido\n\n" +
+          "Token del plugin requerido\n\n" +
           "Para usar emails premium desde el plugin, necesitas:\n" +
           "1. Tener plan Premium activo\n" +
           "2. Generar tu token en la app móvil (Settings > Token del Plugin)\n" +
@@ -71,14 +71,14 @@ export async function createNotification(
 
       if (!settings.userEmail) {
         new Notice(getTranslation(settings.language, "notices.desktopConfigRequired") || 
-          "❌ Configura tu email en Settings para usar Notelert en desktop");
+          "Configura tu email en Settings para usar Notelert en desktop");
         return;
       }
 
       // Validar que no sea una notificación de ubicación (solo tiempo en desktop)
       if (pattern.type === 'location') {
         new Notice(getTranslation(settings.language, "notices.locationNotSupportedDesktop") || 
-          "❌ Las notificaciones de ubicación solo están disponibles en móvil");
+          "Las notificaciones de ubicación solo están disponibles en móvil");
         return;
       }
 
@@ -89,8 +89,8 @@ export async function createNotification(
       
       // Validar que la fecha sea válida
       if (isNaN(scheduledDate.getTime())) {
-        new Notice(`❌ Fecha inválida: ${dateTimeString}`);
-        log(`Error: Fecha inválida - ${dateTimeString}`);
+        new Notice(`Fecha inválida: ${dateTimeString}`);
+        log(`Error: fecha inválida - ${dateTimeString}`);
         return;
       }
       
@@ -106,7 +106,7 @@ export async function createNotification(
       // Generar ID único
       const notificationId = generateNotificationId();
       
-      log(`Programando email para desktop:`);
+      log(`Programando email para desktop`);
       log(`  - Título: ${pattern.title}`);
       log(`  - Mensaje: ${cleanMessage}`);
       log(`  - Email: ${settings.userEmail}`);
@@ -114,7 +114,7 @@ export async function createNotification(
       log(`  - Notification ID: ${notificationId}`);
       
       // Mostrar feedback visual inmediato
-      const loadingNotice = new Notice("⏳ Programando email...", 0); // 0 = no auto-close
+      const loadingNotice = new Notice("Programando email...", 0); // 0 = no auto-close
 
       // Programar email (token ya validado arriba)
       const result = await scheduleEmailReminderProxy(
@@ -145,12 +145,12 @@ export async function createNotification(
         }
 
         new Notice(getTranslation(settings.language, "notices.emailScheduled") || 
-          "✅ Email programado correctamente");
+          "Email programado correctamente");
         log(`Email programado: ${result.notificationId}`);
       } else {
         // Lanzar error para que el modal no se cierre
         const errorMessage = result.error || 'Error al programar email';
-        new Notice(`❌ ${errorMessage}`);
+        new Notice(errorMessage);
         log(`Error programando email: ${errorMessage}`);
         throw new Error(errorMessage);
       }
@@ -163,7 +163,7 @@ export async function createNotification(
       if (isIOS()) {
         new Notice(
           getTranslation(settings.language, "notices.iosNotSupported") || 
-          "⚠️ iOS detectado\n\n" +
+          "iOS detectado\n\n" +
           "Notelert actualmente solo está disponible para Android.\n" +
           "La app de iOS está en desarrollo. Por favor, usa un dispositivo Android para crear notificaciones."
         );
@@ -186,7 +186,7 @@ export async function createNotification(
       // Re-lanzar errores de negocio para que el modal no se cierre
       throw error;
     }
-    log(`Error creando notificación: ${error instanceof Error ? error.message : String(error)}`);
+    log(`Error creando notificación: ${errorToString(error)}`);
     new Notice(getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
     // Re-lanzar para que el modal no se cierre
     throw error;

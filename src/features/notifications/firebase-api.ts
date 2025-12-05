@@ -1,5 +1,6 @@
 import { requestUrl } from "obsidian";
 import { PLUGIN_SCHEDULE_EMAIL_URL } from "../../core/config";
+import { errorToString } from "./utils";
 
 export interface ScheduleEmailResult {
   success: boolean;
@@ -59,7 +60,7 @@ export async function scheduleEmailReminderProxy(
     if (response.status >= 400) {
       let errorData;
       try {
-        const text = await response.text;
+        const text = await response.text();
         errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
       } catch (e) {
         errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
@@ -123,7 +124,7 @@ export async function scheduleEmailReminderProxy(
     }
     
     // Mejorar detección de errores de red vs errores del servidor
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = errorToString(error);
     const isNetworkError = errorMessage.includes('Failed to fetch') || 
                           errorMessage.includes('NetworkError') ||
                           errorMessage.includes('Network request failed') ||
