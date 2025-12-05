@@ -2,7 +2,6 @@ import { App, Notice, Platform } from "obsidian";
 import { DetectedPattern, NotelertSettings, ScheduledEmail } from "../../core/types";
 import { getTranslation } from "../../i18n";
 import { scheduleEmailReminderProxy, generateNotificationId } from "./firebase-api";
-import { PLUGIN_SCHEDULE_EMAIL_URL } from "../../core/config";
 import { isIOS, getMobilePlatform, errorToString } from "./utils";
 
 export function generateDeepLink(pattern: DetectedPattern, app: App): string {

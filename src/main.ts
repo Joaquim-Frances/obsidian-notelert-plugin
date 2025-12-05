@@ -3,7 +3,7 @@ import { NotelertSettings, DetectedPattern } from "./core/types";
 import { DEFAULT_SETTINGS } from "./core/settings";
 import { NotelertSettingTab } from "./settings/SettingTab";
 import { handleEditorChange } from "./features/datetime/handlers";
-import { createNotification, generateDeepLink } from "./features/notifications";
+import { createNotification } from "./features/notifications";
 import { getTranslation } from "./i18n";
 
 export class NotelertPlugin extends Plugin {

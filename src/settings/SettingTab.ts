@@ -2,7 +2,7 @@ import { App, Plugin, PluginSettingTab, Setting, Platform } from "obsidian";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
 import { setCssProps } from "../core/dom";
-import { isIOS, getMobilePlatform } from "../features/notifications/utils";
+import { isIOS } from "../features/notifications/utils";
 
 export class NotelertSettingTab extends PluginSettingTab {
   plugin: INotelertPlugin;
@@ -17,7 +17,6 @@ export class NotelertSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     const isDesktop = !Platform.isMobile;
-    const mobilePlatform = getMobilePlatform();
     const isIOSDevice = isIOS();
 
     // Título principal como heading de Setting

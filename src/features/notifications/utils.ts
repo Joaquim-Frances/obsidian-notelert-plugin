@@ -79,8 +79,25 @@ export function errorToString(error: unknown): string {
     try {
       return JSON.stringify(error);
     } catch {
+      // Si JSON.stringify falla, intentar obtener información útil del objeto
+      const errorObj = error as Record<string, unknown>;
+      const keys = Object.keys(errorObj);
+      if (keys.length > 0) {
+        // Intentar obtener propiedades comunes de error
+        const message = errorObj.message || errorObj.error || errorObj.msg;
+        if (typeof message === 'string') {
+          return message;
+        }
+        // Si no hay mensaje, retornar información sobre el objeto
+        return `Error: ${keys.join(', ')}`;
+      }
       return 'Error desconocido';
     }
+  }
+  
+  // Para tipos primitivos (number, boolean, undefined, null, symbol, bigint)
+  if (error === null || error === undefined) {
+    return 'Error desconocido';
   }
   
   return String(error);

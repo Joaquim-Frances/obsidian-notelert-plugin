@@ -62,7 +62,7 @@ export async function scheduleEmailReminderProxy(
       try {
         const text = await response.text();
         errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
-      } catch (e) {
+      } catch {
         errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
       }
       
@@ -105,7 +105,7 @@ export async function scheduleEmailReminderProxy(
     try {
       const text = await response.text();
       result = text ? JSON.parse(text) : {};
-    } catch (e) {
+    } catch {
       result = { notificationId: notificationId };
     }
     

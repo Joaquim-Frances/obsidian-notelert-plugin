@@ -8,6 +8,27 @@ import { PLUGIN_LIST_LOCATIONS_URL } from "../core/config";
 // WeakMap para almacenar el texto original de los botones
 const buttonOriginalText = new WeakMap<HTMLButtonElement, string>();
 
+/**
+ * Interfaz para errores premium que extienden Error con propiedades adicionales
+ */
+interface PremiumError extends Error {
+  status: number;
+  errorData?: {
+    message?: string;
+    error?: string;
+  };
+}
+
+/**
+ * Type guard para verificar si un error es un PremiumError
+ */
+function isPremiumError(error: unknown): error is PremiumError {
+  return error instanceof Error && 
+    'status' in error && 
+    typeof (error as PremiumError).status === 'number' &&
+    (error.message === 'PREMIUM_REQUIRED' || (error as PremiumError).status === 403);
+}
+
 export class NotelertDatePickerModal extends Modal {
   private onCancel: () => void;
   private language: string;
@@ -475,7 +496,7 @@ export class NotelertDatePickerModal extends Modal {
       display: isDesktop ? "none" : "",
     });
 
-    const typeLabel = typeContainer.createEl("label", {
+    typeContainer.createEl("label", {
       text: getTranslation(this.language, "datePicker.notificationType"),
       attr: { style: "display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;" }
     });
@@ -667,33 +688,6 @@ export class NotelertDatePickerModal extends Modal {
     confirmButton.addEventListener("click", () => {
       // Mostrar spinner y deshabilitar botón
       this.showLoadingState(confirmButton);
-      const addLog = (message: string) => {
-        const debugInfo = document.getElementById("datepicker-debug-info");
-        if (debugInfo) {
-          const timestamp = new Date().toLocaleTimeString();
-          const color = message.includes('❌') || message.includes('Error') ? 'var(--text-error)' :
-            message.includes('✅') ? 'var(--text-success)' : 'var(--text-normal)';
-
-          const line = debugInfo.createEl("div");
-          setCssProps(line, {
-            margin: "4px 0",
-            padding: "4px 8px",
-            fontSize: "11px",
-            color,
-            borderLeft: `3px solid ${color}`,
-            background: "var(--background-secondary)",
-            borderRadius: "3px",
-            wordWrap: "break-word",
-            whiteSpace: "pre-wrap",
-          } as Partial<CSSStyleDeclaration>);
-          line.textContent = `[${timestamp}] ${message}`;
-
-          const container = document.getElementById("datepicker-debug-container");
-          if (container) {
-            container.scrollTop = container.scrollHeight;
-          }
-        }
-      };
 
       void (async () => {
         try {
@@ -744,11 +738,12 @@ export class NotelertDatePickerModal extends Modal {
               new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
             }
           }
-        } catch (error) {
+        } catch (err) {
           // Restaurar estado del botón en caso de error
           this.hideLoadingState(confirmButton);
-          this.plugin.log(`Error en confirmación: ${error}`);
-          new Notice(`Error: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+          const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+          this.plugin.log(`Error en confirmación: ${errorMessage}`);
+          new Notice(`Error: ${errorMessage}`);
         }
       })();
     });
@@ -844,8 +839,9 @@ export class NotelertDatePickerModal extends Modal {
       // TEMPORALMENTE COMENTADO - Debug
       // this.plugin.log(`Notificación creada desde date picker: ${pattern.title}`);
       return true;
-    } catch (error) {
-      this.plugin.log(`Error creando notificación desde date picker: ${error}`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.plugin.log(`Error creando notificación desde date picker: ${errorMessage}`);
       new Notice(getTranslation(this.language, "notices.errorCreatingNotification", { title: "Recordatorio" }));
       return false;
     }
@@ -1079,28 +1075,7 @@ export class NotelertDatePickerModal extends Modal {
 
     // Spinner animado (CSS)
     const spinner = loadingContainer.createEl("div");
-    const spinnerCircle = spinner.createEl("div");
-    setCssProps(spinnerCircle, {
-      width: '32px',
-      height: '32px',
-      border: '3px solid var(--background-modifier-border)',
-      borderTopColor: 'var(--interactive-accent)',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite'
-    });
-    
-    // Añadir keyframes al documento si no existen
-    if (!document.getElementById('notelert-spinner-keyframes')) {
-      const style = document.createElement('style');
-      style.id = 'notelert-spinner-keyframes';
-      style.textContent = `
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
+    const spinnerCircle = spinner.createEl("div", { cls: "notelert-spinner" });
 
     const loadingText = loadingContainer.createEl("div", {
       text: getTranslation(this.language, "datePicker.loadingLocations") || "Cargando ubicaciones...",
@@ -1161,7 +1136,7 @@ export class NotelertDatePickerModal extends Modal {
         });
 
         const settingsButton = tokenContainer.createEl("button", {
-          text: getTranslation(this.language, "datePicker.openSettings") || "⚙️ Abrir Settings",
+          text: getTranslation(this.language, "datePicker.openSettings") || "Abrir Settings",
         });
         setCssProps(settingsButton, {
           padding: "10px 20px",
@@ -1192,7 +1167,7 @@ export class NotelertDatePickerModal extends Modal {
                 window.open(playStoreLink, "_blank");
               }, 2000);
             }
-          } catch (error) {
+          } catch {
             // Si falla, abrir Play Store directamente
             const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
             if (typeof window !== 'undefined') {
@@ -1232,9 +1207,10 @@ export class NotelertDatePickerModal extends Modal {
         
         // Si es error 403, probablemente es porque el usuario no es premium
         if (response.status === 403) {
-          const premiumError = new Error('PREMIUM_REQUIRED');
-          (premiumError as any).status = 403;
-          (premiumError as any).errorData = errorData;
+          const premiumError: PremiumError = Object.assign(new Error('PREMIUM_REQUIRED'), {
+            status: 403,
+            errorData: errorData
+          });
           throw premiumError;
         }
         
@@ -1313,7 +1289,7 @@ export class NotelertDatePickerModal extends Modal {
         });
 
         const reloadButton = emptyContainer.createEl("button", {
-          text: getTranslation(this.language, "datePicker.reloadLocations") || "🔄 Recargar ubicaciones",
+          text: getTranslation(this.language, "datePicker.reloadLocations") || "Recargar ubicaciones",
         });
         setCssProps(reloadButton, {
           padding: "8px 16px",
@@ -1425,14 +1401,26 @@ export class NotelertDatePickerModal extends Modal {
           }
         });
       });
-    } catch (error: any) {
-      this.locationsError = error?.message || "Error cargando ubicaciones";
-      this.addDebugLog(`[Ubicaciones] ❌ Excepción: ${error?.message || String(error)}`);
-      this.addDebugLog(`[Ubicaciones] ❌ Error completo: ${JSON.stringify(error)}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      const errorString = error instanceof Error ? error.message : String(error);
+      this.locationsError = errorMessage || "Error cargando ubicaciones";
+      this.addDebugLog(`[Ubicaciones] ❌ Excepción: ${errorString}`);
+      
+      // Intentar serializar el error de forma segura
+      try {
+        const errorJson = error instanceof Error 
+          ? JSON.stringify({ message: error.message, name: error.name, stack: error.stack })
+          : JSON.stringify(error);
+        this.addDebugLog(`[Ubicaciones] ❌ Error completo: ${errorJson}`);
+      } catch {
+        this.addDebugLog(`[Ubicaciones] ❌ Error completo: [No se pudo serializar]`);
+      }
+      
       listContainer.empty();
       
       // Detectar si es error de premium requerido
-      if (error?.message === 'PREMIUM_REQUIRED' || error?.status === 403) {
+      if (isPremiumError(error)) {
         const premiumContainer = listContainer.createEl("div");
         setCssProps(premiumContainer, {
           padding: "20px",
@@ -1471,7 +1459,7 @@ export class NotelertDatePickerModal extends Modal {
 
         // Botón para abrir paywall en la app
         const openAppButton = premiumContainer.createEl("button", {
-          text: getTranslation(this.language, "datePicker.openAppToUpgrade") || "📱 Abrir app para actualizar",
+          text: getTranslation(this.language, "datePicker.openAppToUpgrade") || "Abrir app para actualizar",
         });
         setCssProps(openAppButton, {
           padding: "10px 20px",
@@ -1496,7 +1484,7 @@ export class NotelertDatePickerModal extends Modal {
               const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
               window.open(playStoreLink, "_blank");
             }, 2000);
-          } catch (e) {
+          } catch {
             // Si falla, abrir Play Store directamente
             const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
             window.open(playStoreLink, "_blank");
@@ -1505,7 +1493,7 @@ export class NotelertDatePickerModal extends Modal {
 
         // Botón alternativo para Play Store si no tiene la app
         const playStoreButton = premiumContainer.createEl("button", {
-          text: getTranslation(this.language, "datePicker.installApp") || "📥 Instalar app desde Play Store",
+          text: getTranslation(this.language, "datePicker.installApp") || "Instalar app desde Play Store",
         });
         setCssProps(playStoreButton, {
           padding: "8px 16px",
@@ -1709,7 +1697,7 @@ export class NotelertDatePickerModal extends Modal {
         }
 
         // Título para la lista de ubicaciones - FUERA del scrollContainer
-        const listTitle = contentEl.createEl("h3", {
+        contentEl.createEl("h3", {
           text: "Selecciona una ubicación:",
           attr: {
             style: `
@@ -1830,8 +1818,9 @@ export class NotelertDatePickerModal extends Modal {
         }, 100);
 
         modal.open();
-      } catch (error) {
-        this.plugin.log(`Error cargando settings: ${error}`);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        this.plugin.log(`Error cargando settings: ${errorMessage}`);
         new Notice("Error cargando ubicaciones guardadas");
         resolve(null);
       }
@@ -1893,8 +1882,9 @@ export class NotelertDatePickerModal extends Modal {
 
       this.plugin.log(`Notificación de ubicación creada: ${pattern.title} en ${location.name}`);
       return true;
-    } catch (error) {
-      this.plugin.log(`Error creando notificación de ubicación: ${error}`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.plugin.log(`Error creando notificación de ubicación: ${errorMessage}`);
       new Notice(getTranslation(this.language, "notices.errorCreatingNotification", { title: "Recordatorio de ubicación" }));
       return false;
     }
@@ -1955,8 +1945,9 @@ export class NotelertDatePickerModal extends Modal {
 
         this.plugin.log(`Feedback visual añadido: solo ${dateTimePart} resaltado`);
       }
-    } catch (error) {
-      this.plugin.log(`Error añadiendo feedback visual: ${error}`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.plugin.log(`Error añadiendo feedback visual: ${errorMessage}`);
     }
   }
 }
