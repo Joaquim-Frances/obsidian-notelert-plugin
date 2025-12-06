@@ -3,7 +3,7 @@
  */
 
 import { HTMLElement } from "obsidian";
-import { setCssProps } from "../../../../core/dom";
+import { setCssProps } from "../../../core/dom";
 
 export interface DebugPanelResult {
   container: HTMLElement;

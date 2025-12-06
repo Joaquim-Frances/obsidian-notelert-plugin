@@ -3,8 +3,8 @@
  */
 
 import { HTMLElement } from "obsidian";
-import { getTranslation } from "../../../../i18n";
-import { setCssProps } from "../../../../core/dom";
+import { getTranslation } from "../../../i18n";
+import { setCssProps } from "../../../core/dom";
 import { getToday, getTomorrow, getTimeInHours } from "../utils/date-utils";
 
 export interface QuickActionsResult {

@@ -3,8 +3,8 @@
  */
 
 import { HTMLElement } from "obsidian";
-import { getTranslation } from "../../../../i18n";
-import { setCssProps } from "../../../../core/dom";
+import { getTranslation } from "../../../i18n";
+import { setCssProps } from "../../../core/dom";
 import { NotificationType } from "../types";
 
 export interface TypeSelectorResult {

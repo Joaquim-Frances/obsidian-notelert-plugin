@@ -14,3 +14,6 @@ export const PLUGIN_SCHEDULE_EMAIL_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginSc
 // URL del endpoint para listar ubicaciones guardadas del usuario (para el plugin)
 export const PLUGIN_LIST_LOCATIONS_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginListLocations`;
 
+// URL del endpoint para programar notificaciones push desde el plugin
+export const PLUGIN_SCHEDULE_PUSH_NOTIFICATION_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginSchedulePushNotification`;
+
