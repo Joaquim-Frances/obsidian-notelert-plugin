@@ -49,7 +49,12 @@ export function createTimePicker(
   isDesktop: boolean
 ): TimePickerResult {
   const timeContainer = parent.createEl("div", { cls: "notelert-time-container" });
-  setCssProps(timeContainer, { marginBottom: "20px" });
+  setCssProps(timeContainer, { 
+    marginBottom: "20px",
+    display: "block",
+    visibility: "visible",
+    opacity: "1"
+  });
 
   const timeLabel = timeContainer.createEl("label", { 
     text: getTranslation(language, "datePicker.timeLabel") 
@@ -114,6 +119,7 @@ export function createTimePicker(
     display: "flex",
     gap: "8px",
     alignItems: "center",
+    justifyContent: "center",
   });
 
   const createTimeButton = (text: string, isDesktop: boolean) => {
@@ -202,6 +208,7 @@ export function createTimePicker(
     display: "flex",
     gap: "8px",
     alignItems: "center",
+    justifyContent: "center",
   });
 
   const minutesDecreaseBtn = createTimeButton("−", isDesktop);

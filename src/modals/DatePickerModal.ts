@@ -67,7 +67,7 @@ export class NotelertDatePickerModal extends Modal {
       maxWidth: isDesktop ? "500px" : "600px",
       width: isDesktop ? "auto" : "95vw",
       maxHeight: isDesktop ? "auto" : "90vh",
-      overflow: "hidden",
+      overflow: "visible",
       padding: isDesktop ? "25px" : "20px",
       boxSizing: "border-box",
       display: "flex",
@@ -78,11 +78,12 @@ export class NotelertDatePickerModal extends Modal {
     // Contenedor con scroll interno
     const scrollContainer = contentEl.createEl("div");
     setCssProps(scrollContainer, {
-      flex: "1",
+      flex: "1 1 auto",
       overflowY: isDesktop ? "visible" : "auto",
       overflowX: "hidden",
       paddingRight: isDesktop ? "0" : "5px",
       marginBottom: "10px",
+      minHeight: "0",
     });
 
     const titleEl = scrollContainer.createEl("h2", {
@@ -99,7 +100,14 @@ export class NotelertDatePickerModal extends Modal {
     setCssProps(this.container, {
       margin: "0",
       width: "100%",
+      display: "block",
+      visibility: "visible",
+      minHeight: "200px", // Asegurar altura mínima
     });
+    
+    // Debug: verificar que el contenedor se creó
+    this.plugin.log(`🔧 Container creado: ${this.container ? 'OK' : 'NULL'}`);
+    this.plugin.log(`🔧 Container parent: ${this.container?.parentElement ? 'OK' : 'NULL'}`);
 
     // En desktop, forzar tipo 'time'
     if (isDesktop) {
@@ -114,91 +122,144 @@ export class NotelertDatePickerModal extends Modal {
   }
 
   private createComponents(isDesktop: boolean) {
-    if (!this.container) return;
-
-    // Selector de tipo (solo móvil)
-    this.typeSelector = createTypeSelector(
-      this.container,
-      this.language,
-      isDesktop,
-      this.notificationType,
-      (type: NotificationType) => {
-        this.notificationType = type;
-        this.selectedLocation = null;
-        this.updateModalContent();
-      }
-    );
-
-    // Botón para mostrar/ocultar logs de debug (solo en móvil)
-    if (!isDesktop) {
-      const debugToggleContainer = this.container.createEl("div");
-      setCssProps(debugToggleContainer, {
-        marginBottom: "10px",
-        display: "flex",
-        justifyContent: "flex-end",
-      });
-
-      const debugToggleBtn = debugToggleContainer.createEl("button", {
-        text: "🔍 Ver logs",
-        cls: "mod-secondary"
-      });
-      setCssProps(debugToggleBtn, {
-        padding: "6px 12px",
-        fontSize: "12px",
-      });
-
-      debugToggleBtn.addEventListener("click", () => {
-        this.showDebugPanel = !this.showDebugPanel;
-        this.updateDebugPanel();
-        debugToggleBtn.textContent = this.showDebugPanel ? "🔍 Ocultar logs" : "🔍 Ver logs";
-      });
+    if (!this.container) {
+      this.plugin.log("❌ Error: container es null en createComponents");
+      return;
     }
 
-    // Selector de fecha
-    this.datePicker = createDatePicker(
-      this.container,
-      this.language,
-      getToday()
-    );
+    try {
+      this.plugin.log(`🔧 Creando componentes para desktop: ${isDesktop}`);
 
-    // Selector de hora
-    this.timePicker = createTimePicker(
-      this.container,
-      this.language,
-      isDesktop
-    );
-
-    // Acciones rápidas
-    this.quickActions = createQuickActions(
-      this.container,
-      this.language,
-      (date: string, time: string) => {
-        if (this.datePicker) {
-          this.datePicker.dateInput.value = date;
-        }
-        if (this.timePicker) {
-          this.timePicker.timeInput.value = time;
-          const [hours, minutes] = time.split(':').map(Number);
-          this.timePicker.updateTime(hours, minutes);
-        }
+      // Selector de tipo (solo móvil)
+      if (!isDesktop) {
+        this.typeSelector = createTypeSelector(
+          this.container,
+          this.language,
+          isDesktop,
+          this.notificationType,
+          (type: NotificationType) => {
+            this.notificationType = type;
+            this.selectedLocation = null;
+            this.updateModalContent();
+          }
+        );
+        this.plugin.log("✅ TypeSelector creado");
       }
-    );
 
-    // Panel de debug
-    if (!isDesktop) {
-      this.debugPanel = createDebugPanel(
+      // Botón para mostrar/ocultar logs de debug (solo en móvil)
+      if (!isDesktop) {
+        const debugToggleContainer = this.container.createEl("div");
+        setCssProps(debugToggleContainer, {
+          marginBottom: "10px",
+          display: "flex",
+          justifyContent: "flex-end",
+        });
+
+        const debugToggleBtn = debugToggleContainer.createEl("button", {
+          text: "🔍 Ver logs",
+          cls: "mod-secondary"
+        });
+        setCssProps(debugToggleBtn, {
+          padding: "6px 12px",
+          fontSize: "12px",
+        });
+
+        debugToggleBtn.addEventListener("click", () => {
+          this.showDebugPanel = !this.showDebugPanel;
+          this.updateDebugPanel();
+          debugToggleBtn.textContent = this.showDebugPanel ? "🔍 Ocultar logs" : "🔍 Ver logs";
+        });
+      }
+
+      // Selector de fecha
+      this.plugin.log("🔧 Creando DatePicker...");
+      this.datePicker = createDatePicker(
         this.container,
-        (message: string) => {
-          this.plugin.log(message);
+        this.language,
+        getToday()
+      );
+      this.plugin.log(`✅ DatePicker creado: ${this.datePicker ? 'OK' : 'NULL'}`);
+
+      // Selector de hora
+      this.plugin.log("🔧 Creando TimePicker...");
+      this.timePicker = createTimePicker(
+        this.container,
+        this.language,
+        isDesktop
+      );
+      this.plugin.log(`✅ TimePicker creado: ${this.timePicker ? 'OK' : 'NULL'}`);
+
+      // Acciones rápidas
+      this.plugin.log("🔧 Creando QuickActions...");
+      this.quickActions = createQuickActions(
+        this.container,
+        this.language,
+        (date: string, time: string) => {
+          if (this.datePicker) {
+            this.datePicker.dateInput.value = date;
+          }
+          if (this.timePicker) {
+            this.timePicker.timeInput.value = time;
+            const [hours, minutes] = time.split(':').map(Number);
+            this.timePicker.updateTime(hours, minutes);
+          }
         }
       );
-      if (!this.showDebugPanel) {
-        setCssProps(this.debugPanel.container, { display: 'none' });
-      }
-    }
+      this.plugin.log(`✅ QuickActions creado: ${this.quickActions ? 'OK' : 'NULL'}`);
 
-    // Actualizar contenido según tipo
-    this.updateModalContent();
+      // Panel de debug
+      if (!isDesktop) {
+        this.debugPanel = createDebugPanel(
+          this.container,
+          (message: string) => {
+            this.plugin.log(message);
+          }
+        );
+        if (!this.showDebugPanel) {
+          setCssProps(this.debugPanel.container, { display: 'none' });
+        }
+      }
+
+      // Verificar que los elementos están en el DOM ANTES de updateModalContent
+      const dateContainer = this.container.querySelector('.notelert-date-container');
+      const timeContainer = this.container.querySelector('.notelert-time-container');
+      const quickActionsContainer = this.container.querySelector('#quick-actions-container');
+      
+      this.plugin.log(`🔍 Verificación DOM ANTES de updateModalContent:`);
+      this.plugin.log(`  - DateContainer: ${dateContainer ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
+      this.plugin.log(`  - TimeContainer: ${timeContainer ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
+      this.plugin.log(`  - QuickActions: ${quickActionsContainer ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
+      
+      // Asegurar que los elementos están visibles ANTES de llamar a updateModalContent
+      if (dateContainer && isHTMLElement(dateContainer)) {
+        setCssProps(dateContainer, { display: 'block', visibility: 'visible', opacity: '1' });
+      }
+      if (timeContainer && isHTMLElement(timeContainer)) {
+        setCssProps(timeContainer, { display: 'block', visibility: 'visible', opacity: '1' });
+      }
+      if (quickActionsContainer && isHTMLElement(quickActionsContainer)) {
+        setCssProps(quickActionsContainer, { display: 'block', visibility: 'visible', opacity: '1' });
+      }
+
+      // Actualizar contenido según tipo (esto solo debería ocultar/mostrar según notificationType)
+      this.updateModalContent();
+      
+      // Verificar DESPUÉS de updateModalContent
+      const dateContainerAfter = this.container.querySelector('.notelert-date-container');
+      const timeContainerAfter = this.container.querySelector('.notelert-time-container');
+      const quickActionsContainerAfter = this.container.querySelector('#quick-actions-container');
+      
+      this.plugin.log(`🔍 Verificación DOM DESPUÉS de updateModalContent:`);
+      this.plugin.log(`  - DateContainer display: ${dateContainerAfter ? (dateContainerAfter as HTMLElement).style.display : 'NULL'}`);
+      this.plugin.log(`  - TimeContainer display: ${timeContainerAfter ? (timeContainerAfter as HTMLElement).style.display : 'NULL'}`);
+      this.plugin.log(`  - QuickActions display: ${quickActionsContainerAfter ? (quickActionsContainerAfter as HTMLElement).style.display : 'NULL'}`);
+      
+      this.plugin.log("✅ Componentes creados y actualizados");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.plugin.log(`❌ Error creando componentes: ${errorMessage}`);
+      console.error("Error en createComponents:", error);
+    }
   }
 
   private updateModalContent() {
@@ -212,33 +273,51 @@ export class NotelertDatePickerModal extends Modal {
 
     if (this.notificationType === 'location') {
       // Ocultar fecha, hora y acciones rápidas
-      if (isHTMLElement(dateContainer)) setCssProps(dateContainer, { display: 'none' });
-      if (isHTMLElement(timeContainer)) setCssProps(timeContainer, { display: 'none' });
-      if (isHTMLElement(quickActions)) setCssProps(quickActions, { display: 'none' });
+      if (isHTMLElement(dateContainer)) setCssProps(dateContainer, { display: 'none', visibility: 'hidden' });
+      if (isHTMLElement(timeContainer)) setCssProps(timeContainer, { display: 'none', visibility: 'hidden' });
+      if (isHTMLElement(quickActions)) setCssProps(quickActions, { display: 'none', visibility: 'hidden' });
 
       // Mostrar o crear la lista de ubicaciones
       if (!locationListContainer) {
         void this.createLocationList();
       } else if (isHTMLElement(locationListContainer)) {
-        setCssProps(locationListContainer, { display: 'block' });
+        setCssProps(locationListContainer, { display: 'block', visibility: 'visible' });
       }
     } else {
       // Mostrar fecha, hora y acciones rápidas
-      if (isHTMLElement(dateContainer)) setCssProps(dateContainer, { display: 'block' });
-      if (isHTMLElement(timeContainer)) setCssProps(timeContainer, { display: 'block' });
-      if (isHTMLElement(quickActions)) setCssProps(quickActions, { display: 'block' });
+      if (isHTMLElement(dateContainer)) {
+        setCssProps(dateContainer, { 
+          display: 'block', 
+          visibility: 'visible',
+          opacity: '1'
+        });
+      }
+      if (isHTMLElement(timeContainer)) {
+        setCssProps(timeContainer, { 
+          display: 'block', 
+          visibility: 'visible',
+          opacity: '1'
+        });
+      }
+      if (isHTMLElement(quickActions)) {
+        setCssProps(quickActions, { 
+          display: 'block', 
+          visibility: 'visible',
+          opacity: '1'
+        });
+      }
 
       // Ocultar lista de ubicaciones
       if (isHTMLElement(locationListContainer)) {
-        setCssProps(locationListContainer, { display: 'none' });
+        setCssProps(locationListContainer, { display: 'none', visibility: 'hidden' });
       }
     }
 
     // Mantener el panel de debug visible si estaba visible
     if (this.showDebugPanel && isHTMLElement(debugPanel)) {
-      setCssProps(debugPanel, { display: 'block' });
+      setCssProps(debugPanel, { display: 'block', visibility: 'visible' });
     } else if (this.showDebugPanel && !debugPanel && this.debugPanel) {
-      setCssProps(this.debugPanel.container, { display: 'block' });
+      setCssProps(this.debugPanel.container, { display: 'block', visibility: 'visible' });
     }
   }
 

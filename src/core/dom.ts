@@ -24,9 +24,20 @@ export function setCssProps(element: HTMLElement, props: Partial<CSSStyleDeclara
 
 /**
  * Type guard para verificar si un Element es un HTMLElement
+ * Versión segura que funciona en todos los contextos de Obsidian
  */
 export function isHTMLElement(element: Element | null): element is HTMLElement {
-  return element instanceof HTMLElement;
+  if (!element) return false;
+  // Verificar de forma segura si HTMLElement está disponible
+  if (typeof HTMLElement !== 'undefined') {
+    return element instanceof HTMLElement;
+  }
+  // Fallback: verificar propiedades comunes de HTMLElement
+  return (
+    element.nodeType === 1 && // ELEMENT_NODE
+    typeof (element as any).style !== 'undefined' &&
+    typeof (element as any).offsetWidth !== 'undefined'
+  );
 }
 
 

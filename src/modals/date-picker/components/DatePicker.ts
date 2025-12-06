@@ -20,7 +20,12 @@ export function createDatePicker(
   initialDate: string
 ): DatePickerResult {
   const dateContainer = parent.createEl("div", { cls: "notelert-date-container" });
-  setCssProps(dateContainer, { marginBottom: "15px" });
+  setCssProps(dateContainer, { 
+    marginBottom: "15px",
+    display: "block",
+    visibility: "visible",
+    opacity: "1"
+  });
 
   const dateLabel = dateContainer.createEl("label", { 
     text: getTranslation(language, "datePicker.dateLabel") 

@@ -4,7 +4,7 @@
 
 import { HTMLElement } from "obsidian";
 import { getTranslation } from "../../../i18n";
-import { setCssProps } from "../../../core/dom";
+import { setCssProps, isHTMLElement } from "../../../core/dom";
 import { NotificationType } from "../types";
 
 export interface TypeSelectorResult {
@@ -114,9 +114,5 @@ export function createTypeSelector(
       onTypeChange(type);
     }
   };
-}
-
-function isHTMLElement(element: Element | null): element is HTMLElement {
-  return element instanceof HTMLElement;
 }
 
