@@ -84,7 +84,9 @@ export function createTimePicker(
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
     gap: "8px",
+    flex: "0 0 auto",
   });
 
   const hoursLabel = hoursContainer.createEl("div", {
@@ -101,16 +103,19 @@ export function createTimePicker(
   const hoursDisplay = hoursContainer.createEl("div", {
     text: "12",
   });
+  const displayWidth = isDesktop ? "80px" : "70px";
   setCssProps(hoursDisplay, {
     fontSize: isDesktop ? "32px" : "28px",
     fontWeight: "600",
     color: "var(--text-normal)",
-    minWidth: isDesktop ? "60px" : "50px",
+    width: displayWidth,
     textAlign: "center",
-    padding: isDesktop ? "10px 15px" : "8px 12px",
+    padding: isDesktop ? "10px 0" : "8px 0",
     background: "var(--background-primary)",
     borderRadius: "6px",
     border: "2px solid var(--interactive-accent)",
+    boxSizing: "border-box",
+    margin: "0 auto",
   });
   hoursDisplay.id = "hours-display";
 
@@ -120,13 +125,22 @@ export function createTimePicker(
     gap: "8px",
     alignItems: "center",
     justifyContent: "center",
+    width: displayWidth,
+    boxSizing: "border-box",
   });
 
-  const createTimeButton = (text: string, isDesktop: boolean) => {
-    const btn = hoursButtons.createEl("button", { text });
+  // Calcular ancho de botones para que quepan perfectamente centrados
+  // Para desktop: 80px - 8px gap = 72px / 2 = 36px por botón
+  // Para mobile: 70px - 8px gap = 62px / 2 = 31px por botón
+  const buttonWidth = isDesktop ? "36px" : "31px";
+  const buttonHeight = isDesktop ? "36px" : "32px";
+  const createTimeButton = (text: string, isDesktop: boolean, container: HTMLElement) => {
+    const btn = container.createEl("button", { text });
     setCssProps(btn, {
-      width: isDesktop ? "36px" : "32px",
-      height: isDesktop ? "36px" : "32px",
+      width: buttonWidth,
+      height: buttonHeight,
+      minWidth: buttonWidth,
+      maxWidth: buttonWidth,
       borderRadius: "6px",
       border: "1px solid var(--background-modifier-border)",
       background: "var(--background-primary)",
@@ -137,6 +151,9 @@ export function createTimePicker(
       alignItems: "center",
       justifyContent: "center",
       transition: "all 0.2s",
+      flex: "0 0 auto",
+      padding: "0",
+      margin: "0",
     });
     btn.addEventListener("mouseenter", () => {
       setCssProps(btn, {
@@ -153,8 +170,8 @@ export function createTimePicker(
     return btn;
   };
 
-  const hoursDecreaseBtn = createTimeButton("−", isDesktop);
-  const hoursIncreaseBtn = createTimeButton("+", isDesktop);
+  const hoursDecreaseBtn = createTimeButton("−", isDesktop, hoursButtons);
+  const hoursIncreaseBtn = createTimeButton("+", isDesktop, hoursButtons);
 
   // Separador
   const colonEl = timePickerContainer.createEl("div", {
@@ -165,6 +182,11 @@ export function createTimePicker(
     fontWeight: "600",
     color: "var(--text-normal)",
     margin: `0 ${isDesktop ? "10px" : "5px"}`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    flex: "0 0 auto",
   });
 
   // Selector de minutos
@@ -173,7 +195,9 @@ export function createTimePicker(
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
     gap: "8px",
+    flex: "0 0 auto",
   });
 
   const minutesLabel = minutesContainer.createEl("div", {
@@ -190,16 +214,19 @@ export function createTimePicker(
   const minutesDisplay = minutesContainer.createEl("div", {
     text: "00",
   });
+  const minutesDisplayWidth = isDesktop ? "80px" : "70px";
   setCssProps(minutesDisplay, {
     fontSize: isDesktop ? "32px" : "28px",
     fontWeight: "600",
     color: "var(--text-normal)",
-    minWidth: isDesktop ? "60px" : "50px",
+    width: minutesDisplayWidth,
     textAlign: "center",
-    padding: isDesktop ? "10px 15px" : "8px 12px",
+    padding: isDesktop ? "10px 0" : "8px 0",
     background: "var(--background-primary)",
     borderRadius: "6px",
     border: "2px solid var(--interactive-accent)",
+    boxSizing: "border-box",
+    margin: "0 auto",
   });
   minutesDisplay.id = "minutes-display";
 
@@ -209,10 +236,12 @@ export function createTimePicker(
     gap: "8px",
     alignItems: "center",
     justifyContent: "center",
+    width: minutesDisplayWidth,
+    boxSizing: "border-box",
   });
 
-  const minutesDecreaseBtn = createTimeButton("−", isDesktop);
-  const minutesIncreaseBtn = createTimeButton("+", isDesktop);
+  const minutesDecreaseBtn = createTimeButton("−", isDesktop, minutesButtons);
+  const minutesIncreaseBtn = createTimeButton("+", isDesktop, minutesButtons);
 
   // Input oculto para mantener compatibilidad
   const timeInput = timeContainer.createEl("input", {
