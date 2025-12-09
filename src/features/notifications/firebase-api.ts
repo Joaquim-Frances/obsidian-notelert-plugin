@@ -262,9 +262,12 @@ export async function schedulePushNotification(
         triggerType: 'arrive', // Por defecto 'arrive', podría hacerse configurable en el futuro
       };
     } else {
+      // Caso defensivo: notificationType debería ser siempre 'time' o 'location'
+      // pero TypeScript lo infiere como 'never' aquí, así que lo convertimos a string
+      const notificationTypeStr = String(notificationType);
       return {
         success: false,
-        error: `Tipo de notificación no soportado: ${notificationType}`,
+        error: `Tipo de notificación no soportado: ${notificationTypeStr}`,
       };
     }
 

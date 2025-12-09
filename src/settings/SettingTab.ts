@@ -1,7 +1,6 @@
 import { App, Plugin, PluginSettingTab, Setting, Platform } from "obsidian";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
-import { setCssProps } from "../core/dom";
 import { isIOS } from "../features/notifications/utils";
 
 export class NotelertSettingTab extends PluginSettingTab {

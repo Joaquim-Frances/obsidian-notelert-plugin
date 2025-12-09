@@ -27,7 +27,7 @@ export function createDebugPanel(
 
   // Título
   const title = panelWrapper.createEl("h3", {
-    text: "Logs de Debug",
+    text: "Logs de debug",
   });
   setCssProps(title, {
     margin: "0 0 10px 0",

@@ -26,17 +26,33 @@ export function setCssProps(element: HTMLElement, props: Partial<CSSStyleDeclara
       continue;
     } else {
       // Si es un objeto u otro tipo, intentar convertirlo de forma segura
-      // pero solo si tiene un método toString válido
-      try {
-        const stringValue = String(value);
-        // Si el resultado es [object Object], es un objeto sin toString útil
-        if (stringValue === '[object Object]') {
+      // Primero verificar si es un objeto
+      if (typeof value === 'object' && value !== null) {
+        // Para objetos, intentar JSON.stringify si es posible
+        try {
+          const stringified = JSON.stringify(value);
+          // Si el resultado es un objeto vacío o no válido para CSS, saltar
+          if (stringified === '{}' || stringified.startsWith('{') || stringified.startsWith('[')) {
+            continue;
+          }
+          cssValue = stringified;
+        } catch {
+          // Si falla la conversión, saltar esta propiedad
           continue;
         }
-        cssValue = stringValue;
-      } catch {
-        // Si falla la conversión, saltar esta propiedad
-        continue;
+      } else {
+        // Para otros tipos primitivos (symbol, bigint, etc.), intentar conversión segura
+        try {
+          const stringValue = String(value);
+          // Si el resultado es [object Object], es un objeto sin toString útil
+          if (stringValue === '[object Object]') {
+            continue;
+          }
+          cssValue = stringValue;
+        } catch {
+          // Si falla la conversión, saltar esta propiedad
+          continue;
+        }
       }
     }
     

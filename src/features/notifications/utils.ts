@@ -117,6 +117,12 @@ export function errorToString(error: unknown): string {
   }
   
   // Para tipos primitivos seguros (number, boolean, symbol, bigint)
-  return String(error);
+  // Verificar explícitamente cada tipo antes de usar String()
+  if (typeof error === 'number' || typeof error === 'boolean' || typeof error === 'symbol' || typeof error === 'bigint') {
+    return String(error);
+  }
+  
+  // Fallback final: si llegamos aquí, algo inesperado pasó
+  return 'Error desconocido';
 }
 
