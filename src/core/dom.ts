@@ -15,11 +15,45 @@ export function setCssProps(element: HTMLElement, props: Partial<CSSStyleDeclara
   for (const [key, value] of Object.entries(props)) {
     if (value == null) continue;
     
+    // Validar que el valor sea un tipo primitivo válido para CSS
+    let cssValue: string;
+    if (typeof value === 'string') {
+      cssValue = value;
+    } else if (typeof value === 'number') {
+      cssValue = String(value);
+    } else if (typeof value === 'boolean') {
+      // Los booleanos no son válidos en CSS, saltar
+      continue;
+    } else {
+      // Si es un objeto u otro tipo, intentar convertirlo de forma segura
+      // pero solo si tiene un método toString válido
+      try {
+        const stringValue = String(value);
+        // Si el resultado es [object Object], es un objeto sin toString útil
+        if (stringValue === '[object Object]') {
+          continue;
+        }
+        cssValue = stringValue;
+      } catch {
+        // Si falla la conversión, saltar esta propiedad
+        continue;
+      }
+    }
+    
     // Usar setProperty que es el método estándar y seguro del DOM
     // Convierte camelCase a kebab-case automáticamente
     const cssProperty = camelToKebab(key);
-    element.style.setProperty(cssProperty, String(value));
+    element.style.setProperty(cssProperty, cssValue);
   }
+}
+
+/**
+ * Interfaz para elementos que tienen propiedades similares a HTMLElement
+ * Usado en el fallback cuando HTMLElement no está disponible
+ */
+interface HTMLElementLike {
+  style?: unknown;
+  offsetWidth?: unknown;
 }
 
 /**
@@ -33,10 +67,11 @@ export function isHTMLElement(element: Element | null): element is HTMLElement {
     return element instanceof HTMLElement;
   }
   // Fallback: verificar propiedades comunes de HTMLElement
+  const elementLike = element as Element & HTMLElementLike;
   return (
     element.nodeType === 1 && // ELEMENT_NODE
-    typeof (element as any).style !== 'undefined' &&
-    typeof (element as any).offsetWidth !== 'undefined'
+    typeof elementLike.style !== 'undefined' &&
+    typeof elementLike.offsetWidth !== 'undefined'
   );
 }
 

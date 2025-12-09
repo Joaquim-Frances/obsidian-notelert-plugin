@@ -163,6 +163,29 @@ export interface SchedulePushNotificationResult {
 }
 
 /**
+ * Interfaz para la ubicación en una notificación de tipo location
+ */
+interface NotificationLocation {
+  latitude: number;
+  longitude: number;
+  address: string;
+  triggerType: string;
+}
+
+/**
+ * Interfaz para el cuerpo de la petición de notificación push
+ */
+interface PushNotificationRequestBody {
+  title: string;
+  message: string;
+  notificationId: string;
+  type: string;
+  scheduledDate?: string;
+  location?: NotificationLocation;
+  obsidianDeepLink?: string;
+}
+
+/**
  * Programar una notificación push usando el endpoint del plugin
  * Soporta notificaciones de fecha/hora y de ubicación
  */
@@ -187,7 +210,7 @@ export async function schedulePushNotification(
     const notificationType = pattern.type || (pattern.location ? 'location' : 'time');
 
     // Construir el cuerpo de la petición base
-    const requestBody: any = {
+    const requestBody: PushNotificationRequestBody = {
       title: pattern.title,
       message: pattern.message,
       notificationId: notificationId,
@@ -212,8 +235,10 @@ export async function schedulePushNotification(
       // Notificación de ubicación - scheduledDate es requerido por el backend
       // Usar fecha/hora del pattern si está disponible, sino usar fecha actual
       let scheduledDate: Date;
-      if (pattern.date && pattern.time) {
-        const dateTimeString = `${pattern.date}T${pattern.time}:00`;
+      const patternDate = pattern.date;
+      const patternTime = pattern.time;
+      if (patternDate && patternTime && typeof patternDate === 'string' && typeof patternTime === 'string') {
+        const dateTimeString = `${patternDate}T${patternTime}:00`;
         scheduledDate = new Date(dateTimeString);
         if (isNaN(scheduledDate.getTime())) {
           scheduledDate = new Date(); // Fallback a fecha actual

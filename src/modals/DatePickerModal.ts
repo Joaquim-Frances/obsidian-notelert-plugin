@@ -4,7 +4,7 @@ import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { setCssProps, isHTMLElement } from "../core/dom";
 import { NotificationType } from "./date-picker/types";
-import { getToday, getTimeInHours } from "./date-picker/utils/date-utils";
+import { getToday } from "./date-picker/utils/date-utils";
 import { createNotificationFromDatePicker, createNotificationFromLocation } from "./date-picker/utils/notification-utils";
 import { showLoadingState, hideLoadingState } from "./date-picker/utils/ui-helpers";
 import { createDatePicker, DatePickerResult } from "./date-picker/components/DatePicker";
@@ -106,8 +106,8 @@ export class NotelertDatePickerModal extends Modal {
     });
     
     // Debug: verificar que el contenedor se creó
-    this.plugin.log(`🔧 Container creado: ${this.container ? 'OK' : 'NULL'}`);
-    this.plugin.log(`🔧 Container parent: ${this.container?.parentElement ? 'OK' : 'NULL'}`);
+    this.plugin.log(`Container creado: ${this.container ? 'OK' : 'NULL'}`);
+    this.plugin.log(`Container parent: ${this.container?.parentElement ? 'OK' : 'NULL'}`);
 
     // En desktop, forzar tipo 'time'
     if (isDesktop) {
@@ -123,12 +123,12 @@ export class NotelertDatePickerModal extends Modal {
 
   private createComponents(isDesktop: boolean) {
     if (!this.container) {
-      this.plugin.log("❌ Error: container es null en createComponents");
+      this.plugin.log("Error: container es null en createComponents");
       return;
     }
 
     try {
-      this.plugin.log(`🔧 Creando componentes para desktop: ${isDesktop}`);
+      this.plugin.log(`Creando componentes para desktop: ${isDesktop}`);
 
       // Selector de tipo (solo móvil)
       if (!isDesktop) {
@@ -143,7 +143,7 @@ export class NotelertDatePickerModal extends Modal {
             this.updateModalContent();
           }
         );
-        this.plugin.log("✅ TypeSelector creado");
+        this.plugin.log("TypeSelector creado");
       }
 
       // Botón para mostrar/ocultar logs de debug (solo en móvil)
@@ -156,7 +156,7 @@ export class NotelertDatePickerModal extends Modal {
         });
 
         const debugToggleBtn = debugToggleContainer.createEl("button", {
-          text: "🔍 Ver logs",
+          text: "Ver logs",
           cls: "mod-secondary"
         });
         setCssProps(debugToggleBtn, {
@@ -167,18 +167,18 @@ export class NotelertDatePickerModal extends Modal {
         debugToggleBtn.addEventListener("click", () => {
           this.showDebugPanel = !this.showDebugPanel;
           this.updateDebugPanel();
-          debugToggleBtn.textContent = this.showDebugPanel ? "🔍 Ocultar logs" : "🔍 Ver logs";
+          debugToggleBtn.textContent = this.showDebugPanel ? "Ocultar logs" : "Ver logs";
         });
       }
 
       // Selector de fecha
-      this.plugin.log("🔧 Creando DatePicker...");
+      this.plugin.log("Creando DatePicker...");
       this.datePicker = createDatePicker(
         this.container,
         this.language,
         getToday()
       );
-      this.plugin.log(`✅ DatePicker creado: ${this.datePicker ? 'OK' : 'NULL'}`);
+      this.plugin.log(`DatePicker creado: ${this.datePicker ? 'OK' : 'NULL'}`);
 
       // Selector de hora
       this.plugin.log("🔧 Creando TimePicker...");
@@ -187,7 +187,7 @@ export class NotelertDatePickerModal extends Modal {
         this.language,
         isDesktop
       );
-      this.plugin.log(`✅ TimePicker creado: ${this.timePicker ? 'OK' : 'NULL'}`);
+      this.plugin.log(`SUCCESS TimePicker creado: ${this.timePicker ? 'OK' : 'NULL'}`);
 
       // Acciones rápidas
       this.plugin.log("🔧 Creando QuickActions...");
@@ -205,7 +205,7 @@ export class NotelertDatePickerModal extends Modal {
           }
         }
       );
-      this.plugin.log(`✅ QuickActions creado: ${this.quickActions ? 'OK' : 'NULL'}`);
+      this.plugin.log(`SUCCESS QuickActions creado: ${this.quickActions ? 'OK' : 'NULL'}`);
 
       // Panel de debug
       if (!isDesktop) {
@@ -225,7 +225,7 @@ export class NotelertDatePickerModal extends Modal {
       const timeContainer = this.container.querySelector('.notelert-time-container');
       const quickActionsContainer = this.container.querySelector('#quick-actions-container');
       
-      this.plugin.log(`🔍 Verificación DOM ANTES de updateModalContent:`);
+      this.plugin.log(`DEBUG Verificación DOM ANTES de updateModalContent:`);
       this.plugin.log(`  - DateContainer: ${dateContainer ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
       this.plugin.log(`  - TimeContainer: ${timeContainer ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
       this.plugin.log(`  - QuickActions: ${quickActionsContainer ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
@@ -249,15 +249,15 @@ export class NotelertDatePickerModal extends Modal {
       const timeContainerAfter = this.container.querySelector('.notelert-time-container');
       const quickActionsContainerAfter = this.container.querySelector('#quick-actions-container');
       
-      this.plugin.log(`🔍 Verificación DOM DESPUÉS de updateModalContent:`);
+      this.plugin.log(`DEBUG Verificación DOM DESPUÉS de updateModalContent:`);
       this.plugin.log(`  - DateContainer display: ${dateContainerAfter ? (dateContainerAfter as HTMLElement).style.display : 'NULL'}`);
       this.plugin.log(`  - TimeContainer display: ${timeContainerAfter ? (timeContainerAfter as HTMLElement).style.display : 'NULL'}`);
       this.plugin.log(`  - QuickActions display: ${quickActionsContainerAfter ? (quickActionsContainerAfter as HTMLElement).style.display : 'NULL'}`);
       
-      this.plugin.log("✅ Componentes creados y actualizados");
+      this.plugin.log("SUCCESS Componentes creados y actualizados");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      this.plugin.log(`❌ Error creando componentes: ${errorMessage}`);
+      this.plugin.log(`FAIL Error creando componentes: ${errorMessage}`);
       console.error("Error en createComponents:", error);
     }
   }

@@ -100,6 +100,23 @@ export function errorToString(error: unknown): string {
     return 'Error desconocido';
   }
   
+  // Verificar que no sea un objeto antes de usar String()
+  if (typeof error === 'object') {
+    // Si llegamos aquí y es un objeto, intentar una última vez obtener información útil
+    try {
+      const errorObj = error as Record<string, unknown>;
+      const message = errorObj.message || errorObj.error || errorObj.msg;
+      if (typeof message === 'string') {
+        return message;
+      }
+      // Si no hay mensaje útil, usar JSON.stringify
+      return JSON.stringify(error);
+    } catch {
+      return 'Error desconocido (no serializable)';
+    }
+  }
+  
+  // Para tipos primitivos seguros (number, boolean, symbol, bigint)
   return String(error);
 }
 

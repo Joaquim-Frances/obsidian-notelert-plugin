@@ -2,7 +2,6 @@
  * Componente para el panel de debug
  */
 
-import { HTMLElement } from "obsidian";
 import { setCssProps } from "../../../core/dom";
 
 export interface DebugPanelResult {
@@ -28,7 +27,7 @@ export function createDebugPanel(
 
   // Título
   const title = panelWrapper.createEl("h3", {
-    text: "📋 Logs de Debug",
+    text: "Logs de Debug",
   });
   setCssProps(title, {
     margin: "0 0 10px 0",
@@ -92,12 +91,16 @@ export function createDebugPanel(
       });
     } else {
       logs.forEach((log) => {
-        const color = log.includes('❌') || log.includes('Error') ? 'var(--text-error)' :
-          log.includes('✅') ? 'var(--text-success)' :
-          log.includes('⚠️') ? 'var(--text-warning)' :
+        const isError = log.includes('Error') || log.includes('FAIL') || log.includes('Fallo') || log.toLowerCase().includes('error');
+        const isSuccess = log.includes('SUCCESS') || log.includes('Éxito') || log.includes('OK') || log.toLowerCase().includes('success');
+        const isWarning = log.includes('WARNING') || log.includes('Advertencia') || log.includes('Warning') || log.toLowerCase().includes('warning');
+        
+        const color = isError ? 'var(--text-error)' :
+          isSuccess ? 'var(--text-success)' :
+          isWarning ? 'var(--text-warning)' :
           'var(--text-normal)';
-        const bgColor = log.includes('❌') || log.includes('Error') ? 'rgba(255, 0, 0, 0.1)' :
-          log.includes('✅') ? 'rgba(0, 255, 0, 0.1)' : 'transparent';
+        const bgColor = isError ? 'rgba(255, 0, 0, 0.1)' :
+          isSuccess ? 'rgba(0, 255, 0, 0.1)' : 'transparent';
 
         const logLine = logContainer.createEl("div");
         setCssProps(logLine, {

@@ -7,8 +7,6 @@ import { SavedLocation } from "../../../core/types";
 import { getTranslation } from "../../../i18n";
 import { setCssProps, isHTMLElement } from "../../../core/dom";
 import { loadLocationsFromBackend } from "../utils/location-api";
-import { isPremiumError, PremiumError } from "../types";
-import { errorToString } from "../../../features/notifications/utils";
 import { INotelertPlugin } from "../../../core/plugin-interface";
 
 export interface LocationListResult {
@@ -344,7 +342,7 @@ export async function createLocationList(
       marginTop: "8px",
     });
     reloadButton.addEventListener("click", () => {
-      reload();
+      void reload();
     });
   };
 
@@ -453,18 +451,18 @@ export async function createLocationList(
     const result = await loadLocationsFromBackend(token);
     
     if (result.error) {
-      onDebugLog(`[Ubicaciones] ❌ Error: ${result.error}`);
+      onDebugLog(`[Ubicaciones] FAIL Error: ${result.error}`);
       renderError(result.error, result.isPremiumError);
       return;
     }
 
     if (result.locations.length === 0) {
-      onDebugLog(`[Ubicaciones] ⚠️ No hay ubicaciones guardadas`);
+      onDebugLog(`[Ubicaciones] WARNING No hay ubicaciones guardadas`);
       renderEmpty();
       return;
     }
 
-    onDebugLog(`[Ubicaciones] ✅ Ubicaciones cargadas: ${result.locations.length}`);
+    onDebugLog(`[Ubicaciones] SUCCESS Ubicaciones cargadas: ${result.locations.length}`);
     result.locations.forEach((loc, idx) => {
       onDebugLog(`[Ubicaciones]   ${idx + 1}. ${loc.name} (${loc.latitude}, ${loc.longitude})`);
     });

@@ -4,6 +4,7 @@
 
 import { HTMLButtonElement } from "obsidian";
 import { getTranslation } from "../../../i18n";
+import { setCssProps } from "../../../core/dom";
 
 // WeakMap para almacenar el texto original de los botones
 const buttonOriginalText = new WeakMap<HTMLButtonElement, string>();
@@ -19,7 +20,6 @@ export function showLoadingState(button: HTMLButtonElement, language: string): v
 
   // Deshabilitar botón
   button.disabled = true;
-  const { setCssProps } = require("../../../core/dom");
   setCssProps(button, {
     opacity: '0.6',
     cursor: 'not-allowed',
@@ -42,7 +42,6 @@ export function hideLoadingState(button: HTMLButtonElement, language: string): v
 
   // Restaurar estado del botón
   button.disabled = false;
-  const { setCssProps } = require("../../../core/dom");
   setCssProps(button, {
     opacity: '1',
     cursor: 'pointer',
