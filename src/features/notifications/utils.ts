@@ -62,6 +62,21 @@ export function getMobilePlatform(): 'ios' | 'android' | 'unknown' | 'desktop' {
 }
 
 /**
+ * Convierte un símbolo a string de forma segura sin usar String() o toString()
+ * @param sym - El símbolo a convertir
+ * @returns String representando el símbolo
+ */
+function symbolToString(sym: symbol): string {
+  // Intentar usar description si está disponible (es la forma más segura)
+  if (sym.description !== undefined && sym.description !== null) {
+    return sym.description;
+  }
+  // Si no hay description, retornar un mensaje genérico
+  // Esto evita completamente usar String() o toString() que el linter rechaza
+  return 'Symbol';
+}
+
+/**
  * Convierte un error desconocido a string de forma segura
  * @param error - El error a convertir
  * @returns String representando el error
@@ -127,10 +142,8 @@ export function errorToString(error: unknown): string {
     return `${error}`;
   }
   if (typeof error === 'symbol') {
-    // Los símbolos necesitan String() explícito, pero verificamos el tipo primero
-    const sym: symbol = error;
-    // Usar description si está disponible, sino usar String()
-    return sym.description ?? String(sym);
+    // Usar función helper que evita String() explícito
+    return symbolToString(error);
   }
   if (typeof error === 'bigint') {
     // Template literal funciona para bigint
