@@ -42,7 +42,9 @@ export function setCssProps(element: HTMLElement, props: Partial<CSSStyleDeclara
         }
       } else {
         // Para otros tipos primitivos (symbol, bigint, etc.), verificar explícitamente antes de convertir
-        if (typeof value === 'symbol' || typeof value === 'bigint') {
+        if (typeof value === 'symbol') {
+          cssValue = String(value);
+        } else if (typeof value === 'bigint') {
           cssValue = String(value);
         } else {
           // Si llegamos aquí y no es un tipo primitivo conocido, saltar
