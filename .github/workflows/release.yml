@@ -52,15 +52,23 @@ jobs:
           path: notelert-plugin.zip
           retention-days: 90
       
+      - name: Prepare releases folder
+        run: |
+          mkdir -p releases
+          cp dist/main.js releases/
+          cp dist/manifest.json releases/
+          cp notelert-plugin.zip releases/notelert-plugin.zip
+      
       - name: Commit built files to repo
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add dist/main.js dist/manifest.json
+          git add releases/
           if ! git diff --staged --quiet; then
-            git commit -m "Build: Update dist files [skip ci]"
+            git commit -m "Build: Update dist and releases files [skip ci]"
             git push
           else
-            echo "No changes to commit in dist files"
+            echo "No changes to commit in dist or releases files"
           fi
 

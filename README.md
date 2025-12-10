@@ -4,30 +4,14 @@ Notelert app or plugin does not scans you vault in any way.
 
 ## Installation
 
-### Method 1: Download ZIP from GitHub Actions (Recommended)
+### Method 1: Download from Releases Folder (Easiest - Recommended)
 
-1. **Download the plugin ZIP**:
-   - Go to the [Actions tab](https://github.com/quimfrances/obsidian-notelert-plugin/actions)
-   - Click on the latest successful workflow run (green checkmark)
-   - Scroll down to "Artifacts" section
-   - Download `notelert-plugin.zip`
-
-2. **Extract and install**:
-   - Extract the ZIP file to get `main.js` and `manifest.json`
-   - Open Obsidian Settings → Community Plugins
-   - Turn off "Safe mode" (if enabled)
-   - Click "Open plugins folder" (or navigate to `.obsidian/plugins/` in your vault)
-   - Create a new folder named `notelert`
-   - Copy `main.js` and `manifest.json` into the `notelert` folder
-   - Go back to Obsidian Settings → Community Plugins
-   - Enable "Notelert"
-
-### Method 2: Download files directly from repository
-
-1. **Download the files**:
-   - Go to the [dist folder](https://github.com/quimfrances/obsidian-notelert-plugin/tree/main/dist) in the repository
-   - Click on `main.js` → Click "Raw" → Right-click → "Save As" → Save as `main.js`
-   - Click on `manifest.json` → Click "Raw" → Right-click → "Save As" → Save as `manifest.json`
+1. **Download the plugin files**:
+   - Go to the [releases folder](https://github.com/quimfrances/obsidian-notelert-plugin/tree/main/releases) in the repository
+   - **Option A - Download ZIP**: Click on `notelert-plugin.zip` → Click "Download" → Extract the ZIP file
+   - **Option B - Download individual files**: 
+     - Click on `main.js` → Click "Raw" → Right-click → "Save As" → Save as `main.js`
+     - Click on `manifest.json` → Click "Raw" → Right-click → "Save As" → Save as `manifest.json`
 
 2. **Install in Obsidian**:
    - Open Obsidian Settings → Community Plugins
@@ -37,6 +21,28 @@ Notelert app or plugin does not scans you vault in any way.
    - Copy `main.js` and `manifest.json` into the `notelert` folder
    - Go back to Obsidian Settings → Community Plugins
    - Enable "Notelert"
+
+### Method 2: Download ZIP from GitHub Actions
+
+1. **Download the plugin ZIP**:
+   - Go to the [Actions tab](https://github.com/quimfrances/obsidian-notelert-plugin/actions)
+   - Click on the latest successful workflow run (green checkmark)
+   - Scroll down to "Artifacts" section
+   - Download `notelert-plugin.zip`
+
+2. **Extract and install**:
+   - Extract the ZIP file to get `main.js` and `manifest.json`
+   - Follow the installation steps from Method 1, step 2
+
+### Method 3: Download files from dist folder
+
+1. **Download the files**:
+   - Go to the [dist folder](https://github.com/quimfrances/obsidian-notelert-plugin/tree/main/dist) in the repository
+   - Click on `main.js` → Click "Raw" → Right-click → "Save As" → Save as `main.js`
+   - Click on `manifest.json` → Click "Raw" → Right-click → "Save As" → Save as `manifest.json`
+
+2. **Install in Obsidian**:
+   - Follow the installation steps from Method 1, step 2
 
 ### Requirements
 
