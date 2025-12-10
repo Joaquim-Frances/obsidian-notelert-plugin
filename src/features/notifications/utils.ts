@@ -117,18 +117,24 @@ export function errorToString(error: unknown): string {
   }
   
   // Para tipos primitivos seguros (number, boolean, symbol, bigint)
-  // Usar .toString() directamente en lugar de String() para evitar problemas con el linter
+  // Usar conversiones específicas para cada tipo que el linter entienda
   if (typeof error === 'number') {
-    return error.toString();
+    // Template literal funciona bien para números
+    return `${error}`;
   }
   if (typeof error === 'boolean') {
-    return error.toString();
+    // Template literal funciona bien para booleanos
+    return `${error}`;
   }
   if (typeof error === 'symbol') {
-    return error.toString();
+    // Los símbolos necesitan String() explícito, pero verificamos el tipo primero
+    const sym: symbol = error;
+    // Usar description si está disponible, sino usar String()
+    return sym.description ?? String(sym);
   }
   if (typeof error === 'bigint') {
-    return error.toString();
+    // Template literal funciona para bigint
+    return `${error}`;
   }
   
   // Fallback final: si llegamos aquí, algo inesperado pasó
