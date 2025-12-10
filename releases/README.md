@@ -1,26 +1,26 @@
 # Releases
 
-Esta carpeta contiene los archivos compilados del plugin Notelert, actualizados automáticamente en cada build.
+This folder contains the compiled files of the Notelert plugin, automatically updated on each build.
 
-## Archivos disponibles
+## Available Files
 
-- **`main.js`**: Código JavaScript compilado del plugin
-- **`manifest.json`**: Archivo de configuración del plugin con metadatos
-- **`notelert-plugin.zip`**: Archivo ZIP que contiene ambos archivos anteriores
+- **`main.js`**: Compiled JavaScript code of the plugin
+- **`manifest.json`**: Plugin configuration file with metadata
+- **`notelert-plugin.zip`**: ZIP file containing both files above
 
-## Instalación
+## Installation
 
-1. Descarga `notelert-plugin.zip` o los archivos individuales (`main.js` y `manifest.json`)
-2. Extrae el ZIP (si lo descargaste) o usa los archivos directamente
-3. En Obsidian, ve a Settings → Community Plugins
-4. Desactiva "Safe mode" (si está activado)
-5. Haz clic en "Open plugins folder"
-6. Crea una carpeta llamada `notelert`
-7. Copia `main.js` y `manifest.json` dentro de la carpeta `notelert`
-8. Vuelve a Obsidian Settings → Community Plugins
-9. Activa "Notelert"
+1. Download `notelert-plugin.zip` or the individual files (`main.js` and `manifest.json`)
+2. Extract the ZIP (if you downloaded it) or use the files directly
+3. In Obsidian, go to Settings → Community Plugins
+4. Turn off "Safe mode" (if enabled)
+5. Click "Open plugins folder"
+6. Create a folder named `notelert`
+7. Copy `main.js` and `manifest.json` into the `notelert` folder
+8. Go back to Obsidian Settings → Community Plugins
+9. Enable "Notelert"
 
-## Actualizaciones
+## Updates
 
-Esta carpeta se actualiza automáticamente cada vez que se hace push a la rama `main` o `master` del repositorio.
+This folder is automatically updated every time a push is made to the `main` or `master` branch of the repository.
 
