@@ -13,13 +13,18 @@ Notelert app or plugin does not scans you vault in any way.
      - Click on `main.js` → Click "Raw" → Right-click → "Save As" → Save as `main.js`
      - Click on `manifest.json` → Click "Raw" → Right-click → "Save As" → Save as `manifest.json`
 
-2. **Install in Obsidian**:
-   - Open Obsidian Settings → Community Plugins
-   - Turn off "Safe mode" (if enabled)
-   - Click "Open plugins folder" (or navigate to `.obsidian/plugins/` in your vault)
-   - Create a new folder named `notelert`
+2. **Find the Obsidian plugins folder**:
+   - **Method A (Easiest)**: In Obsidian, go to Settings → Community Plugins → Click "Open plugins folder"
+   - **Method B (Manual)**: Navigate to your vault folder → Open `.obsidian` folder → Open `plugins` folder
+     - **Windows**: Usually in `Documents/Obsidian/YourVaultName/.obsidian/plugins/`
+     - **macOS**: Usually in `~/Documents/Obsidian/YourVaultName/.obsidian/plugins/` or in your vault location
+     - **Linux**: Usually in `~/Documents/Obsidian/YourVaultName/.obsidian/plugins/` or in your vault location
+   
+3. **Create the plugin folder and install**:
+   - In the `plugins` folder, create a new folder named `notelert`
    - Copy `main.js` and `manifest.json` into the `notelert` folder
    - Go back to Obsidian Settings → Community Plugins
+   - Turn off "Safe mode" (if enabled)
    - Enable "Notelert"
 
 ### Method 2: Download ZIP from GitHub Actions
@@ -32,7 +37,7 @@ Notelert app or plugin does not scans you vault in any way.
 
 2. **Extract and install**:
    - Extract the ZIP file to get `main.js` and `manifest.json`
-   - Follow the installation steps from Method 1, step 2
+   - Follow the installation steps from Method 1, steps 2-3
 
 ### Method 3: Download files from dist folder
 
@@ -42,7 +47,7 @@ Notelert app or plugin does not scans you vault in any way.
    - Click on `manifest.json` → Click "Raw" → Right-click → "Save As" → Save as `manifest.json`
 
 2. **Install in Obsidian**:
-   - Follow the installation steps from Method 1, step 2
+   - Follow the installation steps from Method 1, steps 2-3
 
 ### Requirements
 
@@ -117,3 +122,44 @@ While the plugin is totally free, the app has a free mode and premium mode:
 - **Premium mode**: Unlimited push notifications + location-based notifications + email notifications.
 
 Note: Location and email notifications have maintenance costs attached, which is why they require a Premium subscription.
+
+## Development
+
+### Building the Plugin
+
+To build the plugin for development:
+
+```bash
+npm run build
+```
+
+This will compile TypeScript files and generate `dist/main.js` and `dist/manifest.json`.
+
+### Installing to Obsidian (Development)
+
+The `build:install` script automatically builds the plugin and copies the files to your Obsidian plugins folder.
+
+**Before using `build:install`, you need to configure the plugin path:**
+
+1. Open `scripts/copy-to-obsidian.js`
+2. Update the `OBSIDIAN_PLUGIN_PATH` constant with your Obsidian vault's plugin folder path:
+   ```javascript
+   const OBSIDIAN_PLUGIN_PATH = '/path/to/your/vault/.obsidian/plugins/notelert';
+   ```
+3. Make sure the `notelert` folder exists in your Obsidian plugins directory (create it if it doesn't exist)
+
+**To find your Obsidian plugins folder:**
+- In Obsidian: Settings → Community Plugins → Click "Open plugins folder"
+- Or manually navigate to: `YourVault/.obsidian/plugins/`
+
+**Then run:**
+```bash
+npm run build:install
+```
+
+This will:
+1. Build the plugin (`npm run build`)
+2. Copy `main.js` and `manifest.json` to your Obsidian plugins folder
+3. Show a notification when complete
+
+**Note:** After installing, reload the plugin in Obsidian: Settings → Community Plugins → Disable/Enable Notelert
