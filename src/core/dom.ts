@@ -41,16 +41,11 @@ export function setCssProps(element: HTMLElement, props: Partial<CSSStyleDeclara
           continue;
         }
       } else {
-        // Para otros tipos primitivos (symbol, bigint, etc.), intentar conversión segura
-        try {
-          const stringValue = String(value);
-          // Si el resultado es [object Object], es un objeto sin toString útil
-          if (stringValue === '[object Object]') {
-            continue;
-          }
-          cssValue = stringValue;
-        } catch {
-          // Si falla la conversión, saltar esta propiedad
+        // Para otros tipos primitivos (symbol, bigint, etc.), verificar explícitamente antes de convertir
+        if (typeof value === 'symbol' || typeof value === 'bigint') {
+          cssValue = String(value);
+        } else {
+          // Si llegamos aquí y no es un tipo primitivo conocido, saltar
           continue;
         }
       }
