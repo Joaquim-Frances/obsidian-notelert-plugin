@@ -119,16 +119,20 @@ export function errorToString(error: unknown): string {
   // Para tipos primitivos seguros (number, boolean, symbol, bigint)
   // Verificar explícitamente cada tipo antes de usar String()
   if (typeof error === 'number') {
-    return String(error);
+    const numValue: number = error;
+    return String(numValue);
   }
   if (typeof error === 'boolean') {
-    return String(error);
+    const boolValue: boolean = error;
+    return String(boolValue);
   }
   if (typeof error === 'symbol') {
-    return String(error);
+    const symValue: symbol = error;
+    return String(symValue);
   }
   if (typeof error === 'bigint') {
-    return String(error);
+    const bigintValue: bigint = error;
+    return String(bigintValue);
   }
   
   // Fallback final: si llegamos aquí, algo inesperado pasó
