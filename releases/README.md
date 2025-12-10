@@ -10,15 +10,29 @@ This folder contains the compiled files of the Notelert plugin, automatically up
 
 ## Installation
 
-1. Download `notelert-plugin.zip` or the individual files (`main.js` and `manifest.json`)
-2. Extract the ZIP (if you downloaded it) or use the files directly
-3. In Obsidian, go to Settings → Community Plugins
-4. Turn off "Safe mode" (if enabled)
-5. Click "Open plugins folder"
-6. Create a folder named `notelert`
-7. Copy `main.js` and `manifest.json` into the `notelert` folder
-8. Go back to Obsidian Settings → Community Plugins
-9. Enable "Notelert"
+1. **Download the plugin files**:
+   - Download `notelert-plugin.zip` or the individual files (`main.js` and `manifest.json`)
+   - Extract the ZIP (if you downloaded it) or use the files directly
+
+2. **Find the Obsidian plugins folder**:
+   - **Method A (Easiest)**: In Obsidian, go to Settings → Community Plugins → Click "Open plugins folder"
+   - **Method B (Manual)**: Navigate to your vault folder → Open `.obsidian` folder → Open `plugins` folder
+     - **Windows**: Usually in `Documents/Obsidian/YourVaultName/.obsidian/plugins/`
+     - **macOS**: Usually in `~/Documents/Obsidian/YourVaultName/.obsidian/plugins/` or in your vault location
+     - **Linux**: Usually in `~/Documents/Obsidian/YourVaultName/.obsidian/plugins/` or in your vault location
+
+3. **Create the plugin folder**:
+   - In the `plugins` folder, create a new folder named `notelert`
+   - If the folder already exists, you can use it or delete it and create a new one
+
+4. **Copy the plugin files**:
+   - Copy `main.js` and `manifest.json` into the `notelert` folder you just created
+   - Make sure both files are directly inside the `notelert` folder (not in a subfolder)
+
+5. **Enable the plugin in Obsidian**:
+   - Go back to Obsidian Settings → Community Plugins
+   - Turn off "Safe mode" (if enabled)
+   - Enable "Notelert"
 
 ## Updates
 
