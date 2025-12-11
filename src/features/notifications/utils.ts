@@ -62,95 +62,11 @@ export function getMobilePlatform(): 'ios' | 'android' | 'unknown' | 'desktop' {
 }
 
 /**
- * Convierte un símbolo a string de forma segura sin usar String() o toString()
- * @param sym - El símbolo a convertir
- * @returns String representando el símbolo
- */
-function symbolToString(sym: symbol): string {
-  // Intentar usar description si está disponible (es la forma más segura)
-  if (sym.description !== undefined && sym.description !== null) {
-    return sym.description;
-  }
-  // Si no hay description, retornar un mensaje genérico
-  // Esto evita completamente usar String() o toString() que el linter rechaza
-  return 'Symbol';
-}
-
-/**
  * Convierte un error desconocido a string de forma segura
  * @param error - El error a convertir
  * @returns String representando el error
  */
 export function errorToString(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  
-  if (typeof error === 'string') {
-    return error;
-  }
-  
-  if (typeof error === 'object' && error !== null) {
-    try {
-      return JSON.stringify(error);
-    } catch {
-      // Si JSON.stringify falla, intentar obtener información útil del objeto
-      const errorObj = error as Record<string, unknown>;
-      const keys = Object.keys(errorObj);
-      if (keys.length > 0) {
-        // Intentar obtener propiedades comunes de error
-        const message = errorObj.message || errorObj.error || errorObj.msg;
-        if (typeof message === 'string') {
-          return message;
-        }
-        // Si no hay mensaje, retornar información sobre el objeto
-        return `Error: ${keys.join(', ')}`;
-      }
-      return 'Error desconocido';
-    }
-  }
-  
-  // Para tipos primitivos (number, boolean, undefined, null, symbol, bigint)
-  if (error === null || error === undefined) {
-    return 'Error desconocido';
-  }
-  
-  // Verificar que no sea un objeto antes de usar String()
-  if (typeof error === 'object') {
-    // Si llegamos aquí y es un objeto, intentar una última vez obtener información útil
-    try {
-      const errorObj = error as Record<string, unknown>;
-      const message = errorObj.message || errorObj.error || errorObj.msg;
-      if (typeof message === 'string') {
-        return message;
-      }
-      // Si no hay mensaje útil, usar JSON.stringify
-      return JSON.stringify(error);
-    } catch {
-      return 'Error desconocido (no serializable)';
-    }
-  }
-  
-  // Para tipos primitivos seguros (number, boolean, symbol, bigint)
-  // Usar conversiones específicas para cada tipo que el linter entienda
-  if (typeof error === 'number') {
-    // Template literal funciona bien para números
-    return `${error}`;
-  }
-  if (typeof error === 'boolean') {
-    // Template literal funciona bien para booleanos
-    return `${error}`;
-  }
-  if (typeof error === 'symbol') {
-    // Usar función helper que evita String() explícito
-    return symbolToString(error);
-  }
-  if (typeof error === 'bigint') {
-    // Template literal funciona para bigint
-    return `${error}`;
-  }
-  
-  // Fallback final: si llegamos aquí, algo inesperado pasó
   return 'Error desconocido';
 }
 
