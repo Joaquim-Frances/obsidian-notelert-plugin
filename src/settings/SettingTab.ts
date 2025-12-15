@@ -1,7 +1,6 @@
-import { App, Plugin, PluginSettingTab, Setting, Platform } from "obsidian";
+import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
-import { isIOS } from "../features/notifications/utils";
 
 export class NotelertSettingTab extends PluginSettingTab {
   plugin: INotelertPlugin;
@@ -15,54 +14,88 @@ export class NotelertSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    const isDesktop = !Platform.isMobile;
-    const isIOSDevice = isIOS();
-
     // Título principal como heading de Setting
     new Setting(containerEl)
       .setName(getTranslation(this.plugin.settings.language, "settings.title"))
       .setHeading();
 
-    // ========== INFORMACIÓN SOBRE PLATAFORMA ==========
-    const platformInfo = containerEl.createEl("div", {
-      attr: {
-        style: `
-          padding: 15px;
-          margin-bottom: 20px;
-          background: var(--background-secondary);
-          border-radius: 8px;
-          border-left: 4px solid var(--interactive-accent);
-        `
-      }
-    });
+    // ========== BANNER INFORMATIVO: APP REQUERIDA ==========
+    // Mostrar banner si no hay token configurado (siempre visible hasta que se configure el token)
+    const hasToken = this.plugin.settings.pluginToken && this.plugin.settings.pluginToken.trim().length > 0;
+    const bannerDismissedKey = "notelert-app-required-banner-dismissed";
+    const bannerDismissed = localStorage.getItem(bannerDismissedKey) === "true";
 
-    if (isDesktop) {
-      new Setting(platformInfo)
-        .setName(getTranslation(this.plugin.settings.language, "settings.platformInfo.desktopTitle"))
-        .setHeading();
-      platformInfo.createEl("p", {
-        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.desktopDesc"),
-        attr: { style: "margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;" }
+    // Mostrar el banner si no hay token (incluso si fue cerrado previamente, para recordar al usuario)
+    if (!hasToken) {
+      const bannerContainer = containerEl.createEl("div", {
+        attr: {
+          style: `
+            padding: 15px;
+            margin-bottom: 20px;
+            background: var(--background-secondary);
+            border-radius: 8px;
+            border-left: 4px solid var(--text-warning);
+            position: relative;
+          `
+        }
       });
-    } else if (isIOSDevice) {
-      // Información específica para iOS
-      new Setting(platformInfo)
-        .setName(getTranslation(this.plugin.settings.language, "settings.platformInfo.iosTitle") || "iOS detectado")
-        .setHeading();
-      platformInfo.createEl("p", {
-        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.iosDesc") || 
-          "Notelert actualmente solo está disponible para Android. La app de iOS está en desarrollo. " +
-          "Por favor, usa un dispositivo Android para crear notificaciones push.",
-        attr: { style: "margin: 0; color: var(--text-warning); font-size: 13px; line-height: 1.5;" }
+
+      // Botón de cerrar
+      const closeButton = bannerContainer.createEl("button", {
+        attr: {
+          style: `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px 8px;
+            line-height: 1;
+          `
+        },
+        text: "×"
       });
-    } else {
-      // Android u otra plataforma móvil
-      new Setting(platformInfo)
-        .setName(getTranslation(this.plugin.settings.language, "settings.platformInfo.mobileTitle"))
-        .setHeading();
-      platformInfo.createEl("p", {
-        text: getTranslation(this.plugin.settings.language, "settings.platformInfo.mobileDesc"),
-        attr: { style: "margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5;" }
+      closeButton.onclick = () => {
+        localStorage.setItem(bannerDismissedKey, "true");
+        this.display(); // Recargar para ocultar el banner
+      };
+
+      // Título del banner
+      bannerContainer.createEl("h3", {
+        text: getTranslation(this.plugin.settings.language, "settings.appRequired.title") || "📱 App de Android Requerida",
+        attr: { 
+          style: "margin: 0 0 10px 0; color: var(--text-normal); font-size: 16px; font-weight: 600;" 
+        }
+      });
+
+      // Mensaje del banner
+      const messageText = getTranslation(this.plugin.settings.language, "settings.appRequired.message") || 
+        "Este plugin requiere instalar la app de Android para funcionar. Una vez instalada, genera un token desde Settings > Plugin Token en la app y configúralo aquí.";
+      
+      bannerContainer.createEl("p", {
+        text: messageText,
+        attr: { 
+          style: "margin: 0 0 10px 0; color: var(--text-muted); font-size: 13px; line-height: 1.6;" 
+        }
+      });
+
+      // Enlace a descargar
+      const downloadLink = bannerContainer.createEl("a", {
+        text: getTranslation(this.plugin.settings.language, "settings.appRequired.downloadLink") || "Descargar app de Android",
+        attr: {
+          href: "https://play.google.com/store/apps/details?id=com.notelert",
+          target: "_blank",
+          style: `
+            display: inline-block;
+            margin-top: 5px;
+            color: var(--text-accent);
+            text-decoration: none;
+            font-weight: 500;
+          `
+        }
       });
     }
 
@@ -104,15 +137,14 @@ export class NotelertSettingTab extends PluginSettingTab {
           })
       );
 
-    // ========== TOKEN DEL PLUGIN (DESKTOP Y MÓVIL) ==========
+    // ========== TOKEN DEL PLUGIN ==========
     new Setting(containerEl)
       .setName(getTranslation(this.plugin.settings.language, "settings.pluginToken.title"))
       .setHeading();
 
     // Token del Plugin (REQUERIDO para premium features)
-    const tokenDesc = isDesktop
-      ? getTranslation(this.plugin.settings.language, "settings.pluginToken.descDesktop")
-      : getTranslation(this.plugin.settings.language, "settings.pluginToken.descMobile");
+    const tokenDesc = getTranslation(this.plugin.settings.language, "settings.pluginToken.descDesktop") || 
+      "Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token.";
 
     new Setting(containerEl)
       .setName(getTranslation(this.plugin.settings.language, "settings.pluginToken.title"))
@@ -140,30 +172,6 @@ export class NotelertSettingTab extends PluginSettingTab {
             }
           });
       });
-
-    // ========== CONFIGURACIÓN DESKTOP ==========
-    if (isDesktop) {
-      new Setting(containerEl)
-        .setName(getTranslation(this.plugin.settings.language, "settings.desktopSettings.title"))
-        .setHeading();
-
-      // Email del usuario (DEPRECATED pero mantener por compatibilidad)
-      new Setting(containerEl)
-        .setName(getTranslation(this.plugin.settings.language, "settings.desktopSettings.userEmailTitle"))
-        .setDesc(getTranslation(this.plugin.settings.language, "settings.desktopSettings.userEmailDesc"))
-        .addText((text) => {
-          text
-            .setPlaceholder(getTranslation(this.plugin.settings.language, "settings.desktopSettings.userEmailPlaceholder"))
-            .setValue(this.plugin.settings.userEmail || "")
-            .onChange((value) => {
-              void (async () => {
-                this.plugin.settings.userEmail = value;
-                await this.plugin.saveSettings();
-              })();
-            });
-        });
-
-    }
 
     // ========== CONFIGURACIÓN GENERAL ==========
     new Setting(containerEl)
