@@ -13,6 +13,8 @@ import { createQuickActions } from "./date-picker/components/QuickActions";
 import { createTypeSelector, TypeSelectorResult } from "./date-picker/components/TypeSelector";
 import { createDebugPanel, DebugPanelResult } from "./date-picker/components/DebugPanel";
 import { createLocationList, LocationListResult } from "./date-picker/components/LocationList";
+import { createRecurrenceSelector, RecurrenceSelectorResult, RecurrenceConfig } from "./date-picker/components/RecurrenceSelector";
+import { getCachedPremiumStatus, onPremiumStatusChange, PremiumStatus } from "../features/premium/premium-service";
 
 export class NotelertDatePickerModal extends Modal {
   private onCancel: () => void;
@@ -33,7 +35,12 @@ export class NotelertDatePickerModal extends Modal {
   private typeSelector: TypeSelectorResult | null = null;
   private debugPanel: DebugPanelResult | null = null;
   private locationList: LocationListResult | null = null;
+  private recurrenceSelector: RecurrenceSelectorResult | null = null;
   private container: HTMLElement | null = null;
+  
+  // Estado premium
+  private isPremium: boolean = false;
+  private unsubscribePremium: (() => void) | null = null;
 
   constructor(
     app: App,
@@ -114,7 +121,25 @@ export class NotelertDatePickerModal extends Modal {
       this.notificationType = 'time';
     }
 
-    // Crear componentes
+    // Obtener estado premium precargado (instantáneo)
+    const cachedStatus = getCachedPremiumStatus();
+    this.isPremium = cachedStatus.isPremium;
+    this.plugin.log(`📌 Estado premium precargado: ${this.isPremium} (loading: ${cachedStatus.loading})`);
+
+    // Suscribirse a cambios de estado premium (por si aún está cargando)
+    this.unsubscribePremium = onPremiumStatusChange((status: PremiumStatus) => {
+      if (status.isPremium !== this.isPremium) {
+        this.isPremium = status.isPremium;
+        this.plugin.log(`🔄 Estado premium actualizado: ${this.isPremium}`);
+        
+        // Actualizar el RecurrenceSelector
+        if (this.recurrenceSelector) {
+          this.recurrenceSelector.updatePremiumStatus(this.isPremium);
+        }
+      }
+    });
+
+    // Crear componentes con el estado premium actual
     this.createComponents(isDesktop);
 
     // Botones principales
@@ -130,21 +155,19 @@ export class NotelertDatePickerModal extends Modal {
     try {
       this.plugin.log(`Creando componentes para desktop: ${isDesktop}`);
 
-      // Selector de tipo (solo móvil)
-      if (!isDesktop) {
-        this.typeSelector = createTypeSelector(
-          this.container,
-          this.language,
-          isDesktop,
-          this.notificationType,
-          (type: NotificationType) => {
-            this.notificationType = type;
-            this.selectedLocation = null;
-            this.updateModalContent();
-          }
-        );
-        this.plugin.log("TypeSelector creado");
-      }
+      // Selector de tipo (tiempo/ubicación)
+      this.typeSelector = createTypeSelector(
+        this.container,
+        this.language,
+        isDesktop,
+        this.notificationType,
+        (type: NotificationType) => {
+          this.notificationType = type;
+          this.selectedLocation = null;
+          this.updateModalContent();
+        }
+      );
+      this.plugin.log("TypeSelector creado");
 
       // Botón para mostrar/ocultar logs de debug (solo en móvil)
       if (!isDesktop) {
@@ -207,6 +230,22 @@ export class NotelertDatePickerModal extends Modal {
       );
       this.plugin.log(`SUCCESS QuickActions creado: ${this.quickActions ? 'OK' : 'NULL'}`);
 
+      // Selector de recurrencia
+      this.plugin.log("🔧 Creando RecurrenceSelector...");
+      this.recurrenceSelector = createRecurrenceSelector(
+        this.container,
+        this.language,
+        (enabled: boolean) => {
+          this.plugin.log(`Recurrencia ${enabled ? 'activada' : 'desactivada'}`);
+        },
+        () => {
+          // Callback cuando se requiere premium
+          this.showPremiumRequiredModal();
+        },
+        this.isPremium
+      );
+      this.plugin.log(`SUCCESS RecurrenceSelector creado: ${this.recurrenceSelector ? 'OK' : 'NULL'}`);
+
       // Panel de debug
       if (!isDesktop) {
         this.debugPanel = createDebugPanel(
@@ -268,14 +307,16 @@ export class NotelertDatePickerModal extends Modal {
     const dateContainer = this.container.querySelector('.notelert-date-container');
     const timeContainer = this.container.querySelector('.notelert-time-container');
     const quickActions = this.container.querySelector('#quick-actions-container');
+    const recurrenceContainer = this.container.querySelector('.notelert-recurrence-container');
     const locationListContainer = this.container.querySelector('#location-list-container');
     const debugPanel = this.container.querySelector('#debug-panel-container');
 
     if (this.notificationType === 'location') {
-      // Ocultar fecha, hora y acciones rápidas
+      // Ocultar fecha, hora, acciones rápidas y recurrencia
       if (isHTMLElement(dateContainer)) setCssProps(dateContainer, { display: 'none', visibility: 'hidden' });
       if (isHTMLElement(timeContainer)) setCssProps(timeContainer, { display: 'none', visibility: 'hidden' });
       if (isHTMLElement(quickActions)) setCssProps(quickActions, { display: 'none', visibility: 'hidden' });
+      if (isHTMLElement(recurrenceContainer)) setCssProps(recurrenceContainer, { display: 'none', visibility: 'hidden' });
 
       // Mostrar o crear la lista de ubicaciones
       if (!locationListContainer) {
@@ -284,7 +325,7 @@ export class NotelertDatePickerModal extends Modal {
         setCssProps(locationListContainer, { display: 'block', visibility: 'visible' });
       }
     } else {
-      // Mostrar fecha, hora y acciones rápidas
+      // Mostrar fecha, hora, acciones rápidas y recurrencia
       if (isHTMLElement(dateContainer)) {
         setCssProps(dateContainer, { 
           display: 'block', 
@@ -301,6 +342,13 @@ export class NotelertDatePickerModal extends Modal {
       }
       if (isHTMLElement(quickActions)) {
         setCssProps(quickActions, { 
+          display: 'block', 
+          visibility: 'visible',
+          opacity: '1'
+        });
+      }
+      if (isHTMLElement(recurrenceContainer)) {
+        setCssProps(recurrenceContainer, { 
           display: 'block', 
           visibility: 'visible',
           opacity: '1'
@@ -351,6 +399,71 @@ export class NotelertDatePickerModal extends Modal {
     setCssProps(this.debugPanel.container, {
       display: this.showDebugPanel ? 'block' : 'none'
     });
+  }
+
+  private showPremiumRequiredModal() {
+    // Crear modal de premium requerido
+    const modal = new Modal(this.app);
+    modal.titleEl.setText(getTranslation(this.language, "recurrence.premiumRequired") || "Premium Required");
+    
+    const content = modal.contentEl;
+    setCssProps(content, {
+      padding: "20px",
+      textAlign: "center",
+    });
+
+    // Icono
+    const iconEl = content.createEl("div", { text: "🔄✨" });
+    setCssProps(iconEl, {
+      fontSize: "48px",
+      marginBottom: "15px",
+    });
+
+    // Descripción
+    const descEl = content.createEl("p", {
+      text: getTranslation(this.language, "recurrence.premiumRequiredDesc") || 
+            "Upgrade to Premium to create reminders that repeat automatically.",
+    });
+    setCssProps(descEl, {
+      marginBottom: "20px",
+      color: "var(--text-muted)",
+      lineHeight: "1.5",
+    });
+
+    // Botones
+    const buttonContainer = content.createEl("div");
+    setCssProps(buttonContainer, {
+      display: "flex",
+      gap: "10px",
+      justifyContent: "center",
+      flexWrap: "wrap",
+    });
+
+    const openAppButton = buttonContainer.createEl("button", {
+      text: getTranslation(this.language, "recurrence.openApp") || "📱 Open app to upgrade",
+      cls: "mod-cta",
+    });
+    setCssProps(openAppButton, {
+      padding: "10px 20px",
+    });
+    openAppButton.addEventListener("click", () => {
+      // Abrir la app de Notelert (deep link)
+      window.open("notelert://premium", "_blank");
+      modal.close();
+    });
+
+    const cancelButton = buttonContainer.createEl("button", {
+      text: getTranslation(this.language, "datePicker.cancelButton") || "Cancel",
+      cls: "mod-secondary",
+    });
+    setCssProps(cancelButton, {
+      padding: "10px 20px",
+    });
+    cancelButton.addEventListener("click", () => {
+      modal.close();
+    });
+
+    modal.open();
   }
 
   private createActionButtons(parent: HTMLElement) {
@@ -447,6 +560,9 @@ export class NotelertDatePickerModal extends Modal {
               };
               this.editor.setCursor(newCursor);
 
+              // Obtener configuración de recurrencia
+              const recurrenceConfig = this.recurrenceSelector?.getConfig();
+
               // Crear la notificación
               const success = await createNotificationFromDatePicker(
                 this.plugin,
@@ -456,7 +572,8 @@ export class NotelertDatePickerModal extends Modal {
                 date,
                 time,
                 newLine,
-                this.language
+                this.language,
+                recurrenceConfig
               );
 
               hideLoadingState(confirmButton, this.language);
@@ -479,6 +596,12 @@ export class NotelertDatePickerModal extends Modal {
   }
 
   onClose() {
+    // Desuscribirse de cambios de premium
+    if (this.unsubscribePremium) {
+      this.unsubscribePremium();
+      this.unsubscribePremium = null;
+    }
+    
     const { contentEl } = this;
     contentEl.empty();
     this.container = null;
@@ -488,5 +611,6 @@ export class NotelertDatePickerModal extends Modal {
     this.typeSelector = null;
     this.debugPanel = null;
     this.locationList = null;
+    this.recurrenceSelector = null;
   }
 }

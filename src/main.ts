@@ -5,6 +5,7 @@ import { NotelertSettingTab } from "./settings/SettingTab";
 import { handleEditorChange } from "./features/datetime/handlers";
 import { createNotification } from "./features/notifications";
 import { getTranslation } from "./i18n";
+import { preloadPremiumStatus } from "./features/premium/premium-service";
 
 export class NotelertPlugin extends Plugin {
   settings: NotelertSettings;
@@ -33,7 +34,22 @@ export class NotelertPlugin extends Plugin {
       await this.handleTokenLink(params);
     });
 
+    // Precargar estado premium en segundo plano (no bloquea la carga del plugin)
+    void this.preloadPremium();
+
     console.debug("Plugin Notelert cargado correctamente");
+  }
+
+  /**
+   * Precarga el estado premium en segundo plano
+   */
+  private async preloadPremium() {
+    try {
+      await preloadPremiumStatus(this.settings.pluginToken);
+      console.debug("[Notelert] Estado premium precargado");
+    } catch (error) {
+      console.debug("[Notelert] Error precargando premium:", error);
+    }
   }
 
   onunload() {

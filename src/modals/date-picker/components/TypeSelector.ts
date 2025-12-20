@@ -27,12 +27,11 @@ export function createTypeSelector(
   const typeContainer = parent.createEl("div", { cls: "notelert-type-container" });
   setCssProps(typeContainer, {
     marginBottom: "20px",
-    padding: "15px",
+    padding: isDesktop ? "10px 15px" : "15px",
     background: "var(--background-secondary)",
     borderRadius: "6px",
     width: "100%",
     boxSizing: "border-box",
-    display: isDesktop ? "none" : "",
   });
 
   typeContainer.createEl("label", {

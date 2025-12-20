@@ -169,6 +169,24 @@ export const TRANSLATIONS = {
       nameLocationPlaceholder: 'Introduce un nombre para esta ubicación',
       nameLocationConfirm: 'Guardar',
       nameLocationCancel: 'Cancelar'
+    },
+    recurrence: {
+      repeat: '🔄 Repetir',
+      repeatLabel: 'Repetir',
+      every: 'Cada',
+      day: 'Día(s)',
+      week: 'Semana(s)',
+      month: 'Mes(es)',
+      year: 'Año(s)',
+      ends: 'Termina:',
+      never: 'Nunca',
+      after: 'Después de',
+      times: 'veces',
+      onDate: 'En fecha',
+      premiumHint: '⭐ Actualiza a Premium para usar notificaciones recurrentes',
+      premiumRequired: 'Las notificaciones recurrentes son una función Premium',
+      premiumRequiredDesc: 'Actualiza a Premium para crear recordatorios que se repiten automáticamente.',
+      openApp: '📱 Abrir app para actualizar'
     }
   },
   en: {
@@ -341,6 +359,24 @@ export const TRANSLATIONS = {
       nameLocationPlaceholder: 'Enter a name for this location',
       nameLocationConfirm: 'Save',
       nameLocationCancel: 'Cancel'
+    },
+    recurrence: {
+      repeat: '🔄 Repeat',
+      repeatLabel: 'Repeat',
+      every: 'Every',
+      day: 'Day(s)',
+      week: 'Week(s)',
+      month: 'Month(s)',
+      year: 'Year(s)',
+      ends: 'Ends:',
+      never: 'Never',
+      after: 'After',
+      times: 'times',
+      onDate: 'On date',
+      premiumHint: '⭐ Upgrade to Premium to use recurring notifications',
+      premiumRequired: 'Recurring notifications are a Premium feature',
+      premiumRequiredDesc: 'Upgrade to Premium to create reminders that repeat automatically.',
+      openApp: '📱 Open app to upgrade'
     }
   },
   ca: {
@@ -513,6 +549,24 @@ export const TRANSLATIONS = {
       nameLocationPlaceholder: 'Introdueix un nom per aquesta ubicació',
       nameLocationConfirm: 'Guardar',
       nameLocationCancel: 'Cancel·lar'
+    },
+    recurrence: {
+      repeat: '🔄 Repetir',
+      repeatLabel: 'Repetir',
+      every: 'Cada',
+      day: 'Dia(es)',
+      week: 'Setmana(es)',
+      month: 'Mes(os)',
+      year: 'Any(s)',
+      ends: 'Acaba:',
+      never: 'Mai',
+      after: 'Després de',
+      times: 'vegades',
+      onDate: 'En data',
+      premiumHint: '⭐ Actualitza a Premium per usar notificacions recurrents',
+      premiumRequired: 'Les notificacions recurrents són una funció Premium',
+      premiumRequiredDesc: 'Actualitza a Premium per crear recordatoris que es repeteixen automàticament.',
+      openApp: '📱 Obrir app per actualitzar'
     }
   },
   fr: {
@@ -662,6 +716,24 @@ export const TRANSLATIONS = {
       nameLocationPlaceholder: 'Entrez un nom pour ce lieu',
       nameLocationConfirm: 'Enregistrer',
       nameLocationCancel: 'Annuler'
+    },
+    recurrence: {
+      repeat: '🔄 Répéter',
+      repeatLabel: 'Répéter',
+      every: 'Chaque',
+      day: 'Jour(s)',
+      week: 'Semaine(s)',
+      month: 'Mois',
+      year: 'Année(s)',
+      ends: 'Se termine:',
+      never: 'Jamais',
+      after: 'Après',
+      times: 'fois',
+      onDate: 'Le',
+      premiumHint: '⭐ Passez à Premium pour utiliser les notifications récurrentes',
+      premiumRequired: 'Les notifications récurrentes sont une fonctionnalité Premium',
+      premiumRequiredDesc: 'Passez à Premium pour créer des rappels qui se répètent automatiquement.',
+      openApp: '📱 Ouvrir l\'app pour mettre à niveau'
     }
   },
   de: {

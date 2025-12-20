@@ -8,6 +8,7 @@ import { getTranslation } from "../../../i18n";
 import { setCssProps, isHTMLElement } from "../../../core/dom";
 import { loadLocationsFromBackend } from "../utils/location-api";
 import { INotelertPlugin } from "../../../core/plugin-interface";
+import { getCachedPremiumStatus } from "../../../features/premium/premium-service";
 
 export interface LocationListResult {
   container: HTMLElement;
@@ -442,10 +443,28 @@ export async function createLocationList(
   };
 
   const reload = async () => {
+    const token = plugin.settings.pluginToken?.trim();
+    
+    // Verificar premium usando el estado precargado (instantáneo)
+    const premiumStatus = getCachedPremiumStatus();
+    onDebugLog(`[Ubicaciones] Estado premium precargado: ${premiumStatus.isPremium}`);
+    
+    // Si no hay token, mostrar error de token requerido
+    if (!token) {
+      onDebugLog(`[Ubicaciones] Token no configurado`);
+      renderError('TOKEN_REQUIRED', false);
+      return;
+    }
+    
+    // Si no es premium, mostrar mensaje inmediatamente sin llamar al servidor
+    if (!premiumStatus.isPremium && !premiumStatus.loading) {
+      onDebugLog(`[Ubicaciones] Usuario no es premium, mostrando mensaje`);
+      renderError('PREMIUM_REQUIRED', true);
+      return;
+    }
+    
     renderLoading();
     onDebugLog(`[Ubicaciones] Iniciando carga de ubicaciones`);
-    
-    const token = plugin.settings.pluginToken?.trim();
     onDebugLog(`[Ubicaciones] Token presente: ${!!token}, Longitud: ${token?.length || 0}`);
 
     const result = await loadLocationsFromBackend(token);

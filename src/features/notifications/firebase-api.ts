@@ -173,6 +173,18 @@ interface NotificationLocation {
 }
 
 /**
+ * Interfaz para configuración de recurrencia
+ */
+interface RecurrenceConfig {
+  enabled: boolean;
+  interval: number;
+  unit: 'day' | 'week' | 'month' | 'year';
+  endType: 'never' | 'count' | 'date';
+  endCount?: number;
+  endDate?: string;
+}
+
+/**
  * Interfaz para el cuerpo de la petición de notificación push
  */
 interface PushNotificationRequestBody {
@@ -183,6 +195,7 @@ interface PushNotificationRequestBody {
   scheduledDate?: string;
   location?: NotificationLocation;
   obsidianDeepLink?: string;
+  recurrence?: RecurrenceConfig;
 }
 
 /**
@@ -276,6 +289,18 @@ export async function schedulePushNotification(
       requestBody.obsidianDeepLink = obsidianDeepLink;
     }
 
+    // Añadir configuración de recurrencia si está habilitada
+    if (pattern.recurrence?.enabled) {
+      requestBody.recurrence = {
+        enabled: true,
+        interval: pattern.recurrence.interval,
+        unit: pattern.recurrence.unit,
+        endType: pattern.recurrence.endType,
+        endCount: pattern.recurrence.endCount,
+        endDate: pattern.recurrence.endDate,
+      };
+    }
+
     const response = await requestUrl({
       url: PLUGIN_SCHEDULE_PUSH_NOTIFICATION_URL,
       method: 'POST',
@@ -309,7 +334,22 @@ export async function schedulePushNotification(
       if (response.status === 401) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Token inválido o expirado',
+          error: errorData.message || errorData.error || 'Token inválido o expirado. Genera un nuevo token desde la app móvil (Settings > Plugin Token).',
+        };
+      }
+      
+      if (response.status === 403) {
+        // 403 puede ser por token inválido o por falta de premium
+        const errorMsg = errorData.message || errorData.error || 'Acceso denegado';
+        if (errorMsg.includes('Token') || errorMsg.includes('token')) {
+          return {
+            success: false,
+            error: 'Token inválido. Genera un nuevo token desde la app móvil (Settings > Plugin Token).',
+          };
+        }
+        return {
+          success: false,
+          error: errorMsg,
         };
       }
       
@@ -329,7 +369,7 @@ export async function schedulePushNotification(
       
       return {
         success: false,
-        error: errorData.message || errorData.error || `HTTP ${response.status}`,
+        error: errorData.message || errorData.error || `Error desconocido (HTTP ${response.status})`,
       };
     }
 

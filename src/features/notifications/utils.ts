@@ -67,6 +67,15 @@ export function getMobilePlatform(): 'ios' | 'android' | 'unknown' | 'desktop' {
  * @returns String representando el error
  */
 export function errorToString(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String(error.message);
+  }
   return 'Error desconocido';
 }
 

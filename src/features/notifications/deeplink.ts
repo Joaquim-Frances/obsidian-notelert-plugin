@@ -180,6 +180,10 @@ export async function createNotification(
         } else {
           // No fallar si el email falla, solo loggear
           log(`Advertencia: Push notification programada pero email falló: ${emailResult.error || 'Error desconocido'}`);
+          // Mostrar el error al usuario si es crítico
+          if (emailResult.error && emailResult.error.includes('Token')) {
+            new Notice(`⚠️ ${emailResult.error}`);
+          }
         }
       }
 
@@ -190,6 +194,12 @@ export async function createNotification(
       
       new Notice(successMessage);
       log(`Push notification programada: ${pushResult.notificationId}`);
+    } else if (!pushResult.success && pushResult.error) {
+      // Mostrar error específico del backend
+      const errorMessage = pushResult.error;
+      log(`Error al programar notificación: ${errorMessage}`);
+      new Notice(`❌ ${errorMessage}`);
+      throw new Error(errorMessage);
     } else {
       // Móvil: Detectar plataforma y validar
       const mobilePlatform = getMobilePlatform();

@@ -3,7 +3,7 @@
  */
 
 import { Editor, EditorPosition } from "obsidian";
-import { DetectedPattern, SavedLocation } from "../../../core/types";
+import { DetectedPattern, SavedLocation, RecurrenceConfig } from "../../../core/types";
 import { INotelertPlugin } from "../../../core/plugin-interface";
 import { errorToString } from "../../../features/notifications/utils";
 
@@ -18,7 +18,8 @@ export async function createNotificationFromDatePicker(
   date: string,
   time: string,
   fullText: string,
-  language: string
+  language: string,
+  recurrence?: RecurrenceConfig
 ): Promise<boolean> {
   try {
     // Obtener el título de la nota (nombre del archivo sin extensión)
@@ -43,7 +44,8 @@ export async function createNotificationFromDatePicker(
       endIndex: fullText.length,
       filePath: activeFile?.path,
       lineNumber: cursor.line + 1,
-      type: 'time'
+      type: 'time',
+      recurrence: recurrence?.enabled ? recurrence : undefined,
     };
 
     // Crear la notificación directamente

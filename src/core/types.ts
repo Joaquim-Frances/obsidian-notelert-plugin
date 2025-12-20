@@ -39,6 +39,15 @@ export interface NotelertSettings {
   scheduledEmails: ScheduledEmail[]; // Lista de emails programados
 }
 
+export interface RecurrenceConfig {
+  enabled: boolean;
+  interval: number; // Cada cuántas unidades se repite
+  unit: 'day' | 'week' | 'month' | 'year';
+  endType: 'never' | 'count' | 'date';
+  endCount?: number; // Número de repeticiones si endType = 'count'
+  endDate?: string; // Fecha de fin si endType = 'date' (formato YYYY-MM-DD)
+}
+
 export interface DetectedPattern {
   text: string;
   title: string;
@@ -55,5 +64,6 @@ export interface DetectedPattern {
   longitude?: number; // Longitud de la ubicación
   radius?: number; // Radio en metros para la geofence
   type?: 'time' | 'location'; // Tipo de notificación: tiempo o ubicación
+  recurrence?: RecurrenceConfig; // Configuración de recurrencia (solo premium)
 }
 
