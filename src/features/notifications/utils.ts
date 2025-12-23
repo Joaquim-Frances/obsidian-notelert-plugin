@@ -74,7 +74,14 @@ export function errorToString(error: unknown): string {
     return error;
   }
   if (error && typeof error === 'object' && 'message' in error) {
-    return String(error.message);
+    const message = error.message;
+    if (typeof message === 'string') {
+      return message;
+    }
+    if (message && typeof message === 'object') {
+      return JSON.stringify(message);
+    }
+    return String(message);
   }
   return 'Error desconocido';
 }

@@ -77,7 +77,7 @@ export function createRecurrenceSelector(
     gap: "8px",
   });
 
-  const toggleCheckbox = toggleContainer.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+  const toggleCheckbox = toggleContainer.createEl("input", { type: "checkbox" });
   toggleCheckbox.id = "recurrence-toggle";
   toggleCheckbox.disabled = !isPremium;
   setCssProps(toggleCheckbox, {
@@ -121,7 +121,7 @@ export function createRecurrenceSelector(
 
   intervalRow.createEl("span", { text: getTranslation(language, "recurrence.every") || "Cada" });
 
-  const intervalInput = intervalRow.createEl("input", { type: "number" }) as HTMLInputElement;
+  const intervalInput = intervalRow.createEl("input", { type: "number" });
   intervalInput.value = "1";
   intervalInput.min = "1";
   intervalInput.max = "365";
@@ -134,7 +134,7 @@ export function createRecurrenceSelector(
     textAlign: "center",
   });
 
-  const unitSelect = intervalRow.createEl("select") as HTMLSelectElement;
+  const unitSelect = intervalRow.createEl("select");
   setCssProps(unitSelect, {
     padding: "6px 10px",
     borderRadius: "4px",
@@ -184,7 +184,7 @@ export function createRecurrenceSelector(
     cursor: "pointer",
     fontSize: "13px",
   });
-  const neverRadio = neverRow.createEl("input", { type: "radio" }) as HTMLInputElement;
+  const neverRadio = neverRow.createEl("input", { type: "radio" });
   neverRadio.name = "recurrence-end";
   neverRadio.value = "never";
   neverRadio.checked = true;
@@ -200,12 +200,12 @@ export function createRecurrenceSelector(
     fontSize: "13px",
     flexWrap: "wrap",
   });
-  const countRadio = countRow.createEl("input", { type: "radio" }) as HTMLInputElement;
+  const countRadio = countRow.createEl("input", { type: "radio" });
   countRadio.name = "recurrence-end";
   countRadio.value = "count";
   countRow.createEl("span", { text: getTranslation(language, "recurrence.after") || "Después de" });
   
-  const countInput = countRow.createEl("input", { type: "number" }) as HTMLInputElement;
+  const countInput = countRow.createEl("input", { type: "number" });
   countInput.value = "10";
   countInput.min = "1";
   countInput.max = "999";
@@ -229,12 +229,12 @@ export function createRecurrenceSelector(
     fontSize: "13px",
     flexWrap: "wrap",
   });
-  const dateRadio = dateRow.createEl("input", { type: "radio" }) as HTMLInputElement;
+  const dateRadio = dateRow.createEl("input", { type: "radio" });
   dateRadio.name = "recurrence-end";
   dateRadio.value = "date";
   dateRow.createEl("span", { text: getTranslation(language, "recurrence.onDate") || "En fecha" });
   
-  const endDateInput = dateRow.createEl("input", { type: "date" }) as HTMLInputElement;
+  const endDateInput = dateRow.createEl("input", { type: "date" });
   // Default: 1 mes desde hoy
   const defaultEndDate = new Date();
   defaultEndDate.setMonth(defaultEndDate.getMonth() + 1);

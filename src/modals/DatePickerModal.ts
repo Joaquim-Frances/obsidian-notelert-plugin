@@ -13,7 +13,7 @@ import { createQuickActions } from "./date-picker/components/QuickActions";
 import { createTypeSelector, TypeSelectorResult } from "./date-picker/components/TypeSelector";
 import { createDebugPanel, DebugPanelResult } from "./date-picker/components/DebugPanel";
 import { createLocationList, LocationListResult } from "./date-picker/components/LocationList";
-import { createRecurrenceSelector, RecurrenceSelectorResult, RecurrenceConfig } from "./date-picker/components/RecurrenceSelector";
+import { createRecurrenceSelector, RecurrenceSelectorResult } from "./date-picker/components/RecurrenceSelector";
 import { getCachedPremiumStatus, onPremiumStatusChange, PremiumStatus } from "../features/premium/premium-service";
 
 export class NotelertDatePickerModal extends Modal {

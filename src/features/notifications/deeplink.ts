@@ -194,12 +194,6 @@ export async function createNotification(
       
       new Notice(successMessage);
       log(`Push notification programada: ${pushResult.notificationId}`);
-    } else if (!pushResult.success && pushResult.error) {
-      // Mostrar error específico del backend
-      const errorMessage = pushResult.error;
-      log(`Error al programar notificación: ${errorMessage}`);
-      new Notice(`❌ ${errorMessage}`);
-      throw new Error(errorMessage);
     } else {
       // Móvil: Detectar plataforma y validar
       const mobilePlatform = getMobilePlatform();

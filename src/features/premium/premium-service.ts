@@ -8,8 +8,8 @@
 import { requestUrl } from "obsidian";
 
 const FIREBASE_FUNCTION_BASE_URL = 'https://us-central1-notalert-2a44a.cloudfunctions.net';
-// Usamos pluginListLocations porque valida el token y devuelve si es premium (403 = no premium)
-const PLUGIN_LIST_LOCATIONS_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginListLocations`;
+// Endpoint dedicado para verificar premium sin bloquear otras funcionalidades
+const PLUGIN_GET_PREMIUM_STATUS_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginGetPremiumStatus`;
 
 export interface PremiumStatus {
   isPremium: boolean;
@@ -67,12 +67,12 @@ export function getCachedPremiumStatus(): PremiumStatus {
  */
 export async function preloadPremiumStatus(pluginToken: string | undefined): Promise<void> {
   if (!pluginToken?.trim()) {
-    console.log('[PremiumService] No hay token para precargar');
+    console.debug('[PremiumService] No hay token para precargar');
     cachedStatus = { isPremium: false, loading: false };
     return;
   }
   
-  console.log('[PremiumService] Precargando estado premium...');
+  console.debug('[PremiumService] Precargando estado premium...');
   await fetchPremiumStatus(pluginToken, true);
 }
 
@@ -111,14 +111,14 @@ async function fetchPremiumStatus(
   
   // Verificar formato del token (64 caracteres hex)
   if (cleanToken.length !== 64) {
-    console.log(`[PremiumService] Token con longitud incorrecta: ${cleanToken.length}, esperado: 64`);
+    console.warn(`[PremiumService] Token con longitud incorrecta: ${cleanToken.length}, esperado: 64`);
     cachedStatus = { isPremium: false, loading: false };
     return cachedStatus;
   }
 
   try {
     const response = await requestUrl({
-      url: PLUGIN_LIST_LOCATIONS_URL,
+      url: PLUGIN_GET_PREMIUM_STATUS_URL,
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -126,10 +126,18 @@ async function fetchPremiumStatus(
       },
     });
 
-    // Si recibimos 200, el usuario es premium
+    // Parsear respuesta
+    const data = response.json as { isPremium?: boolean; expiresAt?: string; error?: string };
+    
     if (response.status === 200) {
-      const status: PremiumStatus = { isPremium: true, loading: false };
-      console.log(`[PremiumService] ✅ Usuario ES premium`);
+      const isPremium = data.isPremium === true;
+      const status: PremiumStatus = { 
+        isPremium, 
+        loading: false,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
+      };
+      
+      console.debug(`[PremiumService] ${isPremium ? '✅ Usuario ES premium' : '❌ Usuario NO es premium'}`);
       
       cachedStatus = status;
       cacheTimestamp = now;
@@ -138,15 +146,12 @@ async function fetchPremiumStatus(
       return status;
     }
     
-    // Si recibimos 403, el usuario NO es premium
-    if (response.status === 403) {
+    // Error 401 = token inválido, pero no bloquea
+    if (response.status === 401) {
+      console.warn('[PremiumService] ⚠️ Token inválido');
       const status: PremiumStatus = { isPremium: false, loading: false };
-      console.log(`[PremiumService] ❌ Usuario NO es premium (403)`);
-      
       cachedStatus = status;
       cacheTimestamp = now;
-      notifyStatusChange(status);
-      
       return status;
     }
 
@@ -155,22 +160,12 @@ async function fetchPremiumStatus(
     cachedStatus = { isPremium: false, loading: false };
     return cachedStatus;
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[PremiumService] Error fetching premium status:', error);
-    
-    // Si el error es 403, el usuario no es premium
-    if (error?.status === 403) {
-      console.log('[PremiumService] ❌ Usuario NO es premium (excepción 403)');
-      const status: PremiumStatus = { isPremium: false, loading: false };
-      cachedStatus = status;
-      cacheTimestamp = now;
-      notifyStatusChange(status);
-      return status;
-    }
     
     // En caso de error de red, mantener cache si existe y no está en loading
     if (!cachedStatus.loading) {
-      console.log('[PremiumService] Usando cache por error de red');
+      console.debug('[PremiumService] Usando cache por error de red');
       return { ...cachedStatus, cached: true };
     }
     
@@ -183,16 +178,16 @@ async function fetchPremiumStatus(
  * Invalida el cache del estado premium
  */
 export function invalidatePremiumCache(): void {
-  cachedStatus = null;
+  cachedStatus = { isPremium: false, loading: true };
   cacheTimestamp = 0;
 }
 
 /**
  * Verifica si el usuario es premium (versión síncrona usando cache)
- * Devuelve false si no hay cache
+ * Devuelve false si no hay cache válido
  */
 export function isPremiumCached(): boolean {
-  if (!cachedStatus) return false;
+  if (cachedStatus.loading) return false;
   const now = Date.now();
   if ((now - cacheTimestamp) >= CACHE_DURATION_MS) return false;
   return cachedStatus.isPremium;

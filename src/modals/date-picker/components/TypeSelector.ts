@@ -58,7 +58,7 @@ export function createTypeSelector(
   const timeButton = typeButtonsContainer.createEl("button", {
     text: getTranslation(language, "datePicker.timeNotification"),
     cls: "mod-cta"
-  }) as HTMLButtonElement;
+  });
   setCssProps(timeButton, {
     flex: "1",
     minWidth: "120px",
@@ -71,7 +71,7 @@ export function createTypeSelector(
   const locationButton = typeButtonsContainer.createEl("button", {
     text: getTranslation(language, "datePicker.locationNotification"),
     cls: "mod-secondary"
-  }) as HTMLButtonElement;
+  });
   setCssProps(locationButton, {
     flex: "1",
     minWidth: "120px",

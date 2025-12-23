@@ -23,7 +23,6 @@ export class NotelertSettingTab extends PluginSettingTab {
     // Mostrar banner si no hay token configurado (siempre visible hasta que se configure el token)
     const hasToken = this.plugin.settings.pluginToken && this.plugin.settings.pluginToken.trim().length > 0;
     const bannerDismissedKey = "notelert-app-required-banner-dismissed";
-    const bannerDismissed = localStorage.getItem(bannerDismissedKey) === "true";
 
     // Mostrar el banner si no hay token (incluso si fue cerrado previamente, para recordar al usuario)
     if (!hasToken) {
@@ -59,17 +58,14 @@ export class NotelertSettingTab extends PluginSettingTab {
         text: "×"
       });
       closeButton.onclick = () => {
-        localStorage.setItem(bannerDismissedKey, "true");
+        this.app.saveLocalStorage(bannerDismissedKey, "true");
         this.display(); // Recargar para ocultar el banner
       };
 
       // Título del banner
-      bannerContainer.createEl("h3", {
-        text: getTranslation(this.plugin.settings.language, "settings.appRequired.title") || "📱 App de Android Requerida",
-        attr: { 
-          style: "margin: 0 0 10px 0; color: var(--text-normal); font-size: 16px; font-weight: 600;" 
-        }
-      });
+      new Setting(bannerContainer)
+        .setName(getTranslation(this.plugin.settings.language, "settings.appRequired.title") || "📱 App de Android Requerida")
+        .setHeading();
 
       // Mensaje del banner
       const messageText = getTranslation(this.plugin.settings.language, "settings.appRequired.message") || 
@@ -83,7 +79,7 @@ export class NotelertSettingTab extends PluginSettingTab {
       });
 
       // Enlace a descargar
-      const downloadLink = bannerContainer.createEl("a", {
+      bannerContainer.createEl("a", {
         text: getTranslation(this.plugin.settings.language, "settings.appRequired.downloadLink") || "Descargar app de Android",
         attr: {
           href: "https://play.google.com/store/apps/details?id=com.notelert",
@@ -164,7 +160,6 @@ export class NotelertSettingTab extends PluginSettingTab {
       .addButton((button) => {
         button
           .setButtonText(getTranslation(this.plugin.settings.language, "settings.pluginToken.showHide"))
-          .setCta(false)
           .onClick(() => {
             const input = containerEl.querySelector<HTMLInputElement>('input[type="password"]');
             if (input) {
