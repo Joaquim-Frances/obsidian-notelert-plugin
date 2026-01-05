@@ -78,9 +78,13 @@ export function errorToString(error: unknown): string {
     if (typeof message === 'string') {
       return message;
     }
-    if (message && typeof message === 'object') {
+    if (message == null) {
+      return 'Error desconocido';
+    }
+    if (typeof message === 'object') {
       return JSON.stringify(message);
     }
+    // message es un primitivo (number, boolean, etc.)
     return String(message);
   }
   return 'Error desconocido';
