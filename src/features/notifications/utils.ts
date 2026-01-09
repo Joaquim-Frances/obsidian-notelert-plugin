@@ -21,7 +21,7 @@ export function isIOS(): boolean {
   if (typeof platform.isIOS === 'boolean') {
     return platform.isIOS;
   }
-  
+
   // Si Platform.isIOS no está disponible, retornar false
   return false;
 }
@@ -36,7 +36,7 @@ export function isAndroid(): boolean {
   if (typeof platform.isAndroid === 'boolean') {
     return platform.isAndroid;
   }
-  
+
   // Si Platform.isAndroid no está disponible, retornar false
   return false;
 }
@@ -49,15 +49,15 @@ export function getMobilePlatform(): 'ios' | 'android' | 'unknown' | 'desktop' {
   if (!Platform.isMobile) {
     return 'desktop';
   }
-  
+
   if (isIOS()) {
     return 'ios';
   }
-  
+
   if (isAndroid()) {
     return 'android';
   }
-  
+
   return 'unknown';
 }
 
@@ -74,18 +74,23 @@ export function errorToString(error: unknown): string {
     return error;
   }
   if (error && typeof error === 'object' && 'message' in error) {
-    const message = error.message;
+    const message = (error as any).message;
+
     if (typeof message === 'string') {
       return message;
     }
-    if (message == null) {
-      return 'Error desconocido';
+
+    if (typeof message === 'number' || typeof message === 'boolean') {
+      return String(message);
     }
-    if (typeof message === 'object') {
-      return JSON.stringify(message);
+
+    if (typeof message === 'object' && message !== null) {
+      try {
+        return JSON.stringify(message);
+      } catch {
+        return '[Error al convertir objeto a string]';
+      }
     }
-    // message es un primitivo (number, boolean, etc.)
-    return String(message);
   }
   return 'Error desconocido';
 }
