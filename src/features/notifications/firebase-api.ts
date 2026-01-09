@@ -50,7 +50,7 @@ export async function scheduleEmailReminderProxy(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Plugin-Token': pluginToken,
+        'x-plugin-token': pluginToken, // Firebase Functions normaliza headers a minúsculas
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,
@@ -306,7 +306,7 @@ export async function schedulePushNotification(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Plugin-Token': pluginToken,
+        'x-plugin-token': pluginToken, // Firebase Functions normaliza headers a minúsculas
       },
       body: JSON.stringify(requestBody),
       signal: controller.signal,

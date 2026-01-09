@@ -66,14 +66,22 @@ export function getCachedPremiumStatus(): PremiumStatus {
  * Llamar al iniciar el plugin.
  */
 export async function preloadPremiumStatus(pluginToken: string | undefined): Promise<void> {
-  if (!pluginToken?.trim()) {
+  const trimmedToken = pluginToken?.trim();
+  if (!trimmedToken) {
     console.debug('[PremiumService] No hay token para precargar');
     cachedStatus = { isPremium: false, loading: false };
     return;
   }
   
+  // Validar formato del token antes de hacer la llamada
+  if (trimmedToken.length !== 64) {
+    console.warn(`[PremiumService] Token con longitud incorrecta: ${trimmedToken.length}, esperado: 64. No se precargará el estado premium.`);
+    cachedStatus = { isPremium: false, loading: false };
+    return;
+  }
+  
   console.debug('[PremiumService] Precargando estado premium...');
-  await fetchPremiumStatus(pluginToken, true);
+  await fetchPremiumStatus(trimmedToken, true);
 }
 
 /**
@@ -117,14 +125,22 @@ async function fetchPremiumStatus(
   }
 
   try {
+    // Log sanitizado para debugging
+    console.debug(`[PremiumService] Llamando a ${PLUGIN_GET_PREMIUM_STATUS_URL}`, {
+      tokenLength: cleanToken.length,
+      tokenPreview: `${cleanToken.substring(0, 4)}...${cleanToken.substring(cleanToken.length - 4)}`
+    });
+
     const response = await requestUrl({
       url: PLUGIN_GET_PREMIUM_STATUS_URL,
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'X-Plugin-Token': cleanToken,
+        'x-plugin-token': cleanToken, // Firebase Functions normaliza headers a minúsculas
       },
     });
+
+    console.debug(`[PremiumService] Respuesta recibida: status=${response.status}`);
 
     // Parsear respuesta
     const data = response.json as { isPremium?: boolean; expiresAt?: string; error?: string };
@@ -161,6 +177,19 @@ async function fetchPremiumStatus(
     return cachedStatus;
     
   } catch (error: unknown) {
+    // Manejar errores de red o HTTP
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    // Si es un error 401, manejarlo como token inválido (no es un error crítico)
+    if (errorMessage.includes('401') || errorMessage.includes('status 401')) {
+      console.warn('[PremiumService] ⚠️ Token inválido o no autorizado (401). Verifica que el token sea correcto.');
+      const status: PremiumStatus = { isPremium: false, loading: false };
+      cachedStatus = status;
+      cacheTimestamp = now;
+      return status;
+    }
+    
+    // Otros errores (red, timeout, etc.)
     console.error('[PremiumService] Error fetching premium status:', error);
     
     // En caso de error de red, mantener cache si existe y no está en loading

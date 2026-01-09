@@ -36,7 +36,7 @@ export async function loadLocationsFromBackend(
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "X-Plugin-Token": trimmedToken,
+        "x-plugin-token": trimmedToken, // Firebase Functions normaliza headers a minúsculas
       },
     });
 
