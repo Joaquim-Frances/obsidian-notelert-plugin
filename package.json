@@ -1,6 +1,6 @@
 {
   "name": "obsidian-notelert-plugin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Automatiza la creación de notificaciones para la app móvil Notelert detectando patrones de fecha/hora en tus notas",
   "main": "lib/main.js",
   "license": "MIT",
