@@ -5,7 +5,7 @@ const path = require('path');
 const { exec } = require('child_process');
 
 // Ruta del plugin en Obsidian
-const OBSIDIAN_PLUGIN_PATH = '/Users/quimfrances/Sync/ObsidianQuim/ObsidianQuim/.obsidian/plugins/obsidian-notelert-plugin';
+const OBSIDIAN_PLUGIN_PATH = '/Users/quimfrances/Documents/arca2026/.obsidian/plugins/obsidian-notelert-plugin';
 
 // Archivos a copiar
 const FILES_TO_COPY = ['main.js', 'manifest.json'];

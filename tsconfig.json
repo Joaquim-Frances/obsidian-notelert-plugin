@@ -3,6 +3,7 @@
     "target": "es2019",
     "module": "commonjs",
     "emitDeclarationOnly": true,
+    "declaration": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
