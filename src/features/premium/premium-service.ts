@@ -6,6 +6,7 @@
  */
 
 import { requestUrl } from "obsidian";
+import { errorToString } from "../notifications/utils";
 
 const FIREBASE_FUNCTION_BASE_URL = 'https://us-central1-notalert-2a44a.cloudfunctions.net';
 // Endpoint dedicado para verificar premium sin bloquear otras funcionalidades
@@ -72,14 +73,14 @@ export async function preloadPremiumStatus(pluginToken: string | undefined): Pro
     cachedStatus = { isPremium: false, loading: false };
     return;
   }
-  
+
   // Validar formato del token antes de hacer la llamada
   if (trimmedToken.length !== 64) {
     console.warn(`[PremiumService] Token con longitud incorrecta: ${trimmedToken.length}, esperado: 64. No se precargará el estado premium.`);
     cachedStatus = { isPremium: false, loading: false };
     return;
   }
-  
+
   console.debug('[PremiumService] Precargando estado premium...');
   await fetchPremiumStatus(trimmedToken, true);
 }
@@ -116,7 +117,7 @@ async function fetchPremiumStatus(
 ): Promise<PremiumStatus> {
   const cleanToken = pluginToken.trim();
   const now = Date.now();
-  
+
   // Verificar formato del token (64 caracteres hex)
   if (cleanToken.length !== 64) {
     console.warn(`[PremiumService] Token con longitud incorrecta: ${cleanToken.length}, esperado: 64`);
@@ -144,24 +145,24 @@ async function fetchPremiumStatus(
 
     // Parsear respuesta
     const data = response.json as { isPremium?: boolean; expiresAt?: string; error?: string };
-    
+
     if (response.status === 200) {
       const isPremium = data.isPremium === true;
-      const status: PremiumStatus = { 
-        isPremium, 
+      const status: PremiumStatus = {
+        isPremium,
         loading: false,
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
       };
-      
+
       console.debug(`[PremiumService] ${isPremium ? '✅ Usuario ES premium' : '❌ Usuario NO es premium'}`);
-      
+
       cachedStatus = status;
       cacheTimestamp = now;
       notifyStatusChange(status);
-      
+
       return status;
     }
-    
+
     // Error 401 = token inválido, pero no bloquea
     if (response.status === 401) {
       console.warn('[PremiumService] ⚠️ Token inválido');
@@ -175,11 +176,11 @@ async function fetchPremiumStatus(
     console.error('[PremiumService] Error inesperado:', response.status);
     cachedStatus = { isPremium: false, loading: false };
     return cachedStatus;
-    
+
   } catch (error: unknown) {
     // Manejar errores de red o HTTP
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    
+    const errorMessage = errorToString(error);
+
     // Si es un error 401, manejarlo como token inválido (no es un error crítico)
     if (errorMessage.includes('401') || errorMessage.includes('status 401')) {
       console.warn('[PremiumService] ⚠️ Token inválido o no autorizado (401). Verifica que el token sea correcto.');
@@ -188,16 +189,16 @@ async function fetchPremiumStatus(
       cacheTimestamp = now;
       return status;
     }
-    
+
     // Otros errores (red, timeout, etc.)
     console.error('[PremiumService] Error fetching premium status:', error);
-    
+
     // En caso de error de red, mantener cache si existe y no está en loading
     if (!cachedStatus.loading) {
       console.debug('[PremiumService] Usando cache por error de red');
       return { ...cachedStatus, cached: true };
     }
-    
+
     cachedStatus = { isPremium: false, loading: false };
     return cachedStatus;
   }

@@ -2,7 +2,7 @@ import { App, Notice, Platform } from "obsidian";
 import { DetectedPattern, NotelertSettings, ScheduledEmail } from "../../core/types";
 import { getTranslation } from "../../i18n";
 import { scheduleEmailReminderProxy, schedulePushNotification, generateNotificationId } from "./firebase-api";
-import { isIOS, getMobilePlatform, errorToString } from "./utils";
+import { isIOS, errorToString } from "./utils";
 
 export function generateDeepLink(pattern: DetectedPattern, app: App): string {
   const title = encodeURIComponent(pattern.title);
