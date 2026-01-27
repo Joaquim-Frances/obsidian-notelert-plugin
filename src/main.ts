@@ -67,9 +67,9 @@ export class NotelertPlugin extends Plugin {
   // Crear la notificación (función separada para reutilizar)
   private async createNotificationInternal(pattern: DetectedPattern) {
     await createNotification(
-      pattern, 
-      this.app, 
-      this.settings, 
+      pattern,
+      this.app,
+      this.settings,
       (msg) => this.log(msg),
       // Callback para guardar email programado (solo desktop)
       (email) => {
@@ -85,21 +85,19 @@ export class NotelertPlugin extends Plugin {
   }
 
   // Crear notificación y marcarla como procesada (para uso con modal)
-  // Retorna true si fue exitoso, false si hubo error
-  public async createNotificationAndMarkProcessed(pattern: DetectedPattern): Promise<boolean> {
+  // Retorna void (antes retornaba boolean, pero se cambió para cumplir con INotelertPlugin)
+  public async createNotificationAndMarkProcessed(pattern: DetectedPattern): Promise<void> {
     try {
       // Crear la notificación
       await this.createNotificationInternal(pattern);
-      
+
       // TEMPORALMENTE COMENTADO - Debug para identificar el problema del guardado continuo
       // // Mostrar notificación de éxito
       // new Notice(getTranslation(this.settings.language, "notices.notificationCreated", { title: pattern.title }));
-      return true;
     } catch (error) {
       this.log(`Error procesando notificación confirmada: ${error}`);
       // TEMPORALMENTE COMENTADO - Debug
       // new Notice(getTranslation(this.settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
-      return false;
     }
   }
 
@@ -113,10 +111,10 @@ export class NotelertPlugin extends Plugin {
   // Manejar deep link de vinculación con la app móvil
   private async handleTokenLink(params: Record<string, string>) {
     const token = params.token;
-    
+
     if (!token) {
       new Notice(
-        getTranslation(this.settings.language, "notices.tokenLinkError") || 
+        getTranslation(this.settings.language, "notices.tokenLinkError") ||
         "Token no encontrado en el enlace"
       );
       this.log("Error: token no encontrado en deep link");
@@ -127,7 +125,7 @@ export class NotelertPlugin extends Plugin {
       // Validar formato del token (debe tener 64 caracteres)
       if (token.length !== 64) {
         new Notice(
-          getTranslation(this.settings.language, "notices.tokenInvalidFormat") || 
+          getTranslation(this.settings.language, "notices.tokenInvalidFormat") ||
           "Formato de token inválido"
         );
         this.log(`Error: token con formato inválido (longitud: ${token.length})`);
@@ -140,17 +138,35 @@ export class NotelertPlugin extends Plugin {
 
       // Mostrar notificación de éxito
       new Notice(
-        getTranslation(this.settings.language, "notices.tokenLinked") || 
+        getTranslation(this.settings.language, "notices.tokenLinked") ||
         "Token vinculado correctamente"
       );
       this.log("Token vinculado correctamente desde la app móvil");
+
+      // Reiniciar el plugin para que detecte el nuevo token inmediatamente
+      // Esperamos un segundo para asegurar que los settings se han guardado y el usuario ve el aviso
+      setTimeout(() => {
+        try {
+          // @ts-ignore
+          const plugins = this.app.plugins;
+          const pluginId = this.manifest.id;
+
+          this.log(`Reiniciando plugin ${pluginId}...`);
+
+          plugins.disablePlugin(pluginId).then(() => {
+            plugins.enablePlugin(pluginId);
+          });
+        } catch (e) {
+          this.log(`Error al reiniciar el plugin: ${e}`);
+        }
+      }, 1000);
 
       // Opcional: Abrir la configuración del plugin para que el usuario vea el token
       // this.app.setting.openTabById("notelert");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       new Notice(
-        getTranslation(this.settings.language, "notices.tokenLinkError") || 
+        getTranslation(this.settings.language, "notices.tokenLinkError") ||
         `Error al vincular token: ${errorMessage}`
       );
       this.log(`Error al vincular token: ${errorMessage}`);
