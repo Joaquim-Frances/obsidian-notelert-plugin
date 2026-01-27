@@ -96,6 +96,11 @@ export const TRANSLATIONS = {
       tokenLinked: '✅ Token vinculado correctamente desde la app móvil',
       tokenLinkError: '❌ Error al vincular token',
       tokenInvalidFormat: '❌ Formato de token inválido',
+      tokenInvalid403: '❌ Token inválido o expirado. Genera un nuevo token en la app (Settings > Token del Plugin) y vincúlalo de nuevo.',
+      linkError400: '❌ Error de vinculación. Vuelve a realizar el vínculo desde la app y reinicia el plugin.',
+      pushNotificationScheduled: '✅ Notificación programada correctamente',
+      pushNotificationScheduledLocation: '✅ Notificación de ubicación programada correctamente',
+      tokenRequiredNotice: '🔑 Token del plugin requerido. Configura tu token en Settings.',
       iosNotSupported: '⚠️ iOS detectado\n\nNotelert actualmente solo está disponible para Android.\nLa app de iOS está en desarrollo. Por favor, usa un dispositivo Android para crear notificaciones.'
     },
     modal: {
@@ -286,6 +291,11 @@ export const TRANSLATIONS = {
       tokenLinked: '✅ Token linked successfully from mobile app',
       tokenLinkError: '❌ Error linking token',
       tokenInvalidFormat: '❌ Invalid token format',
+      tokenInvalid403: '❌ Invalid or expired token. Generate a new token in the app (Settings > Plugin Token) and link it again.',
+      linkError400: '❌ Linking error. Please perform the link again from the app and restart the plugin.',
+      pushNotificationScheduled: '✅ Notification scheduled successfully',
+      pushNotificationScheduledLocation: '✅ Location notification scheduled successfully',
+      tokenRequiredNotice: '🔑 Plugin token required. Configure your token in Settings.',
       iosNotSupported: '⚠️ iOS detected\n\nNotelert is currently only available for Android.\nThe iOS app is under development. Please use an Android device to create notifications.'
     },
     modal: {
@@ -476,6 +486,11 @@ export const TRANSLATIONS = {
       tokenLinked: '✅ Token vinculat correctament des de l\'app mòbil',
       tokenLinkError: '❌ Error al vincular token',
       tokenInvalidFormat: '❌ Format de token invàlid',
+      tokenInvalid403: '❌ Token invàlid o expirat. Genera un nou token a l\'app (Settings > Token del Plugin) i torna a vincular-lo.',
+      linkError400: '❌ Error de vinculació. Si us plau, torna a realitzar el vincle des de l\'app i reinicia el plugin.',
+      pushNotificationScheduled: '✅ Notificació programada correctament',
+      pushNotificationScheduledLocation: '✅ Notificació d\'ubicació programada correctament',
+      tokenRequiredNotice: '🔑 Token del plugin requerit. Configura el teu token a Settings.',
       iosNotSupported: '⚠️ iOS detectat\n\nNotelert actualment només està disponible per a Android.\nL\'app d\'iOS està en desenvolupament. Si us plau, utilitza un dispositiu Android per crear notificacions.'
     },
     modal: {
@@ -651,7 +666,12 @@ export const TRANSLATIONS = {
       emailScheduled: '✅ E-mail programmé avec succès',
       tokenLinked: '✅ Token lié avec succès depuis l\'application mobile',
       tokenLinkError: '❌ Erreur lors de la liaison du token',
-      tokenInvalidFormat: '❌ Format de token invalide',
+      tokenInvalidFormat: '❌ Format de jeton invalide',
+      tokenInvalid403: '❌ Jeton invalide ou expiré. Génerer un nouveau jeton dans l\'application (Paramètres > Jeton du Plugin) et liez-le à nouveau.',
+      linkError400: '❌ Erreur de liaison. Veuillez effectuer à nouveau la liaison depuis l\'application et redémarrer le plugin.',
+      pushNotificationScheduled: '✅ Notification programmée avec succès',
+      pushNotificationScheduledLocation: '✅ Notification de lieu programmée avec succès',
+      tokenRequiredNotice: '🔑 Jeton du plugin requis. Configurez votre jeton dans les Paramètres.',
       iosNotSupported: '⚠️ iOS détecté\n\nNotelert est actuellement uniquement disponible pour Android.\nL\'application iOS est en cours de développement. Veuillez utiliser un appareil Android pour créer des notifications.'
     },
     datePicker: {

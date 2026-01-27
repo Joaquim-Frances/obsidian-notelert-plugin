@@ -25,9 +25,6 @@ export async function scheduleEmailReminderProxy(
   notificationId: string,
   pluginToken: string
 ): Promise<ScheduleEmailResult> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
   try {
     const requestBody = {
       to: userEmail,
@@ -53,20 +50,17 @@ export async function scheduleEmailReminderProxy(
         'x-plugin-token': pluginToken, // Firebase Functions normaliza headers a minúsculas
       },
       body: JSON.stringify(requestBody),
-      signal: controller.signal,
     });
-
-    clearTimeout(timeoutId);
 
     if (response.status >= 400) {
       let errorData;
       try {
-        const text = await response.text();
+        const text = response.text;
         errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
       } catch {
-        errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        errorData = { error: `HTTP ${response.status}` };
       }
-      
+
       // Manejar errores específicos
       if (response.status === 400) {
         return {
@@ -74,28 +68,28 @@ export async function scheduleEmailReminderProxy(
           error: errorData.message || errorData.error || 'Datos inválidos',
         };
       }
-      
+
       if (response.status === 403) {
         return {
           success: false,
           error: errorData.message || errorData.error || 'Usuario no es premium o suscripción expirada',
         };
       }
-      
+
       if (response.status === 404) {
         return {
           success: false,
           error: errorData.message || errorData.error || 'Usuario no encontrado. Debes registrarte primero en la app móvil.',
         };
       }
-      
+
       if (response.status === 429) {
         return {
           success: false,
           error: errorData.message || errorData.error || 'Límite de emails alcanzado (máximo 100)',
         };
       }
-      
+
       return {
         success: false,
         error: errorData.message || errorData.error || `HTTP ${response.status}`,
@@ -104,33 +98,24 @@ export async function scheduleEmailReminderProxy(
 
     let result;
     try {
-      const text = await response.text();
+      const text = response.text;
       result = text ? JSON.parse(text) : {};
     } catch {
       result = { notificationId: notificationId };
     }
-    
-    return { 
+
+    return {
       success: true,
       notificationId: result.notificationId || notificationId
     };
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
-    
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      return {
-        success: false,
-        error: 'Timeout: El servidor no respondió en 25 segundos. Puede ser un cold start. Intenta de nuevo.',
-      };
-    }
-    
     // Mejorar detección de errores de red vs errores del servidor
     const errorMessage = errorToString(error);
-    const isNetworkError = errorMessage.includes('Failed to fetch') || 
-                          errorMessage.includes('NetworkError') ||
-                          errorMessage.includes('Network request failed') ||
-                          errorMessage.includes('CORS');
-    
+    const isNetworkError = errorMessage.includes('Failed to fetch') ||
+      errorMessage.includes('NetworkError') ||
+      errorMessage.includes('Network request failed') ||
+      errorMessage.includes('CORS');
+
     if (isNetworkError) {
       // Si es error de CORS, dar mensaje más específico
       if (errorMessage.includes('CORS')) {
@@ -144,7 +129,7 @@ export async function scheduleEmailReminderProxy(
         error: `Error de conexión: ${errorMessage}. Verifica tu internet e intenta de nuevo.`,
       };
     }
-    
+
     return {
       success: false,
       error: errorMessage || 'Error de red al programar email',
@@ -160,6 +145,7 @@ export interface SchedulePushNotificationResult {
   error?: string;
   notificationId?: string;
   scheduledFor?: string;
+  errorCode?: 'LINK_ERROR' | 'TOKEN_INVALID' | 'RATE_LIMIT' | 'PREMIUM_REQUIRED' | 'USER_NOT_FOUND' | 'OTHER';
 }
 
 /**
@@ -208,9 +194,6 @@ export async function schedulePushNotification(
   pluginToken: string,
   obsidianDeepLink?: string
 ): Promise<SchedulePushNotificationResult> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
   try {
     if (!pluginToken || pluginToken.trim() === '') {
       return {
@@ -235,7 +218,7 @@ export async function schedulePushNotification(
       // Notificación de fecha/hora - scheduledDate es requerido
       const dateTimeString = `${pattern.date}T${pattern.time}:00`;
       const scheduledDate = new Date(dateTimeString);
-      
+
       if (isNaN(scheduledDate.getTime())) {
         return {
           success: false,
@@ -309,100 +292,96 @@ export async function schedulePushNotification(
         'x-plugin-token': pluginToken, // Firebase Functions normaliza headers a minúsculas
       },
       body: JSON.stringify(requestBody),
-      signal: controller.signal,
     });
-
-    clearTimeout(timeoutId);
 
     if (response.status >= 400) {
       let errorData;
       try {
-        const text = await response.text();
+        const text = response.text;
         errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
       } catch {
-        errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        errorData = { error: `HTTP ${response.status}` };
       }
-      
+
       // Manejar errores específicos
       if (response.status === 400) {
         return {
           success: false,
           error: errorData.message || errorData.error || 'Datos inválidos',
+          errorCode: 'LINK_ERROR',
         };
       }
-      
+
       if (response.status === 401) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Token inválido o expirado. Genera un nuevo token desde la app móvil (Settings > Plugin Token).',
+          error: errorData.message || errorData.error || 'Token inválido o expirado.',
+          errorCode: 'TOKEN_INVALID',
         };
       }
-      
+
       if (response.status === 403) {
         // 403 puede ser por token inválido o por falta de premium
         const errorMsg = errorData.message || errorData.error || 'Acceso denegado';
         if (errorMsg.includes('Token') || errorMsg.includes('token')) {
           return {
             success: false,
-            error: 'Token inválido. Genera un nuevo token desde la app móvil (Settings > Plugin Token).',
+            error: errorMsg,
+            errorCode: 'TOKEN_INVALID',
           };
         }
         return {
           success: false,
           error: errorMsg,
+          errorCode: 'PREMIUM_REQUIRED',
         };
       }
-      
+
       if (response.status === 404) {
         return {
           success: false,
           error: errorData.message || errorData.error || 'Usuario no encontrado. Debes registrarte primero en la app móvil.',
+          errorCode: 'USER_NOT_FOUND',
         };
       }
-      
+
       if (response.status === 429) {
         return {
           success: false,
           error: errorData.message || errorData.error || 'Límite de notificaciones alcanzado (máximo 100/mes para usuarios free)',
+          errorCode: 'RATE_LIMIT',
         };
       }
-      
+
       return {
         success: false,
         error: errorData.message || errorData.error || `Error desconocido (HTTP ${response.status})`,
+        errorCode: 'OTHER',
       };
     }
 
     let result;
     try {
-      const text = await response.text();
+      const text = response.text;
       result = text ? JSON.parse(text) : {};
     } catch {
       result = { notificationId: notificationId };
     }
-    
-    return { 
+
+    return {
       success: true,
       notificationId: result.notificationId || notificationId,
       scheduledFor: result.scheduledFor,
     };
   } catch (error: unknown) {
-    clearTimeout(timeoutId);
-    
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      return {
-        success: false,
-        error: 'Timeout: El servidor no respondió en 25 segundos. Puede ser un cold start. Intenta de nuevo.',
-      };
-    }
-    
+
     // Mejorar detección de errores de red vs errores del servidor
     const errorMessage = errorToString(error);
-    const isNetworkError = errorMessage.includes('Failed to fetch') || 
-                          errorMessage.includes('NetworkError') ||
-                          errorMessage.includes('Network request failed') ||
-                          errorMessage.includes('CORS');
-    
+    const isNetworkError = errorMessage.includes('Failed to fetch') ||
+      errorMessage.includes('NetworkError') ||
+      errorMessage.includes('Network request failed') ||
+      errorMessage.includes('CORS');
+
     if (isNetworkError) {
       // Si es error de CORS, dar mensaje más específico
       if (errorMessage.includes('CORS')) {
@@ -416,7 +395,7 @@ export async function schedulePushNotification(
         error: `Error de conexión: ${errorMessage}. Verifica tu internet e intenta de nuevo.`,
       };
     }
-    
+
     return {
       success: false,
       error: errorMessage || 'Error de red al programar notificación push',

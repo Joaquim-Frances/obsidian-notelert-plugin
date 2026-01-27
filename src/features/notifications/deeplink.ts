@@ -142,8 +142,18 @@ export async function createNotification(
 
     if (!pushResult.success) {
       // Error al programar push notification
-      const errorMessage = pushResult.error || 'Error al programar notificación push';
-      new Notice(errorMessage);
+      let errorMessage = pushResult.error || 'Error al programar notificación push';
+
+      // Manejar códigos de error específicos con mensajes traducidos
+      if (pushResult.errorCode === 'TOKEN_INVALID') {
+        errorMessage = getTranslation(settings.language, "notices.tokenInvalid403") || errorMessage;
+      } else if (pushResult.errorCode === 'LINK_ERROR') {
+        errorMessage = getTranslation(settings.language, "notices.linkError400") || errorMessage;
+      } else if (pushResult.errorCode === 'PREMIUM_REQUIRED') {
+        errorMessage = getTranslation(settings.language, "datePicker.premiumRequiredDesc") || errorMessage;
+      }
+
+      new Notice(errorMessage, 10000); // 10 segundos para que el usuario pueda leerlo bien
       log(`Error programando push notification: ${errorMessage}`);
       throw new Error(errorMessage);
     }
@@ -181,22 +191,30 @@ export async function createNotification(
         // No fallar si el email falla, solo loggear
         log(`Advertencia: Push notification programada pero email falló: ${emailResult.error || 'Error desconocido'}`);
         // Mostrar el error al usuario si es crítico
-        if (emailResult.error && emailResult.error.includes('Token')) {
-          new Notice(`⚠️ ${emailResult.error}`);
+        if (emailResult.error && (emailResult.error.includes('Token') || emailResult.error.includes('premium'))) {
+          new Notice(`⚠️ ${emailResult.error}`, 8000);
         }
       }
     }
 
     // Mostrar mensaje de éxito
-    const successMessage = notificationType === 'location'
-      ? (getTranslation(settings.language, "notices.pushNotificationScheduled") || "Notificación de ubicación programada correctamente")
-      : (getTranslation(settings.language, "notices.pushNotificationScheduled") || "Notificación programada correctamente");
+    const successKey = notificationType === 'location'
+      ? "notices.pushNotificationScheduledLocation"
+      : "notices.pushNotificationScheduled";
+
+    const successMessage = getTranslation(settings.language, successKey) ||
+      (notificationType === 'location' ? "Notificación de ubicación programada correctamente" : "Notificación programada correctamente");
 
     new Notice(successMessage);
     log(`Push notification programada: ${pushResult.notificationId}`);
   } catch (error: unknown) {
     // Solo loggear errores inesperados, los errores de negocio ya se mostraron
-    if (error instanceof Error && error.message.includes('Error al programar email')) {
+    if (error instanceof Error && (
+      error.message.includes('Error al programar email') ||
+      error.message.includes('Token') ||
+      error.message.includes('inválido') ||
+      error.message.includes('expirado')
+    )) {
       // Re-lanzar errores de negocio para que el modal no se cierre
       throw error;
     }
