@@ -37,7 +37,7 @@ export class NotelertDatePickerModal extends Modal {
   private locationList: LocationListResult | null = null;
   private recurrenceSelector: RecurrenceSelectorResult | null = null;
   private container: HTMLElement | null = null;
-  
+
   // Estado premium
   private isPremium: boolean = false;
   private unsubscribePremium: (() => void) | null = null;
@@ -111,7 +111,7 @@ export class NotelertDatePickerModal extends Modal {
       visibility: "visible",
       minHeight: "200px", // Asegurar altura mínima
     });
-    
+
     // Debug: verificar que el contenedor se creó
     this.plugin.log(`Container creado: ${this.container ? 'OK' : 'NULL'}`);
     this.plugin.log(`Container parent: ${this.container?.parentElement ? 'OK' : 'NULL'}`);
@@ -131,7 +131,7 @@ export class NotelertDatePickerModal extends Modal {
       if (status.isPremium !== this.isPremium) {
         this.isPremium = status.isPremium;
         this.plugin.log(`🔄 Estado premium actualizado: ${this.isPremium}`);
-        
+
         // Actualizar el RecurrenceSelector
         if (this.recurrenceSelector) {
           this.recurrenceSelector.updatePremiumStatus(this.isPremium);
@@ -263,12 +263,12 @@ export class NotelertDatePickerModal extends Modal {
       const dateContainer = this.container.querySelector('.notelert-date-container');
       const timeContainer = this.container.querySelector('.notelert-time-container');
       const quickActionsContainer = this.container.querySelector('#quick-actions-container');
-      
+
       this.plugin.log(`DEBUG Verificación DOM ANTES de updateModalContent:`);
       this.plugin.log(`  - DateContainer: ${dateContainer ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
       this.plugin.log(`  - TimeContainer: ${timeContainer ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
       this.plugin.log(`  - QuickActions: ${quickActionsContainer ? 'ENCONTRADO' : 'NO ENCONTRADO'}`);
-      
+
       // Asegurar que los elementos están visibles ANTES de llamar a updateModalContent
       if (dateContainer && isHTMLElement(dateContainer)) {
         setCssProps(dateContainer, { display: 'block', visibility: 'visible', opacity: '1' });
@@ -282,17 +282,17 @@ export class NotelertDatePickerModal extends Modal {
 
       // Actualizar contenido según tipo (esto solo debería ocultar/mostrar según notificationType)
       this.updateModalContent();
-      
+
       // Verificar DESPUÉS de updateModalContent
       const dateContainerAfter = this.container.querySelector('.notelert-date-container');
       const timeContainerAfter = this.container.querySelector('.notelert-time-container');
       const quickActionsContainerAfter = this.container.querySelector('#quick-actions-container');
-      
+
       this.plugin.log(`DEBUG Verificación DOM DESPUÉS de updateModalContent:`);
       this.plugin.log(`  - DateContainer display: ${dateContainerAfter ? (dateContainerAfter as HTMLElement).style.display : 'NULL'}`);
       this.plugin.log(`  - TimeContainer display: ${timeContainerAfter ? (timeContainerAfter as HTMLElement).style.display : 'NULL'}`);
       this.plugin.log(`  - QuickActions display: ${quickActionsContainerAfter ? (quickActionsContainerAfter as HTMLElement).style.display : 'NULL'}`);
-      
+
       this.plugin.log("SUCCESS Componentes creados y actualizados");
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -327,29 +327,29 @@ export class NotelertDatePickerModal extends Modal {
     } else {
       // Mostrar fecha, hora, acciones rápidas y recurrencia
       if (isHTMLElement(dateContainer)) {
-        setCssProps(dateContainer, { 
-          display: 'block', 
+        setCssProps(dateContainer, {
+          display: 'block',
           visibility: 'visible',
           opacity: '1'
         });
       }
       if (isHTMLElement(timeContainer)) {
-        setCssProps(timeContainer, { 
-          display: 'block', 
+        setCssProps(timeContainer, {
+          display: 'block',
           visibility: 'visible',
           opacity: '1'
         });
       }
       if (isHTMLElement(quickActions)) {
-        setCssProps(quickActions, { 
-          display: 'block', 
+        setCssProps(quickActions, {
+          display: 'block',
           visibility: 'visible',
           opacity: '1'
         });
       }
       if (isHTMLElement(recurrenceContainer)) {
-        setCssProps(recurrenceContainer, { 
-          display: 'block', 
+        setCssProps(recurrenceContainer, {
+          display: 'block',
           visibility: 'visible',
           opacity: '1'
         });
@@ -405,7 +405,7 @@ export class NotelertDatePickerModal extends Modal {
     // Crear modal de premium requerido
     const modal = new Modal(this.app);
     modal.titleEl.setText(getTranslation(this.language, "recurrence.premiumRequired") || "Premium Required");
-    
+
     const content = modal.contentEl;
     setCssProps(content, {
       padding: "20px",
@@ -421,8 +421,8 @@ export class NotelertDatePickerModal extends Modal {
 
     // Descripción
     const descEl = content.createEl("p", {
-      text: getTranslation(this.language, "recurrence.premiumRequiredDesc") || 
-            "Upgrade to Premium to create reminders that repeat automatically.",
+      text: getTranslation(this.language, "recurrence.premiumRequiredDesc") ||
+        "Upgrade to Premium to create reminders that repeat automatically.",
     });
     setCssProps(descEl, {
       marginBottom: "20px",
@@ -518,7 +518,7 @@ export class NotelertDatePickerModal extends Modal {
           if (this.notificationType === 'location') {
             if (!this.selectedLocation) {
               hideLoadingState(confirmButton, this.language);
-              new Notice(getTranslation(this.language, "datePicker.selectSavedLocation") || "Por favor, selecciona una ubicación");
+              new Notice(getTranslation(this.language, "datePicker.selectSavedLocation") || "Por favor, selecciona una ubicación", 10000);
               return;
             }
             const success = await createNotificationFromLocation(
@@ -536,7 +536,7 @@ export class NotelertDatePickerModal extends Modal {
           } else {
             if (!this.datePicker || !this.timePicker) {
               hideLoadingState(confirmButton, this.language);
-              new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
+              new Notice(getTranslation(this.language, "datePicker.selectDateTime"), 10000);
               return;
             }
 
@@ -582,14 +582,14 @@ export class NotelertDatePickerModal extends Modal {
               }
             } else {
               hideLoadingState(confirmButton, this.language);
-              new Notice(getTranslation(this.language, "datePicker.selectDateTime"));
+              new Notice(getTranslation(this.language, "datePicker.selectDateTime"), 10000);
             }
           }
         } catch (err) {
           hideLoadingState(confirmButton, this.language);
           const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
           this.plugin.log(`Error en confirmación: ${errorMessage}`);
-          new Notice(`Error: ${errorMessage}`);
+          new Notice(`Error: ${errorMessage}`, 10000);
         }
       })();
     });
@@ -601,7 +601,7 @@ export class NotelertDatePickerModal extends Modal {
       this.unsubscribePremium();
       this.unsubscribePremium = null;
     }
-    
+
     const { contentEl } = this;
     contentEl.empty();
     this.container = null;

@@ -115,7 +115,8 @@ export class NotelertPlugin extends Plugin {
     if (!token) {
       new Notice(
         getTranslation(this.settings.language, "notices.tokenLinkError") ||
-        "Token no encontrado en el enlace"
+        "Token no encontrado en el enlace",
+        10000
       );
       this.log("Error: token no encontrado en deep link");
       return;
@@ -126,7 +127,8 @@ export class NotelertPlugin extends Plugin {
       if (token.length !== 64) {
         new Notice(
           getTranslation(this.settings.language, "notices.tokenInvalidFormat") ||
-          "Formato de token inválido"
+          "Formato de token inválido",
+          10000
         );
         this.log(`Error: token con formato inválido (longitud: ${token.length})`);
         return;
@@ -139,7 +141,8 @@ export class NotelertPlugin extends Plugin {
       // Mostrar notificación de éxito
       new Notice(
         getTranslation(this.settings.language, "notices.tokenLinked") ||
-        "Token vinculado correctamente"
+        "Token vinculado correctamente",
+        10000
       );
       this.log("Token vinculado correctamente desde la app móvil");
 
@@ -167,7 +170,8 @@ export class NotelertPlugin extends Plugin {
       const errorMessage = error instanceof Error ? error.message : String(error);
       new Notice(
         getTranslation(this.settings.language, "notices.tokenLinkError") ||
-        `Error al vincular token: ${errorMessage}`
+        `Error al vincular token: ${errorMessage}`,
+        10000
       );
       this.log(`Error al vincular token: ${errorMessage}`);
     }

@@ -57,7 +57,8 @@ export async function createNotification(
         "Token del plugin requerido\n\n" +
         "Para usar Notelert, necesitas:\n" +
         "1. Generar tu token en la app móvil (Settings > Token del Plugin)\n" +
-        "2. Pegar el token en Settings > Notelert > Plugin Token"
+        "2. Pegar el token en Settings > Notelert > Plugin Token",
+        10000
       );
       return;
     }
@@ -68,7 +69,8 @@ export async function createNotification(
         getTranslation(settings.language, "notices.iosNotSupported") ||
         "iOS detectado\n\n" +
         "Notelert actualmente solo está disponible para Android.\n" +
-        "La app de iOS está en desarrollo. Por favor, usa un dispositivo Android para crear notificaciones."
+        "La app de iOS está en desarrollo. Por favor, usa un dispositivo Android para crear notificaciones.",
+        10000
       );
       return;
     }
@@ -105,7 +107,7 @@ export async function createNotification(
 
       // Validar que la fecha sea válida
       if (isNaN(scheduledDate.getTime())) {
-        new Notice(`Fecha inválida: ${dateTimeString}`);
+        new Notice(`Fecha inválida: ${dateTimeString}`, 10000);
         log(`Error: fecha inválida - ${dateTimeString}`);
         return;
       }
@@ -192,7 +194,7 @@ export async function createNotification(
         log(`Advertencia: Push notification programada pero email falló: ${emailResult.error || 'Error desconocido'}`);
         // Mostrar el error al usuario si es crítico
         if (emailResult.error && (emailResult.error.includes('Token') || emailResult.error.includes('premium'))) {
-          new Notice(`⚠️ ${emailResult.error}`, 8000);
+          new Notice(`⚠️ ${emailResult.error}`, 10000);
         }
       }
     }
@@ -205,7 +207,7 @@ export async function createNotification(
     const successMessage = getTranslation(settings.language, successKey) ||
       (notificationType === 'location' ? "Notificación de ubicación programada correctamente" : "Notificación programada correctamente");
 
-    new Notice(successMessage);
+    new Notice(successMessage, 10000);
     log(`Push notification programada: ${pushResult.notificationId}`);
   } catch (error: unknown) {
     // Solo loggear errores inesperados, los errores de negocio ya se mostraron
@@ -219,7 +221,7 @@ export async function createNotification(
       throw error;
     }
     log(`Error creando notificación: ${errorToString(error)}`);
-    new Notice(getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
+    new Notice(getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title }), 10000);
     // Re-lanzar para que el modal no se cierre
     throw error;
   }

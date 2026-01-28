@@ -57,7 +57,7 @@ export async function createNotificationFromDatePicker(
     plugin.log(`Error creando notificación desde date picker: ${errorMessage}`);
     const { getTranslation } = await import("../../../i18n");
     const { Notice } = await import("obsidian");
-    new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: "Recordatorio" }));
+    new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: "Recordatorio" }), 10000);
     return false;
   }
 }
@@ -127,7 +127,7 @@ export async function createNotificationFromLocation(
     plugin.log(`Error creando notificación de ubicación: ${errorMessage}`);
     const { getTranslation } = await import("../../../i18n");
     const { Notice } = await import("obsidian");
-    new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: "Recordatorio de ubicación" }));
+    new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: "Recordatorio de ubicación" }), 10000);
     return false;
   }
 }
