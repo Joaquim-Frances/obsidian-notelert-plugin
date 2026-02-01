@@ -34,6 +34,11 @@ export class NotelertPlugin extends Plugin {
       await this.handleTokenLink(params);
     });
 
+    // Alias para compatibilidad con versiones antiguas o errores de la app
+    this.registerObsidianProtocolHandler("notelert-token", async (params) => {
+      await this.handleTokenLink(params);
+    });
+
     // Precargar estado premium en segundo plano (no bloquea la carga del plugin)
     void this.preloadPremium();
 
