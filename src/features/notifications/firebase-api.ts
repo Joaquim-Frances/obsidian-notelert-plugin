@@ -9,10 +9,6 @@ export interface ScheduleEmailResult {
   notificationId?: string;
 }
 
-// Timeout aumentado para cold starts en Firebase Functions (25 segundos)
-// Los cold starts pueden tardar 10-20 segundos en inicializar
-const REQUEST_TIMEOUT = 25000;
-
 /**
  * Programar un email usando el endpoint proxy (sin API key requerida)
  * Usa autenticación por userId/userEmail
