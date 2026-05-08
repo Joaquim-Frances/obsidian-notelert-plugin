@@ -5,6 +5,13 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2026-05-08
+
+### Corregido
+- Migración de la pestaña de ajustes a `getSettingDefinitions()` para alinearse con la API vigente de Obsidian.
+- Ajuste del refresco de la interfaz de settings al cambiar idioma o token.
+- Cierre persistente del banner de app requerida hasta que se configure el token.
+
 ## [1.0.0] - 2025-01-11
 
 ### ✨ Añadido

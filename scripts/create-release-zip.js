@@ -23,11 +23,11 @@ if (!fs.existsSync(distPath)) {
   process.exit(1);
 }
 
-// Verificar que existen los archivos necesarios
-const requiredFiles = ['main.js', 'manifest.json'];
+// Verificar que existen los archivos compilados necesarios
+const requiredBuildFiles = ['main.js', 'manifest.json'];
 const missingFiles = [];
 
-requiredFiles.forEach(file => {
+requiredBuildFiles.forEach(file => {
   const filePath = path.join(distPath, file);
   if (!fs.existsSync(filePath)) {
     missingFiles.push(file);
@@ -55,12 +55,21 @@ fs.mkdirSync(releaseDir, { recursive: true });
 
 // Copiar archivos al directorio temporal
 console.log('📋 Copiando archivos...');
-requiredFiles.forEach(file => {
+requiredBuildFiles.forEach(file => {
   const sourcePath = path.join(distPath, file);
   const destPath = path.join(releaseDir, file);
   fs.copyFileSync(sourcePath, destPath);
   console.log(`   ✅ ${file}`);
 });
+
+// Copiar estilos si existen en la raíz del plugin
+const stylesPath = path.join(__dirname, '..', 'styles.css');
+if (fs.existsSync(stylesPath)) {
+  fs.copyFileSync(stylesPath, path.join(releaseDir, 'styles.css'));
+  console.log('   ✅ styles.css');
+} else {
+  console.log('   ⚠️ styles.css no encontrado, se omite');
+}
 
 // Crear ZIP
 console.log(`\n🗜️  Creando archivo ZIP: ${zipName}...`);
@@ -85,4 +94,3 @@ try {
 fs.rmSync(releaseDir, { recursive: true, force: true });
 
 console.log(`\n✨ ¡Listo! El archivo ${zipName} está listo para subir a GitHub Releases.`);
-

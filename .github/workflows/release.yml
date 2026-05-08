@@ -41,6 +41,7 @@ jobs:
           mkdir -p release
           cp dist/main.js release/
           cp dist/manifest.json release/
+          cp styles.css release/
           cd release
           zip -r ../notelert-plugin.zip .
           cd ..
@@ -57,6 +58,7 @@ jobs:
           mkdir -p releases
           cp dist/main.js releases/
           cp dist/manifest.json releases/
+          cp styles.css releases/
           cp notelert-plugin.zip releases/notelert-plugin.zip
       
       - name: Commit built files to repo
@@ -71,4 +73,3 @@ jobs:
           else
             echo "No changes to commit in dist or releases files"
           fi
-

@@ -1,0 +1,20 @@
+/* Keyframes para el spinner de carga */
+@keyframes notelert-spin {
+  0% { 
+    transform: rotate(0deg); 
+  }
+  100% { 
+    transform: rotate(360deg); 
+  }
+}
+
+/* Clase para el spinner */
+.notelert-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--background-modifier-border);
+  border-top-color: var(--interactive-accent);
+  border-radius: 50%;
+  animation: notelert-spin 1s linear infinite;
+}
+
