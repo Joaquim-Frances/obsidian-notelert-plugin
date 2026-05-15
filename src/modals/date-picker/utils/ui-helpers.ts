@@ -2,9 +2,8 @@
  * Utilidades para manejo de UI (estados de carga, etc.)
  */
 
-import { HTMLButtonElement } from "obsidian";
 import { getTranslation } from "../../../i18n";
-import { setCssProps } from "../../../core/dom";
+import { setCssProps, getElementText, setElementText, setButtonDisabled } from "../../../core/dom";
 
 // WeakMap para almacenar el texto original de los botones
 const buttonOriginalText = new WeakMap<HTMLButtonElement, string>();
@@ -14,19 +13,20 @@ const buttonOriginalText = new WeakMap<HTMLButtonElement, string>();
  */
 export function showLoadingState(button: HTMLButtonElement, language: string): void {
   // Guardar el texto original
-  if (button.textContent) {
-    buttonOriginalText.set(button, button.textContent);
+  const originalText = getElementText(button);
+  if (originalText) {
+    buttonOriginalText.set(button, originalText);
   }
 
   // Deshabilitar botón
-  button.disabled = true;
+  setButtonDisabled(button, true);
   setCssProps(button, {
     opacity: '0.6',
     cursor: 'not-allowed',
   });
 
   // Texto de carga
-  button.textContent = getTranslation(language, "datePicker.confirmButton") || "Confirmando...";
+  setElementText(button, getTranslation(language, "datePicker.confirmButton") || "Confirmando...");
 }
 
 /**
@@ -38,13 +38,12 @@ export function hideLoadingState(button: HTMLButtonElement, language: string): v
     buttonOriginalText.get(button) ||
     getTranslation(language, "datePicker.confirmButton") ||
     "Confirmar";
-  button.textContent = originalText;
+  setElementText(button, originalText);
 
   // Restaurar estado del botón
-  button.disabled = false;
+  setButtonDisabled(button, false);
   setCssProps(button, {
     opacity: '1',
     cursor: 'pointer',
   });
 }
-

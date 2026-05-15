@@ -24,7 +24,7 @@ export class NotelertConfirmationModal extends Modal {
     contentEl.createEl("h2", { text: getTranslation(this.language, "modal.title") });
 
     // Mostrar información de la notificación
-    const infoDiv = contentEl.createEl("div", { cls: "notelert-modal-info" });
+    const infoDiv = contentEl.createDiv({ cls: "notelert-modal-info" });
     setCssProps(infoDiv, {
       margin: "20px 0",
       padding: "15px",
@@ -48,7 +48,7 @@ export class NotelertConfirmationModal extends Modal {
     setCssProps(messageP, { margin: "8px 0" });
 
     // Botones con mejor espaciado
-    const buttonContainer = contentEl.createEl("div", { cls: "notelert-modal-buttons" });
+    const buttonContainer = contentEl.createDiv({ cls: "notelert-modal-buttons" });
     setCssProps(buttonContainer, {
       display: "flex",
       gap: "12px",
@@ -80,4 +80,3 @@ export class NotelertConfirmationModal extends Modal {
     contentEl.empty();
   }
 }
-

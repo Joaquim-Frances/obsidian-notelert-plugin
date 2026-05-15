@@ -2,9 +2,9 @@
  * Componente para seleccionar fecha
  */
 
-import { HTMLElement } from "obsidian";
+import type {} from "obsidian";
 import { getTranslation } from "../../../i18n";
-import { setCssProps } from "../../../core/dom";
+import { setCssProps, createDiv, createEl } from "../../../core/dom";
 
 export interface DatePickerResult {
   dateInput: HTMLInputElement;
@@ -19,7 +19,7 @@ export function createDatePicker(
   language: string,
   initialDate: string
 ): DatePickerResult {
-  const dateContainer = parent.createEl("div", { cls: "notelert-date-container" });
+  const dateContainer = createDiv(parent, { cls: "notelert-date-container" });
   setCssProps(dateContainer, { 
     marginBottom: "15px",
     display: "block",
@@ -27,7 +27,7 @@ export function createDatePicker(
     opacity: "1"
   });
 
-  const dateLabel = dateContainer.createEl("label", { 
+  const dateLabel = createEl(dateContainer, "label", { 
     text: getTranslation(language, "datePicker.dateLabel") 
   });
   setCssProps(dateLabel, {
@@ -36,7 +36,7 @@ export function createDatePicker(
     fontWeight: "500",
   });
 
-  const dateInput = dateContainer.createEl("input", {
+  const dateInput: HTMLInputElement = createEl(dateContainer, "input", {
     type: "date",
     cls: "notelert-date-input"
   });
@@ -55,4 +55,3 @@ export function createDatePicker(
     container: dateContainer
   };
 }
-

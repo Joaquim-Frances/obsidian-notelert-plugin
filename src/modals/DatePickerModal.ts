@@ -83,7 +83,7 @@ export class NotelertDatePickerModal extends Modal {
     });
 
     // Contenedor con scroll interno
-    const scrollContainer = contentEl.createEl("div");
+    const scrollContainer = contentEl.createDiv();
     setCssProps(scrollContainer, {
       flex: "1 1 auto",
       overflowY: isDesktop ? "visible" : "auto",
@@ -103,7 +103,7 @@ export class NotelertDatePickerModal extends Modal {
     });
 
     // Contenedor principal
-    this.container = scrollContainer.createEl("div", { cls: "notelert-datepicker-container" });
+    this.container = scrollContainer.createDiv({ cls: "notelert-datepicker-container" });
     setCssProps(this.container, {
       margin: "0",
       width: "100%",
@@ -171,7 +171,7 @@ export class NotelertDatePickerModal extends Modal {
 
       // Botón para mostrar/ocultar logs de debug (solo en móvil)
       if (!isDesktop) {
-        const debugToggleContainer = this.container.createEl("div");
+        const debugToggleContainer = this.container.createDiv();
         setCssProps(debugToggleContainer, {
           marginBottom: "10px",
           display: "flex",
@@ -413,7 +413,7 @@ export class NotelertDatePickerModal extends Modal {
     });
 
     // Icono
-    const iconEl = content.createEl("div", { text: "🔄✨" });
+    const iconEl = content.createDiv({ text: "🔄✨" });
     setCssProps(iconEl, {
       fontSize: "48px",
       marginBottom: "15px",
@@ -431,7 +431,7 @@ export class NotelertDatePickerModal extends Modal {
     });
 
     // Botones
-    const buttonContainer = content.createEl("div");
+    const buttonContainer = content.createDiv();
     setCssProps(buttonContainer, {
       display: "flex",
       gap: "10px",
@@ -467,7 +467,7 @@ export class NotelertDatePickerModal extends Modal {
   }
 
   private createActionButtons(parent: HTMLElement) {
-    const buttonContainer = parent.createEl("div", { cls: "notelert-datepicker-buttons" });
+    const buttonContainer = parent.createDiv({ cls: "notelert-datepicker-buttons" });
     setCssProps(buttonContainer, {
       display: "flex",
       gap: "10px",
@@ -497,7 +497,7 @@ export class NotelertDatePickerModal extends Modal {
       this.close();
     });
 
-    const confirmButton = buttonContainer.createEl("button", {
+    const confirmButton: HTMLButtonElement = buttonContainer.createEl("button", {
       text: getTranslation(this.language, "datePicker.confirmButton"),
       cls: "mod-cta"
     });
@@ -540,8 +540,8 @@ export class NotelertDatePickerModal extends Modal {
               return;
             }
 
-            const date = this.datePicker.dateInput.value;
-            const time = this.timePicker.timeInput.value;
+            const date: string = this.datePicker.dateInput.value;
+            const time: string = this.timePicker.timeInput.value;
 
             if (date && time) {
               // Reemplazar el trigger con trigger+fecha, hora

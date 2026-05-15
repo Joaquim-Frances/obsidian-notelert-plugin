@@ -9,19 +9,24 @@ import { Language } from './types';
 import { SUPPORTED_LANGUAGES } from './languages';
 import { TRANSLATIONS } from './translations';
 
+type TranslationValue = string | TranslationTree;
+interface TranslationTree {
+  [key: string]: TranslationValue;
+}
+
 export function getTranslation(language: string, key: string, params?: Record<string, string | number>): string {
   const lang = language as keyof typeof TRANSLATIONS;
-  const translation = TRANSLATIONS[lang] || TRANSLATIONS.en;
-  const fallbackTranslation = TRANSLATIONS.en;
+  const translation = (TRANSLATIONS[lang] || TRANSLATIONS.en) as TranslationTree;
+  const fallbackTranslation = TRANSLATIONS.en as TranslationTree;
 
   const keys = key.split('.');
 
   // Helper para obtener un valor anidado de un objeto de traducciones
-  const getValue = (obj: unknown, keyPath: string[]) => {
-    let val: unknown = obj;
+  const getValue = (obj: TranslationTree, keyPath: string[]): TranslationValue | undefined => {
+    let val: TranslationValue = obj;
     for (const k of keyPath) {
-      if (val && typeof val === 'object' && k in (val as Record<string, unknown>)) {
-        val = (val as Record<string, unknown>)[k];
+      if (typeof val === 'object' && k in val) {
+        val = val[k];
       } else {
         return undefined;
       }
@@ -57,4 +62,3 @@ export function getLanguageByCode(code: string): Language | undefined {
 export function getDefaultLanguage(): Language {
   return SUPPORTED_LANGUAGES[0]; // Spanish as default
 }
-

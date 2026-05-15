@@ -16,7 +16,7 @@ export interface PremiumError extends Error {
 /**
  * Type guard para verificar si un error es un PremiumError
  */
-export function isPremiumError(error: unknown): error is PremiumError {
+export function isPremiumError(error: Error): error is PremiumError {
   return error instanceof Error && 
     'status' in error && 
     typeof (error as PremiumError).status === 'number' &&
@@ -27,4 +27,3 @@ export function isPremiumError(error: unknown): error is PremiumError {
  * Tipo de notificación
  */
 export type NotificationType = 'time' | 'location';
-

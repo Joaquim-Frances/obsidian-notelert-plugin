@@ -76,7 +76,7 @@ export async function loadLocationsFromBackend(
       error: null,
       isPremiumError: false
     };
-  } catch (error: unknown) {
+  } catch (error) {
     if (isPremiumError(error)) {
       return {
         locations: [],
@@ -92,4 +92,3 @@ export async function loadLocationsFromBackend(
     };
   }
 }
-

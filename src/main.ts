@@ -5,7 +5,7 @@ import { NotelertSettingTab } from "./settings/SettingTab";
 import { handleEditorChange } from "./features/datetime/handlers";
 import { createNotification } from "./features/notifications";
 import { getTranslation } from "./i18n";
-import { preloadPremiumStatus } from "./features/premium/premium-service";
+import { invalidatePremiumCache, preloadPremiumStatus } from "./features/premium/premium-service";
 
 export class NotelertPlugin extends Plugin {
   settings: NotelertSettings;
@@ -62,7 +62,8 @@ export class NotelertPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const loadedSettings = (await this.loadData()) as Partial<NotelertSettings> | null;
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedSettings ?? {});
   }
 
   async saveSettings() {
@@ -142,6 +143,8 @@ export class NotelertPlugin extends Plugin {
       // Guardar token en settings
       this.settings.pluginToken = token.trim();
       await this.saveSettings();
+      invalidatePremiumCache();
+      void preloadPremiumStatus(this.settings.pluginToken);
 
       // Mostrar notificación de éxito
       new Notice(
@@ -150,24 +153,6 @@ export class NotelertPlugin extends Plugin {
         10000
       );
       this.log("Token vinculado correctamente desde la app móvil");
-
-      // Reiniciar el plugin para que detecte el nuevo token inmediatamente
-      // Esperamos un segundo para asegurar que los settings se han guardado y el usuario ve el aviso
-      setTimeout(() => {
-        try {
-          // @ts-ignore
-          const plugins = this.app.plugins;
-          const pluginId = this.manifest.id;
-
-          this.log(`Reiniciando plugin ${pluginId}...`);
-
-          plugins.disablePlugin(pluginId).then(() => {
-            plugins.enablePlugin(pluginId);
-          });
-        } catch (e) {
-          this.log(`Error al reiniciar el plugin: ${e}`);
-        }
-      }, 1000);
 
       // Opcional: Abrir la configuración del plugin para que el usuario vea el token
       // this.app.setting.openTabById("notelert");

@@ -9,6 +9,47 @@ export interface ScheduleEmailResult {
   notificationId?: string;
 }
 
+interface FirebaseErrorResponse {
+  message?: string;
+  error?: string;
+}
+
+interface FirebaseScheduleResponse {
+  notificationId?: string;
+  scheduledFor?: string;
+}
+
+const parseFirebaseErrorJson = JSON.parse as (text: string) => FirebaseErrorResponse;
+const parseFirebaseScheduleJson = JSON.parse as (text: string) => FirebaseScheduleResponse;
+
+function parseFirebaseErrorResponse(text: string, fallback: string): FirebaseErrorResponse {
+  if (!text) {
+    return { error: fallback };
+  }
+
+  try {
+    return parseFirebaseErrorJson(text);
+  } catch {
+    return { error: fallback };
+  }
+}
+
+function parseFirebaseScheduleResponse(text: string, notificationId: string): FirebaseScheduleResponse {
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return parseFirebaseScheduleJson(text);
+  } catch {
+    return { notificationId };
+  }
+}
+
+function getFirebaseErrorMessage(errorData: FirebaseErrorResponse, fallback: string): string {
+  return errorData.message || errorData.error || fallback;
+}
+
 /**
  * Programar un email usando el endpoint proxy (sin API key requerida)
  * Usa autenticación por userId/userEmail
@@ -49,62 +90,50 @@ export async function scheduleEmailReminderProxy(
     });
 
     if (response.status >= 400) {
-      let errorData;
-      try {
-        const text = response.text;
-        errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
-      } catch {
-        errorData = { error: `HTTP ${response.status}` };
-      }
+      const errorData = parseFirebaseErrorResponse(response.text, `HTTP ${response.status}`);
 
       // Manejar errores específicos
       if (response.status === 400) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Datos inválidos',
+          error: getFirebaseErrorMessage(errorData, 'Datos inválidos'),
         };
       }
 
       if (response.status === 403) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Usuario no es premium o suscripción expirada',
+          error: getFirebaseErrorMessage(errorData, 'Usuario no es premium o suscripción expirada'),
         };
       }
 
       if (response.status === 404) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Usuario no encontrado. Debes registrarte primero en la app móvil.',
+          error: getFirebaseErrorMessage(errorData, 'Usuario no encontrado. Debes registrarte primero en la app móvil.'),
         };
       }
 
       if (response.status === 429) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Límite de emails alcanzado (máximo 100)',
+          error: getFirebaseErrorMessage(errorData, 'Límite de emails alcanzado (máximo 100)'),
         };
       }
 
       return {
         success: false,
-        error: errorData.message || errorData.error || `HTTP ${response.status}`,
+        error: getFirebaseErrorMessage(errorData, `HTTP ${response.status}`),
       };
     }
 
-    let result;
-    try {
-      const text = response.text;
-      result = text ? JSON.parse(text) : {};
-    } catch {
-      result = { notificationId: notificationId };
-    }
+    const result = parseFirebaseScheduleResponse(response.text, notificationId);
 
     return {
       success: true,
       notificationId: result.notificationId || notificationId
     };
-  } catch (error: unknown) {
+  } catch (error) {
     // Mejorar detección de errores de red vs errores del servidor
     const errorMessage = errorToString(error);
     const isNetworkError = errorMessage.includes('Failed to fetch') ||
@@ -224,20 +253,9 @@ export async function schedulePushNotification(
 
       requestBody.scheduledDate = scheduledDate.toISOString();
     } else if (notificationType === 'location') {
-      // Notificación de ubicación - scheduledDate es requerido por el backend
-      // Usar fecha/hora del pattern si está disponible, sino usar fecha actual
-      let scheduledDate: Date;
-      const patternDate = pattern.date;
-      const patternTime = pattern.time;
-      if (patternDate && patternTime && typeof patternDate === 'string' && typeof patternTime === 'string') {
-        const dateTimeString = `${patternDate}T${patternTime}:00`;
-        scheduledDate = new Date(dateTimeString);
-        if (isNaN(scheduledDate.getTime())) {
-          scheduledDate = new Date(); // Fallback a fecha actual
-        }
-      } else {
-        scheduledDate = new Date(); // Usar fecha actual si no hay fecha en el pattern
-      }
+      // Las notificaciones de ubicación se disparan por geofencing en la app.
+      // Guardamos una fecha futura solo para que aparezcan como activas.
+      const scheduledDate = new Date(Date.now() + 3650 * 24 * 60 * 60 * 1000);
       requestBody.scheduledDate = scheduledDate.toISOString();
       // Notificación de ubicación
       if (!pattern.location || pattern.latitude === undefined || pattern.longitude === undefined) {
@@ -291,19 +309,13 @@ export async function schedulePushNotification(
     });
 
     if (response.status >= 400) {
-      let errorData;
-      try {
-        const text = response.text;
-        errorData = text ? JSON.parse(text) : { error: `HTTP ${response.status}` };
-      } catch {
-        errorData = { error: `HTTP ${response.status}` };
-      }
+      const errorData = parseFirebaseErrorResponse(response.text, `HTTP ${response.status}`);
 
       // Manejar errores específicos
       if (response.status === 400) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Datos inválidos',
+          error: getFirebaseErrorMessage(errorData, 'Datos inválidos'),
           errorCode: 'LINK_ERROR',
         };
       }
@@ -311,14 +323,14 @@ export async function schedulePushNotification(
       if (response.status === 401) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Token inválido o expirado.',
+          error: getFirebaseErrorMessage(errorData, 'Token inválido o expirado.'),
           errorCode: 'TOKEN_INVALID',
         };
       }
 
       if (response.status === 403) {
         // 403 puede ser por token inválido o por falta de premium
-        const errorMsg = errorData.message || errorData.error || 'Acceso denegado';
+        const errorMsg = getFirebaseErrorMessage(errorData, 'Acceso denegado');
         if (errorMsg.includes('Token') || errorMsg.includes('token')) {
           return {
             success: false,
@@ -336,7 +348,7 @@ export async function schedulePushNotification(
       if (response.status === 404) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Usuario no encontrado. Debes registrarte primero en la app móvil.',
+          error: getFirebaseErrorMessage(errorData, 'Usuario no encontrado. Debes registrarte primero en la app móvil.'),
           errorCode: 'USER_NOT_FOUND',
         };
       }
@@ -344,32 +356,26 @@ export async function schedulePushNotification(
       if (response.status === 429) {
         return {
           success: false,
-          error: errorData.message || errorData.error || 'Límite de notificaciones alcanzado (máximo 100/mes para usuarios free)',
+          error: getFirebaseErrorMessage(errorData, 'Límite de notificaciones alcanzado (máximo 100/mes para usuarios free)'),
           errorCode: 'RATE_LIMIT',
         };
       }
 
       return {
         success: false,
-        error: errorData.message || errorData.error || `Error desconocido (HTTP ${response.status})`,
+        error: getFirebaseErrorMessage(errorData, `Error desconocido (HTTP ${response.status})`),
         errorCode: 'OTHER',
       };
     }
 
-    let result;
-    try {
-      const text = response.text;
-      result = text ? JSON.parse(text) : {};
-    } catch {
-      result = { notificationId: notificationId };
-    }
+    const result = parseFirebaseScheduleResponse(response.text, notificationId);
 
     return {
       success: true,
       notificationId: result.notificationId || notificationId,
       scheduledFor: result.scheduledFor,
     };
-  } catch (error: unknown) {
+  } catch (error) {
 
     // Mejorar detección de errores de red vs errores del servidor
     const errorMessage = errorToString(error);
@@ -406,4 +412,3 @@ export function generateNotificationId(): string {
   const randomPart = Math.random().toString(36).slice(2, 11);
   return `obsidian-${Date.now()}-${randomPart}`;
 }
-

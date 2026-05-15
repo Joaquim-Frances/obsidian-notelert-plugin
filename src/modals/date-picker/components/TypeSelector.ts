@@ -2,9 +2,9 @@
  * Componente para seleccionar tipo de notificación (time/location)
  */
 
-import { HTMLElement } from "obsidian";
+import type {} from "obsidian";
 import { getTranslation } from "../../../i18n";
-import { setCssProps, isHTMLElement } from "../../../core/dom";
+import { setCssProps, createDiv, createEl, setElementId, setElementClassName, findHTMLElement, addElementListener } from "../../../core/dom";
 import { NotificationType } from "../types";
 
 export interface TypeSelectorResult {
@@ -24,7 +24,7 @@ export function createTypeSelector(
   currentType: NotificationType,
   onTypeChange: (type: NotificationType) => void
 ): TypeSelectorResult {
-  const typeContainer = parent.createEl("div", { cls: "notelert-type-container" });
+  const typeContainer = createDiv(parent, { cls: "notelert-type-container" });
   setCssProps(typeContainer, {
     marginBottom: "20px",
     padding: isDesktop ? "10px 15px" : "15px",
@@ -34,11 +34,11 @@ export function createTypeSelector(
     boxSizing: "border-box",
   });
 
-  typeContainer.createEl("label", {
+  createEl(typeContainer, "label", {
     text: getTranslation(language, "datePicker.notificationType"),
   });
-  const label = typeContainer.querySelector("label");
-  if (label && isHTMLElement(label)) {
+  const label = findHTMLElement(typeContainer, "label");
+  if (label) {
     setCssProps(label, {
       display: "block",
       marginBottom: "8px",
@@ -47,7 +47,7 @@ export function createTypeSelector(
     });
   }
 
-  const typeButtonsContainer = typeContainer.createEl("div");
+  const typeButtonsContainer = createDiv(typeContainer);
   setCssProps(typeButtonsContainer, {
     display: "flex",
     gap: "10px",
@@ -55,7 +55,7 @@ export function createTypeSelector(
     width: "100%",
   });
 
-  const timeButton = typeButtonsContainer.createEl("button", {
+  const timeButton = createEl(typeButtonsContainer, "button", {
     text: getTranslation(language, "datePicker.timeNotification"),
     cls: "mod-cta"
   });
@@ -66,9 +66,9 @@ export function createTypeSelector(
     fontSize: "14px",
     whiteSpace: "nowrap",
   });
-  timeButton.id = "notification-type-time";
+  setElementId(timeButton, "notification-type-time");
 
-  const locationButton = typeButtonsContainer.createEl("button", {
+  const locationButton = createEl(typeButtonsContainer, "button", {
     text: getTranslation(language, "datePicker.locationNotification"),
     cls: "mod-secondary"
   });
@@ -79,25 +79,25 @@ export function createTypeSelector(
     fontSize: "14px",
     whiteSpace: "nowrap",
   });
-  locationButton.id = "notification-type-location";
+  setElementId(locationButton, "notification-type-location");
 
   // Actualizar estilos según el tipo seleccionado
   const updateTypeButtons = (type: NotificationType) => {
     if (type === 'time') {
-      timeButton.className = "mod-cta";
-      locationButton.className = "mod-secondary";
+      setElementClassName(timeButton, "mod-cta");
+      setElementClassName(locationButton, "mod-secondary");
     } else {
-      timeButton.className = "mod-secondary";
-      locationButton.className = "mod-cta";
+      setElementClassName(timeButton, "mod-secondary");
+      setElementClassName(locationButton, "mod-cta");
     }
   };
 
-  timeButton.addEventListener("click", () => {
+  addElementListener(timeButton, "click", () => {
     updateTypeButtons('time');
     onTypeChange('time');
   });
 
-  locationButton.addEventListener("click", () => {
+  addElementListener(locationButton, "click", () => {
     updateTypeButtons('location');
     onTypeChange('location');
   });
@@ -114,4 +114,3 @@ export function createTypeSelector(
     }
   };
 }
-

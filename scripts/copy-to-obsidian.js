@@ -79,4 +79,3 @@ if (errors.length === 0 && copiedCount === FILES_TO_COPY.length) {
   errors.forEach(error => console.error(`   ${error}`));
   process.exit(1);
 }
-
