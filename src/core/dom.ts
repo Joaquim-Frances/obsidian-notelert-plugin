@@ -1,3 +1,5 @@
+import { activeDocument } from "obsidian";
+
 type ElementCreationOptions = DomElementInfo | string;
 type CssPropValue = string | number | null | undefined;
 type CssProps = Record<string, CssPropValue>;
@@ -53,7 +55,7 @@ export function findHTMLElement(parent: HTMLElement, selector: string): HTMLElem
 }
 
 export function getActiveHTMLElementById(id: string): HTMLElement | null {
-  const element = document.getElementById(id);
+  const element = activeDocument.getElementById(id);
   return isHTMLElement(element) ? element : null;
 }
 

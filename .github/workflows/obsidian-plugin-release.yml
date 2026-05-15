@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,9 +15,6 @@ jobs:
   release:
     name: Build and publish Obsidian plugin
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/obsidian-plugin
 
     steps:
       - name: Check out repository
@@ -27,14 +25,20 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: apps/obsidian-plugin/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
       - name: Validate manifest version
+        id: version
         run: |
-          node -e "const m=require('./manifest.json'); if (m.version !== process.env.GITHUB_REF_NAME) { throw new Error(`manifest version ${m.version} does not match tag ${process.env.GITHUB_REF_NAME}`); }"
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "manifest version $VERSION does not match tag $GITHUB_REF_NAME"
+            exit 1
+          fi
 
       - name: Build plugin
         run: npm run build
@@ -46,30 +50,31 @@ jobs:
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: |
-            apps/obsidian-plugin/releases/main.js
-            apps/obsidian-plugin/releases/manifest.json
-            apps/obsidian-plugin/releases/styles.css
+            releases/main.js
+            releases/manifest.json
+            releases/styles.css
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           notes_args=(--generate-notes)
-          if [ -f "RELEASE_NOTES_v$GITHUB_REF_NAME.md" ]; then
-            notes_args=(--notes-file "RELEASE_NOTES_v$GITHUB_REF_NAME.md")
+          release_tag="${{ steps.version.outputs.version }}"
+          if [ -f "RELEASE_NOTES_v$release_tag.md" ]; then
+            notes_args=(--notes-file "RELEASE_NOTES_v$release_tag.md")
           fi
 
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" \
+          if gh release view "$release_tag" >/dev/null 2>&1; then
+            gh release upload "$release_tag" \
               releases/main.js \
               releases/manifest.json \
               releases/styles.css \
               --clobber
           else
-            gh release create "$GITHUB_REF_NAME" \
+            gh release create "$release_tag" \
               releases/main.js \
               releases/manifest.json \
               releases/styles.css \
-              --title "$GITHUB_REF_NAME" \
+              --title "$release_tag" \
               "${notes_args[@]}"
           fi
