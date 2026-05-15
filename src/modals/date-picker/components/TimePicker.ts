@@ -2,9 +2,9 @@
  * Componente para seleccionar hora visualmente
  */
 
-import { HTMLElement, HTMLInputElement } from "obsidian";
+import type {} from "obsidian";
 import { getTranslation } from "../../../i18n";
-import { setCssProps } from "../../../core/dom";
+import { setCssProps, createDiv, createEl, setElementId, setElementText, getElementInt, addElementListener } from "../../../core/dom";
 import { getInitialTime } from "../utils/date-utils";
 
 export interface TimePickerResult {
@@ -32,8 +32,8 @@ function updateTimeDisplay(
   if (minutes > 59) minutes = 59;
 
   // Actualizar displays
-  hoursDisplay.textContent = String(hours).padStart(2, '0');
-  minutesDisplay.textContent = String(minutes).padStart(2, '0');
+  setElementText(hoursDisplay, String(hours).padStart(2, '0'));
+  setElementText(minutesDisplay, String(minutes).padStart(2, '0'));
 
   // Sincronizar con input oculto (formato HH:MM)
   const timeString = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
@@ -48,7 +48,7 @@ export function createTimePicker(
   language: string,
   isDesktop: boolean
 ): TimePickerResult {
-  const timeContainer = parent.createEl("div", { cls: "notelert-time-container" });
+  const timeContainer = createDiv(parent, { cls: "notelert-time-container" });
   setCssProps(timeContainer, { 
     marginBottom: "20px",
     display: "block",
@@ -56,7 +56,7 @@ export function createTimePicker(
     opacity: "1"
   });
 
-  const timeLabel = timeContainer.createEl("label", { 
+  const timeLabel = createEl(timeContainer, "label", { 
     text: getTranslation(language, "datePicker.timeLabel") 
   });
   setCssProps(timeLabel, {
@@ -66,7 +66,7 @@ export function createTimePicker(
   });
 
   // Contenedor para el selector visual de hora
-  const timePickerContainer = timeContainer.createEl("div");
+  const timePickerContainer = createDiv(timeContainer);
   setCssProps(timePickerContainer, {
     display: "flex",
     alignItems: "center",
@@ -79,7 +79,7 @@ export function createTimePicker(
   });
 
   // Selector de horas
-  const hoursContainer = timePickerContainer.createEl("div");
+  const hoursContainer = createDiv(timePickerContainer);
   setCssProps(hoursContainer, {
     display: "flex",
     flexDirection: "column",
@@ -89,7 +89,7 @@ export function createTimePicker(
     flex: "0 0 auto",
   });
 
-  const hoursLabel = hoursContainer.createEl("div", {
+  const hoursLabel = createDiv(hoursContainer, {
     text: getTranslation(language, "datePicker.hours"),
   });
   setCssProps(hoursLabel, {
@@ -100,7 +100,7 @@ export function createTimePicker(
     letterSpacing: "0.5px",
   });
 
-  const hoursDisplay = hoursContainer.createEl("div", {
+  const hoursDisplay = createDiv(hoursContainer, {
     text: "12",
   });
   const displayWidth = isDesktop ? "80px" : "70px";
@@ -117,9 +117,9 @@ export function createTimePicker(
     boxSizing: "border-box",
     margin: "0 auto",
   });
-  hoursDisplay.id = "hours-display";
+  setElementId(hoursDisplay, "hours-display");
 
-  const hoursButtons = hoursContainer.createEl("div");
+  const hoursButtons = createDiv(hoursContainer);
   setCssProps(hoursButtons, {
     display: "flex",
     gap: "8px",
@@ -134,8 +134,8 @@ export function createTimePicker(
   // Para mobile: 70px - 8px gap = 62px / 2 = 31px por botón
   const buttonWidth = isDesktop ? "36px" : "31px";
   const buttonHeight = isDesktop ? "36px" : "32px";
-  const createTimeButton = (text: string, isDesktop: boolean, container: HTMLElement) => {
-    const btn = container.createEl("button", { text });
+  const createTimeButton = (text: string, isDesktop: boolean, container: HTMLElement): HTMLButtonElement => {
+    const btn = createEl(container, "button", { text });
     setCssProps(btn, {
       width: buttonWidth,
       height: buttonHeight,
@@ -155,13 +155,13 @@ export function createTimePicker(
       padding: "0",
       margin: "0",
     });
-    btn.addEventListener("mouseenter", () => {
+    addElementListener(btn, "mouseenter", () => {
       setCssProps(btn, {
         background: "var(--background-modifier-hover)",
         borderColor: "var(--interactive-accent)",
       });
     });
-    btn.addEventListener("mouseleave", () => {
+    addElementListener(btn, "mouseleave", () => {
       setCssProps(btn, {
         background: "var(--background-primary)",
         borderColor: "var(--background-modifier-border)",
@@ -174,7 +174,7 @@ export function createTimePicker(
   const hoursIncreaseBtn = createTimeButton("+", isDesktop, hoursButtons);
 
   // Separador
-  const colonEl = timePickerContainer.createEl("div", {
+  const colonEl = createDiv(timePickerContainer, {
     text: ":",
   });
   setCssProps(colonEl, {
@@ -190,7 +190,7 @@ export function createTimePicker(
   });
 
   // Selector de minutos
-  const minutesContainer = timePickerContainer.createEl("div");
+  const minutesContainer = createDiv(timePickerContainer);
   setCssProps(minutesContainer, {
     display: "flex",
     flexDirection: "column",
@@ -200,7 +200,7 @@ export function createTimePicker(
     flex: "0 0 auto",
   });
 
-  const minutesLabel = minutesContainer.createEl("div", {
+  const minutesLabel = createDiv(minutesContainer, {
     text: getTranslation(language, "datePicker.minutes"),
   });
   setCssProps(minutesLabel, {
@@ -211,7 +211,7 @@ export function createTimePicker(
     letterSpacing: "0.5px",
   });
 
-  const minutesDisplay = minutesContainer.createEl("div", {
+  const minutesDisplay = createDiv(minutesContainer, {
     text: "00",
   });
   const minutesDisplayWidth = isDesktop ? "80px" : "70px";
@@ -228,9 +228,9 @@ export function createTimePicker(
     boxSizing: "border-box",
     margin: "0 auto",
   });
-  minutesDisplay.id = "minutes-display";
+  setElementId(minutesDisplay, "minutes-display");
 
-  const minutesButtons = minutesContainer.createEl("div");
+  const minutesButtons = createDiv(minutesContainer);
   setCssProps(minutesButtons, {
     display: "flex",
     gap: "8px",
@@ -244,17 +244,17 @@ export function createTimePicker(
   const minutesIncreaseBtn = createTimeButton("+", isDesktop, minutesButtons);
 
   // Input oculto para mantener compatibilidad
-  const timeInput = timeContainer.createEl("input", {
+  const timeInput: HTMLInputElement = createEl(timeContainer, "input", {
     type: "time",
     cls: "notelert-time-input"
   });
   setCssProps(timeInput, { display: "none" });
-  timeInput.id = "hidden-time-input";
+  setElementId(timeInput, "hidden-time-input");
 
   // Funciones para actualizar hora/minutos
   const updateHours = (delta: number) => {
-    const currentHours = parseInt(hoursDisplay.textContent || "12");
-    const currentMinutes = parseInt(minutesDisplay.textContent || "0");
+    const currentHours = getElementInt(hoursDisplay, 12);
+    const currentMinutes = getElementInt(minutesDisplay, 0);
     let newHours = currentHours + delta;
     if (newHours < 0) newHours = 23;
     if (newHours > 23) newHours = 0;
@@ -262,8 +262,8 @@ export function createTimePicker(
   };
 
   const updateMinutes = (delta: number) => {
-    const currentHours = parseInt(hoursDisplay.textContent || "12");
-    const currentMinutes = parseInt(minutesDisplay.textContent || "0");
+    const currentHours = getElementInt(hoursDisplay, 12);
+    const currentMinutes = getElementInt(minutesDisplay, 0);
     let newMinutes = currentMinutes + delta;
     let newHours = currentHours;
 
@@ -280,14 +280,14 @@ export function createTimePicker(
     updateTimeDisplay(newHours, newMinutes, hoursDisplay, minutesDisplay, timeInput);
   };
 
-  hoursDecreaseBtn.addEventListener("click", () => updateHours(-1));
-  hoursIncreaseBtn.addEventListener("click", () => updateHours(1));
-  minutesDecreaseBtn.addEventListener("click", () => updateMinutes(-5));
-  minutesIncreaseBtn.addEventListener("click", () => updateMinutes(5));
+  addElementListener(hoursDecreaseBtn, "click", () => updateHours(-1));
+  addElementListener(hoursIncreaseBtn, "click", () => updateHours(1));
+  addElementListener(minutesDecreaseBtn, "click", () => updateMinutes(-5));
+  addElementListener(minutesIncreaseBtn, "click", () => updateMinutes(5));
 
   // Botones rápidos de hora (solo en desktop)
   if (isDesktop) {
-    const quickTimeButtons = timeContainer.createEl("div");
+    const quickTimeButtons = createDiv(timeContainer);
     setCssProps(quickTimeButtons, {
       display: "flex",
       gap: "8px",
@@ -305,28 +305,28 @@ export function createTimePicker(
     ];
 
     quickTimes.forEach(qt => {
-      const btn = quickTimeButtons.createEl("button", {
+      const btn = createEl(quickTimeButtons, "button", {
         text: qt.label,
       });
       setCssProps(btn, {
         padding: "6px 12px",
         fontSize: "12px",
-        borderRadius: "4px",
+        borderRadius: "3px",
         border: "1px solid var(--background-modifier-border)",
         background: "var(--background-primary)",
         cursor: "pointer",
         transition: "all 0.2s",
       });
-      btn.addEventListener("click", () => {
+      addElementListener(btn, "click", () => {
         updateTimeDisplay(qt.hours, qt.minutes, hoursDisplay, minutesDisplay, timeInput);
       });
-      btn.addEventListener("mouseenter", () => {
+      addElementListener(btn, "mouseenter", () => {
         setCssProps(btn, {
           background: "var(--background-modifier-hover)",
           borderColor: "var(--interactive-accent)",
         });
       });
-      btn.addEventListener("mouseleave", () => {
+      addElementListener(btn, "mouseleave", () => {
         setCssProps(btn, {
           background: "var(--background-primary)",
           borderColor: "var(--background-modifier-border)",
@@ -347,4 +347,3 @@ export function createTimePicker(
     updateTime: (h: number, m: number) => updateTimeDisplay(h, m, hoursDisplay, minutesDisplay, timeInput)
   };
 }
-

@@ -14,14 +14,11 @@ Notelert app or plugin does not scans you vault in any way.
 
 ## Installation
 
-### Method 1: Download from Releases Folder (Easiest - Recommended)
+### Method 1: Download from GitHub Releases (Recommended)
 
 1. **Download the plugin files**:
-   - Go to the [releases folder](https://github.com/quimfrances/obsidian-notelert-plugin/tree/main/releases) in the repository
-   - **Option A - Download ZIP**: Click on `notelert-plugin.zip` → Click "Download" → Extract the ZIP file
-   - **Option B - Download individual files**: 
-     - Click on `main.js` → Click "Raw" → Right-click → "Save As" → Save as `main.js`
-     - Click on `manifest.json` → Click "Raw" → Right-click → "Save As" → Save as `manifest.json`
+   - Go to the [GitHub Releases page](https://github.com/Joaquim-Frances/obsidian-notelert-plugin/releases)
+   - Download the latest `main.js`, `manifest.json`, and `styles.css` assets.
 
 2. **Find the Obsidian plugins folder**:
    - **Method A (Easiest)**: In Obsidian, go to Settings → Community Plugins → Click "Open plugins folder"
@@ -32,29 +29,18 @@ Notelert app or plugin does not scans you vault in any way.
    
 3. **Create the plugin folder and install**:
    - In the `plugins` folder, create a new folder named `notelert`
-   - Copy `main.js` and `manifest.json` into the `notelert` folder
+   - Copy `main.js`, `manifest.json`, and `styles.css` into the `notelert` folder
    - Go back to Obsidian Settings → Community Plugins
    - Turn off "Safe mode" (if enabled)
    - Enable "Notelert"
 
-### Method 2: Download ZIP from GitHub Actions
+### Method 2: Download files from dist folder
 
-1. **Download the plugin ZIP**:
-   - Go to the [Actions tab](https://github.com/quimfrances/obsidian-notelert-plugin/actions)
-   - Click on the latest successful workflow run (green checkmark)
-   - Scroll down to "Artifacts" section
-   - Download `notelert-plugin.zip`
-
-2. **Extract and install**:
-   - Extract the ZIP file to get `main.js` and `manifest.json`
-   - Follow the installation steps from Method 1, steps 2-3
-
-### Method 3: Download files from dist folder
-
-1. **Download the files**:
-   - Go to the [dist folder](https://github.com/quimfrances/obsidian-notelert-plugin/tree/main/dist) in the repository
+1. **Download the JavaScript and manifest files**:
+   - Go to the [dist folder](https://github.com/Joaquim-Frances/obsidian-notelert-plugin/tree/main/dist) in the repository
    - Click on `main.js` → Click "Raw" → Right-click → "Save As" → Save as `main.js`
    - Click on `manifest.json` → Click "Raw" → Right-click → "Save As" → Save as `manifest.json`
+   - Go to the [repository root](https://github.com/Joaquim-Frances/obsidian-notelert-plugin) and download `styles.css`
 
 2. **Install in Obsidian**:
    - Follow the installation steps from Method 1, steps 2-3
@@ -149,19 +135,6 @@ This will compile TypeScript files and generate `dist/main.js` and `dist/manifes
 
 The `build:install` script automatically builds the plugin and copies the files to your Obsidian plugins folder.
 
-**Before using `build:install`, you need to configure the plugin path:**
-
-1. Open `scripts/copy-to-obsidian.js`
-2. Update the `OBSIDIAN_PLUGIN_PATH` constant with your Obsidian vault's plugin folder path:
-   ```javascript
-   const OBSIDIAN_PLUGIN_PATH = '/path/to/your/vault/.obsidian/plugins/notelert';
-   ```
-3. Make sure the `notelert` folder exists in your Obsidian plugins directory (create it if it doesn't exist)
-
-**To find your Obsidian plugins folder:**
-- In Obsidian: Settings → Community Plugins → Click "Open plugins folder"
-- Or manually navigate to: `YourVault/.obsidian/plugins/`
-
 **Then run:**
 ```bash
 npm run build:install
@@ -169,7 +142,6 @@ npm run build:install
 
 This will:
 1. Build the plugin (`npm run build`)
-2. Copy `main.js` and `manifest.json` to your Obsidian plugins folder
-3. Show a notification when complete
+2. Copy `main.js`, `manifest.json`, and `styles.css` to the configured desktop and Android emulator test vaults
 
 **Note:** After installing, reload the plugin in Obsidian: Settings → Community Plugins → Disable/Enable Notelert

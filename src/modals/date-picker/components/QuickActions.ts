@@ -2,9 +2,9 @@
  * Componente para acciones rápidas de fecha/hora
  */
 
-import { HTMLElement } from "obsidian";
+import type {} from "obsidian";
 import { getTranslation } from "../../../i18n";
-import { setCssProps } from "../../../core/dom";
+import { setCssProps, createDiv, createEl, setElementId, addElementListener } from "../../../core/dom";
 import { getToday, getTomorrow, getTimeInHours } from "../utils/date-utils";
 
 export interface QuickActionsResult {
@@ -19,15 +19,15 @@ export function createQuickActions(
   language: string,
   onAction: (date: string, time: string) => void
 ): QuickActionsResult {
-  const quickActions = parent.createEl("div", { cls: "notelert-quick-actions" });
+  const quickActions = createDiv(parent, { cls: "notelert-quick-actions" });
   setCssProps(quickActions, {
     marginBottom: "20px",
     width: "100%",
     boxSizing: "border-box",
   });
-  quickActions.id = "quick-actions-container";
+  setElementId(quickActions, "quick-actions-container");
 
-  const quickActionsTitle = quickActions.createEl("p", { 
+  const quickActionsTitle = createEl(quickActions, "p", { 
     text: getTranslation(language, "datePicker.quickActions") 
   });
   setCssProps(quickActionsTitle, {
@@ -35,7 +35,7 @@ export function createQuickActions(
     fontWeight: "500",
   });
 
-  const quickButtonsContainer = quickActions.createEl("div");
+  const quickButtonsContainer = createDiv(quickActions);
   setCssProps(quickButtonsContainer, {
     display: "flex",
     gap: "8px",
@@ -52,15 +52,16 @@ export function createQuickActions(
   ];
 
   quickActionsData.forEach(action => {
-    const button = quickButtonsContainer.createEl("button", {
+    const button = createEl(quickButtonsContainer, "button", {
       text: action.label,
       cls: "mod-secondary"
     });
     setCssProps(button, {
       padding: "4px 8px",
       fontSize: "12px",
+      borderRadius: "3px",
     });
-    button.addEventListener("click", () => {
+    addElementListener(button, "click", () => {
       onAction(action.date, action.time);
     });
   });
@@ -69,4 +70,3 @@ export function createQuickActions(
     container: quickActions
   };
 }
-

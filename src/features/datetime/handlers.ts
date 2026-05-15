@@ -1,12 +1,10 @@
-import { Editor, EditorPosition } from "obsidian";
+import { Editor, EditorPosition, MarkdownFileInfo, MarkdownView } from "obsidian";
 import { INotelertPlugin } from "../../core/plugin-interface";
 import { NotelertDatePickerModal } from "../../modals/DatePickerModal";
 
 export function handleEditorChange(
   editor: Editor,
-  // La firma de Obsidian para change incluye un objeto complejo;
-  // no lo usamos aquí, así que lo tipamos de forma segura.
-  info: unknown,
+  _info: MarkdownView | MarkdownFileInfo,
   plugin: INotelertPlugin
 ): void {
   if (!plugin.settings.enableDatePicker || !plugin.settings.useNewSyntax) return;
@@ -44,4 +42,3 @@ export function openDatePicker(editor: Editor, cursor: EditorPosition, plugin: I
     }
   ).open();
 }
-

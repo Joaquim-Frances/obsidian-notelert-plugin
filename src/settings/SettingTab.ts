@@ -1,6 +1,7 @@
-import { App, Plugin, PluginSettingTab, Setting, SettingDefinitionItem } from "obsidian";
+import { App, Plugin, PluginSettingTab, Setting } from "obsidian";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
+import { createDiv, createEl } from "../core/dom";
 
 // Obsidian's runtime supports getSettingDefinitions(), but the generated type
 // definitions still model PluginSettingTab as abstract.
@@ -26,8 +27,107 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     return !this.hasPluginToken() && this.app.loadLocalStorage(this.bannerDismissedKey) !== "true";
   }
 
-  private renderAppRequiredBanner(setting: Setting): void {
-    const bannerContainer = setting.settingEl.createEl("div", {
+  display(): void {
+    const { containerEl } = this;
+    containerEl.empty();
+
+    const language = this.plugin.settings.language;
+
+    if (this.shouldShowAppRequiredBanner()) {
+      this.renderLegacyBanner(containerEl, language);
+    }
+
+    this.renderLegacySection(containerEl, getTranslation(language, "settings.basicSettings"));
+    new Setting(containerEl)
+      .setName(getTranslation(language, "settings.language"))
+      .setDesc(getTranslation(language, "settings.languageDesc"))
+      .addDropdown((dropdown) => {
+        SUPPORTED_LANGUAGES.forEach((lang) => {
+          dropdown.addOption(lang.code, `${lang.nativeName} (${lang.name})`);
+        });
+        dropdown.setValue(this.plugin.settings.language);
+        dropdown.onChange((value) => {
+          void (async () => {
+            this.plugin.settings.language = value;
+            await this.plugin.saveSettings();
+            this.update();
+          })();
+        });
+      });
+
+    new Setting(containerEl)
+      .setName(getTranslation(language, "settings.debugMode"))
+      .setDesc(getTranslation(language, "settings.debugModeDesc"))
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.debugMode)
+          .onChange((value) => {
+            void (async () => {
+              this.plugin.settings.debugMode = value;
+              await this.plugin.saveSettings();
+            })();
+          })
+      );
+
+    this.renderLegacySection(containerEl, getTranslation(language, "settings.pluginToken.title"));
+    let pluginTokenInput: HTMLInputElement | null = null;
+    new Setting(containerEl)
+      .setName(getTranslation(language, "settings.pluginToken.title"))
+      .setDesc(
+        getTranslation(language, "settings.pluginToken.descDesktop") ||
+          "Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token."
+      )
+      .addText((text) => {
+        text
+          .setPlaceholder(getTranslation(language, "settings.pluginToken.placeholder"))
+          .setValue(this.plugin.settings.pluginToken || "")
+          .inputEl.type = "password";
+        pluginTokenInput = text.inputEl;
+        text.onChange((value) => {
+          void (async () => {
+            this.plugin.settings.pluginToken = value.trim();
+            this.app.saveLocalStorage(this.bannerDismissedKey, null);
+            await this.plugin.saveSettings();
+            this.update();
+          })();
+        });
+      })
+      .addButton((button) => {
+        button
+          .setButtonText(getTranslation(language, "settings.pluginToken.showHide"))
+          .onClick(() => {
+            if (pluginTokenInput) {
+              pluginTokenInput.type = pluginTokenInput.type === "password" ? "text" : "password";
+            }
+          });
+      });
+
+    this.renderLegacySection(containerEl, getTranslation(language, "settings.generalSettings.title") || "Configuración General");
+    new Setting(containerEl)
+      .setName("Combinación de caracteres para abrir el modal")
+      .setDesc("Escribe la combinación de caracteres que quieres usar para abrir el modal de notificaciones (por defecto: :@)")
+      .addText((text) => {
+        text
+          .setPlaceholder(":@")
+          .setValue(this.plugin.settings.datePickerTrigger || ":@")
+          .onChange((value) => {
+            void (async () => {
+              this.plugin.settings.datePickerTrigger = value.trim() || ":@";
+              await this.plugin.saveSettings();
+            })();
+          });
+      });
+  }
+
+  private renderLegacySection(containerEl: HTMLElement, heading: string): void {
+    const headingEl = createEl(containerEl, "h3", {
+      text: heading,
+    });
+    headingEl.addClass("notelert-legacy-section-heading");
+  }
+
+  private renderLegacyBanner(containerEl: HTMLElement, language: string): void {
+    const bannerContainer = createDiv(containerEl, {
       attr: {
         style: `
           padding: 15px;
@@ -35,11 +135,12 @@ export class NotelertSettingTab extends PluginSettingTabBase {
           border-radius: 8px;
           border-left: 4px solid var(--text-warning);
           position: relative;
+          margin-bottom: 1rem;
         `
       }
     });
 
-    const closeButton = bannerContainer.createEl("button", {
+    const closeButton = createEl(bannerContainer, "button", {
       attr: {
         style: `
           position: absolute;
@@ -61,17 +162,17 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       this.update();
     };
 
-    bannerContainer.createEl("p", {
+    createEl(bannerContainer, "p", {
       text:
-        getTranslation(this.plugin.settings.language, "settings.appRequired.message") ||
+        getTranslation(language, "settings.appRequired.message") ||
         "Este plugin requiere instalar la app de Android para funcionar. Una vez instalada, genera un token desde Settings > Plugin Token en la app y configúralo aquí.",
       attr: {
         style: "margin: 0 0 10px 0; color: var(--text-muted); font-size: 13px; line-height: 1.6;"
       }
     });
 
-    bannerContainer.createEl("a", {
-      text: getTranslation(this.plugin.settings.language, "settings.appRequired.downloadLink") || "Descargar app de Android",
+    createEl(bannerContainer, "a", {
+      text: getTranslation(language, "settings.appRequired.downloadLink") || "Descargar app de Android",
       attr: {
         href: "https://play.google.com/store/apps/details?id=com.notelert",
         target: "_blank",
@@ -84,134 +185,5 @@ export class NotelertSettingTab extends PluginSettingTabBase {
         `
       }
     });
-  }
-
-  getSettingDefinitions(): SettingDefinitionItem[] {
-    const language = this.plugin.settings.language;
-    const definitions: SettingDefinitionItem[] = [];
-
-    if (this.shouldShowAppRequiredBanner()) {
-      definitions.push({
-        type: "group",
-        heading: getTranslation(language, "settings.appRequired.title") || "App requerida",
-        items: [
-          {
-            name: "",
-            searchable: false,
-            render: (setting) => {
-              setting.settingEl.empty();
-              this.renderAppRequiredBanner(setting);
-            }
-          }
-        ]
-      });
-    }
-
-    definitions.push(
-      {
-        type: "group",
-        heading: getTranslation(language, "settings.basicSettings"),
-        items: [
-          {
-            name: getTranslation(language, "settings.language"),
-            desc: getTranslation(language, "settings.languageDesc"),
-            render: (setting) => {
-              setting.addDropdown((dropdown) => {
-                SUPPORTED_LANGUAGES.forEach((lang) => {
-                  dropdown.addOption(lang.code, `${lang.nativeName} (${lang.name})`);
-                });
-                dropdown.setValue(this.plugin.settings.language);
-                dropdown.onChange((value) => {
-                  void (async () => {
-                    this.plugin.settings.language = value;
-                    await this.plugin.saveSettings();
-                    this.update();
-                  })();
-                });
-              });
-            }
-          },
-          {
-            name: getTranslation(language, "settings.debugMode"),
-            desc: getTranslation(language, "settings.debugModeDesc"),
-            render: (setting) => {
-              setting.addToggle((toggle) =>
-                toggle
-                  .setValue(this.plugin.settings.debugMode)
-                  .onChange((value) => {
-                    void (async () => {
-                      this.plugin.settings.debugMode = value;
-                      await this.plugin.saveSettings();
-                    })();
-                  })
-              );
-            }
-          }
-        ]
-      },
-      {
-        type: "group",
-        heading: getTranslation(language, "settings.pluginToken.title"),
-        items: [
-          {
-            name: getTranslation(language, "settings.pluginToken.title"),
-            desc:
-              getTranslation(language, "settings.pluginToken.descDesktop") ||
-              "Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token.",
-            render: (setting) => {
-              setting.addText((text) => {
-                text
-                  .setPlaceholder(getTranslation(language, "settings.pluginToken.placeholder"))
-                  .setValue(this.plugin.settings.pluginToken || "")
-                  .inputEl.type = "password";
-                text.onChange((value) => {
-                  void (async () => {
-                    this.plugin.settings.pluginToken = value.trim();
-                    this.app.saveLocalStorage(this.bannerDismissedKey, null);
-                    await this.plugin.saveSettings();
-                    this.update();
-                  })();
-                });
-              });
-              setting.addButton((button) => {
-                button
-                  .setButtonText(getTranslation(language, "settings.pluginToken.showHide"))
-                  .onClick(() => {
-                    const input = setting.settingEl.querySelector<HTMLInputElement>('input[type="password"], input[type="text"]');
-                    if (input) {
-                      input.type = input.type === "password" ? "text" : "password";
-                    }
-                  });
-              });
-            }
-          }
-        ]
-      },
-      {
-        type: "group",
-        heading: getTranslation(language, "settings.generalSettings.title") || "Configuración General",
-        items: [
-          {
-            name: "Combinación de caracteres para abrir el modal",
-            desc: "Escribe la combinación de caracteres que quieres usar para abrir el modal de notificaciones (por defecto: :@)",
-            render: (setting) => {
-              setting.addText((text) => {
-                text
-                  .setPlaceholder(":@")
-                  .setValue(this.plugin.settings.datePickerTrigger || ":@")
-                  .onChange((value) => {
-                    void (async () => {
-                      this.plugin.settings.datePickerTrigger = value.trim() || ":@";
-                      await this.plugin.saveSettings();
-                    })();
-                  });
-              });
-            }
-          }
-        ]
-      }
-    );
-
-    return definitions;
   }
 }

@@ -3,7 +3,7 @@
  */
 
 import { getTranslation } from "../../../i18n";
-import { setCssProps } from "../../../core/dom";
+import { setCssProps, createDiv, createEl, createSpan, setElementId } from "../../../core/dom";
 
 export type RecurrenceUnit = 'day' | 'week' | 'month' | 'year';
 export type RecurrenceEndType = 'never' | 'count' | 'date';
@@ -45,7 +45,7 @@ export function createRecurrenceSelector(
   };
 
   // Contenedor principal
-  const container = parent.createEl("div", { cls: "notelert-recurrence-container" });
+  const container = createDiv(parent, { cls: "notelert-recurrence-container" });
   setCssProps(container, {
     marginTop: "15px",
     padding: "15px",
@@ -56,7 +56,7 @@ export function createRecurrenceSelector(
   });
 
   // Toggle de recurrencia
-  const toggleContainer = container.createEl("div", { cls: "notelert-recurrence-toggle" });
+  const toggleContainer = createDiv(container, { cls: "notelert-recurrence-toggle" });
   setCssProps(toggleContainer, {
     display: "flex",
     alignItems: "center",
@@ -65,7 +65,7 @@ export function createRecurrenceSelector(
     opacity: isPremium ? "1" : "0.7",
   });
 
-  const toggleLabel = toggleContainer.createEl("label", {
+  const toggleLabel = createEl(toggleContainer, "label", {
     text: getTranslation(language, "recurrence.repeatLabel") || "Repetir",
   });
   setCssProps(toggleLabel, {
@@ -77,8 +77,8 @@ export function createRecurrenceSelector(
     gap: "8px",
   });
 
-  const toggleCheckbox = toggleContainer.createEl("input", { type: "checkbox" });
-  toggleCheckbox.id = "recurrence-toggle";
+  const toggleCheckbox = createEl(toggleContainer, "input", { type: "checkbox" });
+  setElementId(toggleCheckbox, "recurrence-toggle");
   toggleCheckbox.disabled = !isPremium;
   setCssProps(toggleCheckbox, {
     width: "18px",
@@ -89,7 +89,7 @@ export function createRecurrenceSelector(
   // Mensaje de premium requerido (solo si no es premium)
   let premiumMessage: HTMLElement | null = null;
   if (!isPremium) {
-    premiumMessage = container.createEl("div", {
+    premiumMessage = createDiv(container, {
       text: getTranslation(language, "recurrence.premiumHint") || "⭐ Actualiza a Premium para usar notificaciones recurrentes",
     });
     setCssProps(premiumMessage, {
@@ -101,7 +101,7 @@ export function createRecurrenceSelector(
   }
 
   // Contenedor de opciones (oculto por defecto)
-  const optionsContainer = container.createEl("div", { cls: "notelert-recurrence-options" });
+  const optionsContainer = createDiv(container, { cls: "notelert-recurrence-options" });
   setCssProps(optionsContainer, {
     display: "none",
     marginTop: "15px",
@@ -110,7 +110,7 @@ export function createRecurrenceSelector(
   });
 
   // Fila: Cada X [unidad]
-  const intervalRow = optionsContainer.createEl("div");
+  const intervalRow = createDiv(optionsContainer);
   setCssProps(intervalRow, {
     display: "flex",
     alignItems: "center",
@@ -119,9 +119,9 @@ export function createRecurrenceSelector(
     flexWrap: "wrap",
   });
 
-  intervalRow.createEl("span", { text: getTranslation(language, "recurrence.every") || "Cada" });
+  createSpan(intervalRow, { text: getTranslation(language, "recurrence.every") || "Cada" });
 
-  const intervalInput = intervalRow.createEl("input", { type: "number" });
+  const intervalInput = createEl(intervalRow, "input", { type: "number" });
   intervalInput.value = "1";
   intervalInput.min = "1";
   intervalInput.max = "365";
@@ -134,7 +134,7 @@ export function createRecurrenceSelector(
     textAlign: "center",
   });
 
-  const unitSelect = intervalRow.createEl("select");
+  const unitSelect = createEl(intervalRow, "select");
   setCssProps(unitSelect, {
     padding: "6px 10px",
     borderRadius: "4px",
@@ -151,7 +151,7 @@ export function createRecurrenceSelector(
   ];
 
   units.forEach(unit => {
-    const option = unitSelect.createEl("option", {
+    const option = createEl(unitSelect, "option", {
       value: unit.value,
       text: getTranslation(language, unit.labelKey) || unit.defaultLabel,
     });
@@ -159,7 +159,7 @@ export function createRecurrenceSelector(
   });
 
   // Fila: Termina
-  const endLabel = optionsContainer.createEl("div", {
+  const endLabel = createDiv(optionsContainer, {
     text: getTranslation(language, "recurrence.ends") || "Termina:",
   });
   setCssProps(endLabel, {
@@ -168,7 +168,7 @@ export function createRecurrenceSelector(
     fontSize: "13px",
   });
 
-  const endOptionsContainer = optionsContainer.createEl("div");
+  const endOptionsContainer = createDiv(optionsContainer);
   setCssProps(endOptionsContainer, {
     display: "flex",
     flexDirection: "column",
@@ -176,7 +176,7 @@ export function createRecurrenceSelector(
   });
 
   // Opción: Nunca
-  const neverRow = endOptionsContainer.createEl("label");
+  const neverRow = createEl(endOptionsContainer, "label");
   setCssProps(neverRow, {
     display: "flex",
     alignItems: "center",
@@ -184,14 +184,14 @@ export function createRecurrenceSelector(
     cursor: "pointer",
     fontSize: "13px",
   });
-  const neverRadio = neverRow.createEl("input", { type: "radio" });
+  const neverRadio = createEl(neverRow, "input", { type: "radio" });
   neverRadio.name = "recurrence-end";
   neverRadio.value = "never";
   neverRadio.checked = true;
-  neverRow.createEl("span", { text: getTranslation(language, "recurrence.never") || "Nunca" });
+  createSpan(neverRow, { text: getTranslation(language, "recurrence.never") || "Nunca" });
 
   // Opción: Después de X veces
-  const countRow = endOptionsContainer.createEl("label");
+  const countRow = createEl(endOptionsContainer, "label");
   setCssProps(countRow, {
     display: "flex",
     alignItems: "center",
@@ -200,12 +200,12 @@ export function createRecurrenceSelector(
     fontSize: "13px",
     flexWrap: "wrap",
   });
-  const countRadio = countRow.createEl("input", { type: "radio" });
+  const countRadio = createEl(countRow, "input", { type: "radio" });
   countRadio.name = "recurrence-end";
   countRadio.value = "count";
-  countRow.createEl("span", { text: getTranslation(language, "recurrence.after") || "Después de" });
+  createSpan(countRow, { text: getTranslation(language, "recurrence.after") || "Después de" });
   
-  const countInput = countRow.createEl("input", { type: "number" });
+  const countInput = createEl(countRow, "input", { type: "number" });
   countInput.value = "10";
   countInput.min = "1";
   countInput.max = "999";
@@ -217,10 +217,10 @@ export function createRecurrenceSelector(
     background: "var(--background-primary)",
     textAlign: "center",
   });
-  countRow.createEl("span", { text: getTranslation(language, "recurrence.times") || "veces" });
+  createSpan(countRow, { text: getTranslation(language, "recurrence.times") || "veces" });
 
   // Opción: En fecha
-  const dateRow = endOptionsContainer.createEl("label");
+  const dateRow = createEl(endOptionsContainer, "label");
   setCssProps(dateRow, {
     display: "flex",
     alignItems: "center",
@@ -229,12 +229,12 @@ export function createRecurrenceSelector(
     fontSize: "13px",
     flexWrap: "wrap",
   });
-  const dateRadio = dateRow.createEl("input", { type: "radio" });
+  const dateRadio = createEl(dateRow, "input", { type: "radio" });
   dateRadio.name = "recurrence-end";
   dateRadio.value = "date";
-  dateRow.createEl("span", { text: getTranslation(language, "recurrence.onDate") || "En fecha" });
+  createSpan(dateRow, { text: getTranslation(language, "recurrence.onDate") || "En fecha" });
   
-  const endDateInput = dateRow.createEl("input", { type: "date" });
+  const endDateInput = createEl(dateRow, "input", { type: "date" });
   // Default: 1 mes desde hoy
   const defaultEndDate = new Date();
   defaultEndDate.setMonth(defaultEndDate.getMonth() + 1);
@@ -323,7 +323,7 @@ export function createRecurrenceSelector(
       premiumMessage.remove();
       premiumMessage = null;
     } else if (!newIsPremium && !premiumMessage) {
-      premiumMessage = container.createEl("div", {
+      premiumMessage = createDiv(container, {
         text: getTranslation(language, "recurrence.premiumHint") || "⭐ Actualiza a Premium para usar notificaciones recurrentes",
       });
       setCssProps(premiumMessage, {

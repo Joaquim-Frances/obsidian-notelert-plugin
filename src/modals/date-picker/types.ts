@@ -27,4 +27,3 @@ export function isPremiumError(error: unknown): error is PremiumError {
  * Tipo de notificación
  */
 export type NotificationType = 'time' | 'location';
-

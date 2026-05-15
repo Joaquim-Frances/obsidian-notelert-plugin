@@ -5,7 +5,7 @@
 import { requestUrl } from "obsidian";
 import { SavedLocation } from "../../../core/types";
 import { PLUGIN_LIST_LOCATIONS_URL } from "../../../core/config";
-import { PremiumError, isPremiumError } from "../types";
+import { isPremiumError } from "../types";
 import { errorToString } from "../../../features/notifications/utils";
 
 export interface LocationLoadResult {
@@ -92,4 +92,3 @@ export async function loadLocationsFromBackend(
     };
   }
 }
-

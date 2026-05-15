@@ -2,7 +2,7 @@
  * Componente para el panel de debug
  */
 
-import { setCssProps } from "../../../core/dom";
+import { setCssProps, createDiv, createEl, setElementId, emptyElement, setElementText } from "../../../core/dom";
 
 export interface DebugPanelResult {
   container: HTMLElement;
@@ -17,16 +17,16 @@ export function createDebugPanel(
   parent: HTMLElement,
   onLog: (message: string) => void
 ): DebugPanelResult {
-  const panelWrapper = parent.createEl("div");
+  const panelWrapper = createDiv(parent);
   setCssProps(panelWrapper, {
     marginTop: "15px",
     width: "100%",
     boxSizing: "border-box",
   });
-  panelWrapper.id = "debug-panel-container";
+  setElementId(panelWrapper, "debug-panel-container");
 
   // Título
-  const title = panelWrapper.createEl("h3", {
+  const title = createEl(panelWrapper, "h3", {
     text: "Logs de debug",
   });
   setCssProps(title, {
@@ -35,7 +35,7 @@ export function createDebugPanel(
     fontWeight: "600",
   });
 
-  const logContainer = panelWrapper.createEl("div");
+  const logContainer = createDiv(panelWrapper);
   setCssProps(logContainer, {
     height: "200px",
     maxHeight: "200px",
@@ -50,7 +50,7 @@ export function createDebugPanel(
     fontFamily: "monospace",
     fontSize: "11px",
   } as Partial<CSSStyleDeclaration>);
-  logContainer.id = "debug-log-container";
+  setElementId(logContainer, "debug-log-container");
 
   const logs: string[] = [];
 
@@ -77,10 +77,10 @@ export function createDebugPanel(
   };
 
   const renderLogs = () => {
-    logContainer.empty();
+    emptyElement(logContainer);
     
     if (logs.length === 0) {
-      const emptyEl = logContainer.createEl("div", {
+      const emptyEl = createDiv(logContainer, {
         text: "No hay logs aún. Los logs aparecerán aquí cuando se carguen las ubicaciones.",
       });
       setCssProps(emptyEl, {
@@ -102,7 +102,7 @@ export function createDebugPanel(
         const bgColor = isError ? 'rgba(255, 0, 0, 0.1)' :
           isSuccess ? 'rgba(0, 255, 0, 0.1)' : 'transparent';
 
-        const logLine = logContainer.createEl("div");
+        const logLine = createDiv(logContainer);
         setCssProps(logLine, {
           margin: "2px 0",
           padding: "4px 6px",
@@ -113,7 +113,7 @@ export function createDebugPanel(
           wordWrap: "break-word",
           whiteSpace: "pre-wrap",
         } as Partial<CSSStyleDeclaration>);
-        logLine.textContent = log;
+        setElementText(logLine, log);
       });
       
       // Auto-scroll al final
@@ -130,4 +130,3 @@ export function createDebugPanel(
     clear
   };
 }
-

@@ -1,0 +1,80 @@
+name: Obsidian plugin release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release:
+    name: Build and publish Obsidian plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate manifest version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "manifest version $VERSION does not match tag $GITHUB_REF_NAME"
+            exit 1
+          fi
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Prepare release assets
+        run: node scripts/create-release-zip.js
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            releases/main.js
+            releases/manifest.json
+            releases/styles.css
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes_args=(--generate-notes)
+          release_tag="${{ steps.version.outputs.version }}"
+          if [ -f "RELEASE_NOTES_v$release_tag.md" ]; then
+            notes_args=(--notes-file "RELEASE_NOTES_v$release_tag.md")
+          fi
+
+          if gh release view "$release_tag" >/dev/null 2>&1; then
+            gh release upload "$release_tag" \
+              releases/main.js \
+              releases/manifest.json \
+              releases/styles.css \
+              --clobber
+          else
+            gh release create "$release_tag" \
+              releases/main.js \
+              releases/manifest.json \
+              releases/styles.css \
+              --title "$release_tag" \
+              "${notes_args[@]}"
+          fi

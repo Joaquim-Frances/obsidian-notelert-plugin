@@ -5,6 +5,14 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-05-15
+
+### Corregido
+- Añadido workflow de release con assets individuales para Obsidian y attestations de GitHub.
+- Eliminado el ZIP del flujo de publicación para evitar assets extra en la review de Obsidian.
+- Pulido el uso de APIs y tipos en helpers DOM, modales, settings y handlers de notificaciones.
+- Actualizados los enlaces del repositorio y la preparación de assets de release.
+
 ## [1.1.3] - 2026-05-08
 
 ### Corregido

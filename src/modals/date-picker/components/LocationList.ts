@@ -2,10 +2,9 @@
  * Componente para mostrar y seleccionar ubicaciones guardadas
  */
 
-import { HTMLElement } from "obsidian";
 import { SavedLocation } from "../../../core/types";
 import { getTranslation } from "../../../i18n";
-import { setCssProps, isHTMLElement } from "../../../core/dom";
+import { setCssProps, createDiv, createEl, setElementId, emptyElement, findHTMLElement, addElementListener, getActiveHTMLElementById } from "../../../core/dom";
 import { loadLocationsFromBackend } from "../utils/location-api";
 import { INotelertPlugin } from "../../../core/plugin-interface";
 import { getCachedPremiumStatus } from "../../../features/premium/premium-service";
@@ -26,7 +25,7 @@ export async function createLocationList(
   onLocationSelect: (location: SavedLocation | null) => void,
   onDebugLog: (message: string) => void
 ): Promise<LocationListResult> {
-  const listWrapper = parent.createEl("div");
+  const listWrapper = createDiv(parent);
   setCssProps(listWrapper, {
     marginTop: "15px",
     width: "100%",
@@ -34,7 +33,7 @@ export async function createLocationList(
   });
 
   // Título
-  const title = listWrapper.createEl("h3", {
+  const title = createEl(listWrapper, "h3", {
     text: getTranslation(language, "datePicker.selectLocationTitle") || "Selecciona una ubicación",
   });
   setCssProps(title, {
@@ -43,7 +42,7 @@ export async function createLocationList(
     fontWeight: "600",
   });
 
-  const listContainer = listWrapper.createEl("div");
+  const listContainer = createDiv(listWrapper);
   setCssProps(listContainer, {
     height: "260px",
     maxHeight: "260px",
@@ -56,13 +55,13 @@ export async function createLocationList(
     borderRadius: "8px",
     boxSizing: "border-box",
   } as Partial<CSSStyleDeclaration>);
-  listContainer.id = "location-list-container";
+  setElementId(listContainer, "location-list-container");
 
   let selectedLocation: SavedLocation | null = null;
 
   const renderLoading = () => {
-    listContainer.empty();
-    const loadingContainer = listContainer.createEl("div");
+    emptyElement(listContainer);
+    const loadingContainer = createDiv(listContainer);
     setCssProps(loadingContainer, {
       padding: "30px 20px",
       textAlign: "center",
@@ -72,10 +71,10 @@ export async function createLocationList(
       gap: "12px",
     });
 
-    const spinner = loadingContainer.createEl("div");
-    spinner.createEl("div", { cls: "notelert-spinner" });
+    const spinner = createDiv(loadingContainer);
+    createDiv(spinner, { cls: "notelert-spinner" });
 
-    const loadingText = loadingContainer.createEl("div", {
+    const loadingText = createDiv(loadingContainer, {
       text: getTranslation(language, "datePicker.loadingLocations") || "Cargando ubicaciones...",
     });
     setCssProps(loadingText, {
@@ -85,7 +84,7 @@ export async function createLocationList(
   };
 
   const renderError = (error: string, isPremium: boolean) => {
-    listContainer.empty();
+    emptyElement(listContainer);
     
     if (isPremium) {
       renderPremiumError();
@@ -101,22 +100,22 @@ export async function createLocationList(
   };
 
   const renderTokenRequired = () => {
-    const tokenContainer = listContainer.createEl("div");
+    const tokenContainer = createDiv(listContainer);
     setCssProps(tokenContainer, {
       padding: "20px",
       textAlign: "center",
     });
 
-    tokenContainer.createEl("div", { text: "🔑" });
-    const icon = tokenContainer.querySelector("div");
-    if (icon && isHTMLElement(icon)) {
+    createDiv(tokenContainer, { text: "🔑" });
+    const icon = findHTMLElement(tokenContainer, "div");
+    if (icon) {
       setCssProps(icon, {
         fontSize: "32px",
         marginBottom: "12px",
       });
     }
 
-    const tokenTitle = tokenContainer.createEl("div", {
+    const tokenTitle = createDiv(tokenContainer, {
       text: getTranslation(language, "datePicker.tokenRequiredTitle") || "Token del plugin requerido",
     });
     setCssProps(tokenTitle, {
@@ -126,7 +125,7 @@ export async function createLocationList(
       marginBottom: "8px",
     });
 
-    const tokenDesc = tokenContainer.createEl("div", {
+    const tokenDesc = createDiv(tokenContainer, {
       text: getTranslation(language, "datePicker.tokenRequiredDesc") || 
         "Las notificaciones de ubicación requieren un usuario Premium con token válido.\n\nPara obtener tu token:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > Token del Plugin\n3. Copia el token y pégalo en Settings > Notelert > Plugin Token",
     });
@@ -138,7 +137,7 @@ export async function createLocationList(
       marginBottom: "12px",
     });
 
-    const settingsButton = tokenContainer.createEl("button", {
+    const settingsButton = createEl(tokenContainer, "button", {
       text: getTranslation(language, "datePicker.openSettings") || "Abrir Settings",
     });
     setCssProps(settingsButton, {
@@ -152,12 +151,12 @@ export async function createLocationList(
       cursor: "pointer",
       width: "100%",
     });
-    settingsButton.addEventListener("click", () => {
+    addElementListener(settingsButton, "click", () => {
       const accountLink = "notelert://account";
       try {
         if (typeof window !== 'undefined') {
           window.location.href = accountLink;
-          setTimeout(() => {
+          window.setTimeout(() => {
             const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
             window.open(playStoreLink, "_blank");
           }, 2000);
@@ -172,22 +171,22 @@ export async function createLocationList(
   };
 
   const renderPremiumError = () => {
-    const premiumContainer = listContainer.createEl("div");
+    const premiumContainer = createDiv(listContainer);
     setCssProps(premiumContainer, {
       padding: "20px",
       textAlign: "center",
     });
 
-    premiumContainer.createEl("div", { text: "💎" });
-    const icon = premiumContainer.querySelector("div");
-    if (icon && isHTMLElement(icon)) {
+    createDiv(premiumContainer, { text: "💎" });
+    const icon = findHTMLElement(premiumContainer, "div");
+    if (icon) {
       setCssProps(icon, {
         fontSize: "32px",
         marginBottom: "12px",
       });
     }
 
-    const premiumTitle = premiumContainer.createEl("div", {
+    const premiumTitle = createDiv(premiumContainer, {
       text: getTranslation(language, "datePicker.premiumRequiredTitle") || "Plan Premium requerido",
     });
     setCssProps(premiumTitle, {
@@ -197,7 +196,7 @@ export async function createLocationList(
       marginBottom: "8px",
     });
 
-    const premiumDesc = premiumContainer.createEl("div", {
+    const premiumDesc = createDiv(premiumContainer, {
       text: getTranslation(language, "datePicker.premiumRequiredDesc") || 
         "Las notificaciones de ubicación solo están disponibles en el plan Premium.\n\nActualiza a Premium para usar esta función.",
     });
@@ -209,7 +208,7 @@ export async function createLocationList(
       marginBottom: "16px",
     });
 
-    const openAppButton = premiumContainer.createEl("button", {
+    const openAppButton = createEl(premiumContainer, "button", {
       text: getTranslation(language, "datePicker.openAppToUpgrade") || "Abrir app para actualizar",
     });
     setCssProps(openAppButton, {
@@ -224,12 +223,12 @@ export async function createLocationList(
       marginBottom: "8px",
       width: "100%",
     });
-    openAppButton.addEventListener("click", () => {
+    addElementListener(openAppButton, "click", () => {
       const paywallLink = "notelert://paywall";
       try {
         if (typeof window !== 'undefined') {
           window.location.href = paywallLink;
-          setTimeout(() => {
+          window.setTimeout(() => {
             const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
             window.open(playStoreLink, "_blank");
           }, 2000);
@@ -242,7 +241,7 @@ export async function createLocationList(
       }
     });
 
-    const playStoreButton = premiumContainer.createEl("button", {
+    const playStoreButton = createEl(premiumContainer, "button", {
       text: getTranslation(language, "datePicker.installApp") || "Instalar app desde Play Store",
     });
     setCssProps(playStoreButton, {
@@ -255,20 +254,20 @@ export async function createLocationList(
       cursor: "pointer",
       width: "100%",
     });
-    playStoreButton.addEventListener("click", () => {
+    addElementListener(playStoreButton, "click", () => {
       const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
       window.open(playStoreLink, "_blank");
     });
   };
 
   const renderGenericError = (error: string) => {
-    const errContainer = listContainer.createEl("div");
+    const errContainer = createDiv(listContainer);
     setCssProps(errContainer, {
       padding: "20px",
       textAlign: "center",
     });
 
-    const errTitle = errContainer.createEl("div", {
+    const errTitle = createDiv(errContainer, {
       text: `${getTranslation(language, "common.error") || "Error"}: ${error}`,
     });
     setCssProps(errTitle, {
@@ -278,9 +277,9 @@ export async function createLocationList(
       marginBottom: "8px",
     });
 
-    const errDesc = errContainer.createEl("div", {
+    const errDesc = createDiv(errContainer, {
       text: getTranslation(language, "datePicker.locationsErrorDesc") || 
-        "Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. Usa el botón 'Ver logs' para más detalles",
+        "Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. La conexión con Notelert esté disponible",
     });
     setCssProps(errDesc, {
       color: "var(--text-muted)",
@@ -291,23 +290,23 @@ export async function createLocationList(
   };
 
   const renderEmpty = () => {
-    listContainer.empty();
-    const emptyContainer = listContainer.createEl("div");
+    emptyElement(listContainer);
+    const emptyContainer = createDiv(listContainer);
     setCssProps(emptyContainer, {
       padding: "20px",
       textAlign: "center",
     });
 
-    emptyContainer.createEl("div", { text: "📍" });
-    const icon = emptyContainer.querySelector("div");
-    if (icon && isHTMLElement(icon)) {
+    createDiv(emptyContainer, { text: "📍" });
+    const icon = findHTMLElement(emptyContainer, "div");
+    if (icon) {
       setCssProps(icon, {
         fontSize: "32px",
         marginBottom: "12px",
       });
     }
 
-    const emptyTitle = emptyContainer.createEl("div", {
+    const emptyTitle = createDiv(emptyContainer, {
       text: getTranslation(language, "datePicker.noSavedLocationsTitle") || "No hay ubicaciones guardadas",
     });
     setCssProps(emptyTitle, {
@@ -317,7 +316,7 @@ export async function createLocationList(
       marginBottom: "8px",
     });
 
-    const emptyDesc = emptyContainer.createEl("div", {
+    const emptyDesc = createDiv(emptyContainer, {
       text: getTranslation(language, "datePicker.noSavedLocationsDesc") || 
         "Para crear ubicaciones:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > Mis Ubicaciones\n3. Añade ubicaciones desde el mapa\n4. Vuelve aquí y recarga la lista",
     });
@@ -329,7 +328,7 @@ export async function createLocationList(
       marginBottom: "12px",
     });
 
-    const reloadButton = emptyContainer.createEl("button", {
+    const reloadButton = createEl(emptyContainer, "button", {
       text: getTranslation(language, "datePicker.reloadLocations") || "Recargar ubicaciones",
     });
     setCssProps(reloadButton, {
@@ -342,17 +341,17 @@ export async function createLocationList(
       cursor: "pointer",
       marginTop: "8px",
     });
-    reloadButton.addEventListener("click", () => {
+    addElementListener(reloadButton, "click", () => {
       void reload();
     });
   };
 
   const renderLocations = (locations: SavedLocation[]) => {
-    listContainer.empty();
+    emptyElement(listContainer);
     selectedLocation = null;
 
     locations.forEach((location, index) => {
-      const locationItem = listContainer.createEl("div");
+      const locationItem = createDiv(listContainer);
       setCssProps(locationItem, {
         padding: "12px 15px",
         margin: "8px 0",
@@ -367,10 +366,10 @@ export async function createLocationList(
         alignItems: "center",
         justifyContent: "space-between",
       });
-      locationItem.id = `location-item-${index}`;
+      setElementId(locationItem, `location-item-${index}`);
 
       const name = location.name || `Ubicación ${index + 1}`;
-      const nameDiv = locationItem.createEl("div", {
+      const nameDiv = createDiv(locationItem, {
         text: name,
       });
       setCssProps(nameDiv, {
@@ -379,7 +378,7 @@ export async function createLocationList(
         flex: "1",
       });
 
-      const checkIcon = locationItem.createEl("div", {
+      const checkIcon = createDiv(locationItem, {
         text: "✓",
       });
       setCssProps(checkIcon, {
@@ -390,19 +389,19 @@ export async function createLocationList(
         transition: "opacity 0.2s",
         marginLeft: "10px",
       });
-      checkIcon.id = `check-icon-${index}`;
+      setElementId(checkIcon, `check-icon-${index}`);
 
       const selectLocation = () => {
         locations.forEach((_, idx) => {
-          const item = document.getElementById(`location-item-${idx}`);
-          const icon = document.getElementById(`check-icon-${idx}`);
+          const item = getActiveHTMLElementById(`location-item-${idx}`);
+          const icon = getActiveHTMLElementById(`check-icon-${idx}`);
           if (item && icon) {
-            const firstDiv = item.querySelector('div:first-child');
+            const firstDiv = findHTMLElement(item, 'div:first-child');
             setCssProps(item, {
               background: "var(--background-primary)",
               borderColor: "var(--background-modifier-border)",
             });
-            if (firstDiv && isHTMLElement(firstDiv)) {
+            if (firstDiv) {
               setCssProps(firstDiv, { color: "var(--text-normal)" });
             }
             setCssProps(icon, { opacity: "0" });
@@ -420,9 +419,9 @@ export async function createLocationList(
         onLocationSelect(location);
       };
 
-      locationItem.addEventListener("click", selectLocation);
+      addElementListener(locationItem, "click", selectLocation);
 
-      locationItem.addEventListener("mouseenter", () => {
+      addElementListener(locationItem, "mouseenter", () => {
         if (selectedLocation !== location) {
           setCssProps(locationItem, {
             background: "var(--background-modifier-hover)",
@@ -431,7 +430,7 @@ export async function createLocationList(
         }
       });
 
-      locationItem.addEventListener("mouseleave", () => {
+      addElementListener(locationItem, "mouseleave", () => {
         if (selectedLocation !== location) {
           setCssProps(locationItem, {
             background: "var(--background-primary)",
@@ -498,4 +497,3 @@ export async function createLocationList(
     reload
   };
 }
-
