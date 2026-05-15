@@ -24,6 +24,7 @@
     "dev": "obsidian-plugin dev src/main.ts",
     "watch": "obsidian-plugin dev src/main.ts --watch",
     "install:obsidian": "node scripts/copy-to-obsidian.js",
+    "release:assets": "node scripts/create-release-zip.js",
     "release:zip": "node scripts/create-release-zip.js"
   },
   "devDependencies": {

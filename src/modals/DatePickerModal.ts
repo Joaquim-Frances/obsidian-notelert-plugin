@@ -169,31 +169,6 @@ export class NotelertDatePickerModal extends Modal {
       );
       this.plugin.log("TypeSelector creado");
 
-      // Botón para mostrar/ocultar logs de debug (solo en móvil)
-      if (!isDesktop) {
-        const debugToggleContainer = this.container.createDiv();
-        setCssProps(debugToggleContainer, {
-          marginBottom: "10px",
-          display: "flex",
-          justifyContent: "flex-end",
-        });
-
-        const debugToggleBtn = debugToggleContainer.createEl("button", {
-          text: "Ver logs",
-          cls: "mod-secondary"
-        });
-        setCssProps(debugToggleBtn, {
-          padding: "6px 12px",
-          fontSize: "12px",
-        });
-
-        debugToggleBtn.addEventListener("click", () => {
-          this.showDebugPanel = !this.showDebugPanel;
-          this.updateDebugPanel();
-          debugToggleBtn.textContent = this.showDebugPanel ? "Ocultar logs" : "Ver logs";
-        });
-      }
-
       // Selector de fecha
       this.plugin.log("Creando DatePicker...");
       this.datePicker = createDatePicker(

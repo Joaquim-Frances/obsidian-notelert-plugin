@@ -123,8 +123,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     const headingEl = createEl(containerEl, "h3", {
       text: heading,
     });
-    headingEl.style.marginTop = "1.25rem";
-    headingEl.style.marginBottom = "0.75rem";
+    headingEl.addClass("notelert-legacy-section-heading");
   }
 
   private renderLegacyBanner(containerEl: HTMLElement, language: string): void {

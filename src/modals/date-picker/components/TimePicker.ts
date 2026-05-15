@@ -311,7 +311,7 @@ export function createTimePicker(
       setCssProps(btn, {
         padding: "6px 12px",
         fontSize: "12px",
-        borderRadius: "4px",
+        borderRadius: "3px",
         border: "1px solid var(--background-modifier-border)",
         background: "var(--background-primary)",
         cursor: "pointer",

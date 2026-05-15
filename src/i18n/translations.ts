@@ -136,7 +136,7 @@ export const TRANSLATIONS = {
       premiumRequiredDesc: 'Las notificaciones de ubicación solo están disponibles en el plan Premium.\n\nActualiza a Premium para usar esta función.',
       openAppToUpgrade: '📱 Abrir app para actualizar',
       installApp: '📥 Instalar app desde Play Store',
-      locationsErrorDesc: 'Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. Usa el botón \'Ver logs\' para más detalles',
+      locationsErrorDesc: 'Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. La conexión con Notelert esté disponible',
       tokenRequiredTitle: 'Token del plugin requerido',
       tokenRequiredDesc: 'Las notificaciones de ubicación requieren un usuario Premium con token válido.\n\nPara obtener tu token:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > Token del Plugin\n3. Copia el token y pégalo en Settings > Notelert > Plugin Token',
       openSettings: '⚙️ Abrir Settings',
@@ -929,4 +929,3 @@ export const TRANSLATIONS = {
     }
   }
 };
-

@@ -2,8 +2,6 @@
  * Componente para mostrar y seleccionar ubicaciones guardadas
  */
 
-import type {} from "obsidian";
-import { activeWindow } from "obsidian";
 import { SavedLocation } from "../../../core/types";
 import { getTranslation } from "../../../i18n";
 import { setCssProps, createDiv, createEl, setElementId, emptyElement, findHTMLElement, addElementListener, getActiveHTMLElementById } from "../../../core/dom";
@@ -158,7 +156,7 @@ export async function createLocationList(
       try {
         if (typeof window !== 'undefined') {
           window.location.href = accountLink;
-          activeWindow.setTimeout(() => {
+          window.setTimeout(() => {
             const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
             window.open(playStoreLink, "_blank");
           }, 2000);
@@ -230,7 +228,7 @@ export async function createLocationList(
       try {
         if (typeof window !== 'undefined') {
           window.location.href = paywallLink;
-          activeWindow.setTimeout(() => {
+          window.setTimeout(() => {
             const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
             window.open(playStoreLink, "_blank");
           }, 2000);
@@ -281,7 +279,7 @@ export async function createLocationList(
 
     const errDesc = createDiv(errContainer, {
       text: getTranslation(language, "datePicker.locationsErrorDesc") || 
-        "Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. Usa el botón 'Ver logs' para más detalles",
+        "Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. La conexión con Notelert esté disponible",
     });
     setCssProps(errDesc, {
       color: "var(--text-muted)",

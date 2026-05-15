@@ -59,6 +59,7 @@ export function createQuickActions(
     setCssProps(button, {
       padding: "4px 8px",
       fontSize: "12px",
+      borderRadius: "3px",
     });
     addElementListener(button, "click", () => {
       onAction(action.date, action.time);

@@ -2,18 +2,29 @@
 
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const { execFileSync } = require('child_process');
 
-// Ruta del plugin en Obsidian
-const OBSIDIAN_PLUGIN_PATH = '/Users/quimfrances/Documents/arca2026/.obsidian/plugins/obsidian-notelert-plugin';
+// Rutas de prueba del plugin en Obsidian desktop
+const DESKTOP_PLUGIN_PATHS = [
+  '/Users/quimfrances/Documents/ObsidianRemoteQuim/.obsidian/plugins/notelert',
+  '/Users/quimfrances/Documents/Arca2026/.obsidian/plugins/notelert',
+  '/Users/quimfrances/Documents/RemoteObsidian/.obsidian/plugins/notelert',
+];
+
+// Rutas de prueba del plugin en Obsidian Android emulator
+const EMULATOR_PLUGIN_PATHS = [
+  '/storage/emulated/0/Documents/ObsidianVault/.obsidian/plugins/notelert',
+  '/storage/emulated/0/Documents/ObsidianVault/2026/.obsidian/plugins/notelert',
+];
 
 // Archivos a copiar
-const FILES_TO_COPY = ['main.js', 'manifest.json'];
+const FILES_TO_COPY = ['main.js', 'manifest.json', 'styles.css'];
 
 // Ruta de origen (dist/)
 const DIST_PATH = path.join(__dirname, '..', 'dist');
+const ROOT_PATH = path.join(__dirname, '..');
 
-console.log('📦 Copiando archivos a Obsidian...\n');
+console.log('📦 Copiando archivos a Obsidian desktop y emulador...\n');
 
 // Verificar que existe la carpeta dist
 if (!fs.existsSync(DIST_PATH)) {
@@ -21,56 +32,89 @@ if (!fs.existsSync(DIST_PATH)) {
   process.exit(1);
 }
 
-// Verificar que existe la carpeta de destino
-if (!fs.existsSync(OBSIDIAN_PLUGIN_PATH)) {
-  console.error(`❌ Error: La carpeta de destino no existe: ${OBSIDIAN_PLUGIN_PATH}`);
-  console.log('💡 Crea la carpeta manualmente o verifica la ruta.');
-  process.exit(1);
-}
+const getSourcePath = (file) => {
+  if (file === 'styles.css') {
+    return path.join(ROOT_PATH, file);
+  }
 
-// Copiar archivos
+  return path.join(DIST_PATH, file);
+};
+
 let copiedCount = 0;
 let errors = [];
 
-FILES_TO_COPY.forEach(file => {
-  const sourcePath = path.join(DIST_PATH, file);
-  const destPath = path.join(OBSIDIAN_PLUGIN_PATH, file);
+const copyToDesktopPath = (pluginPath) => {
+  if (!fs.existsSync(pluginPath)) {
+    console.error(`❌ Error: La carpeta de destino no existe: ${pluginPath}`);
+    errors.push(`Destino no existe: ${pluginPath}`);
+    return;
+  }
 
-  // Verificar que el archivo fuente existe
+  FILES_TO_COPY.forEach(file => {
+    const sourcePath = getSourcePath(file);
+    const destPath = path.join(pluginPath, file);
+
+    if (!fs.existsSync(sourcePath)) {
+      const error = `❌ Error: ${file} no existe en ${sourcePath}`;
+      console.error(error);
+      errors.push(error);
+      return;
+    }
+
+    try {
+      fs.copyFileSync(sourcePath, destPath);
+      console.log(`✅ Desktop: ${pluginPath}/${file}`);
+      copiedCount++;
+    } catch (error) {
+      const errorMsg = `❌ Error copiando ${file} a ${pluginPath}: ${error.message}`;
+      console.error(errorMsg);
+      errors.push(errorMsg);
+    }
+  });
+};
+
+const copyToEmulatorPath = (pluginPath) => {
+  try {
+    execFileSync('adb', ['shell', 'mkdir', '-p', pluginPath], { stdio: 'ignore' });
+  } catch (error) {
+    const errorMsg = `❌ Error preparando carpeta del emulador ${pluginPath}: ${error.message}`;
+    console.error(errorMsg);
+    errors.push(errorMsg);
+    return;
+  }
+
+  FILES_TO_COPY.forEach(file => {
+    const sourcePath = getSourcePath(file);
+
   if (!fs.existsSync(sourcePath)) {
-    const error = `❌ Error: ${file} no existe en dist/`;
+    const error = `❌ Error: ${file} no existe en ${sourcePath}`;
     console.error(error);
     errors.push(error);
     return;
   }
 
   try {
-    // Copiar el archivo
-    fs.copyFileSync(sourcePath, destPath);
-    console.log(`✅ Copiado: ${file}`);
+      execFileSync('adb', ['push', sourcePath, `${pluginPath}/${file}`], { stdio: 'ignore' });
+      console.log(`✅ Emulador: ${pluginPath}/${file}`);
     copiedCount++;
   } catch (error) {
-    const errorMsg = `❌ Error copiando ${file}: ${error.message}`;
+      const errorMsg = `❌ Error copiando ${file} al emulador ${pluginPath}: ${error.message}`;
     console.error(errorMsg);
     errors.push(errorMsg);
   }
 });
+};
+
+DESKTOP_PLUGIN_PATHS.forEach(copyToDesktopPath);
+EMULATOR_PLUGIN_PATHS.forEach(copyToEmulatorPath);
 
 // Mostrar resultado
 console.log('\n' + '='.repeat(50));
-if (errors.length === 0 && copiedCount === FILES_TO_COPY.length) {
+const expectedCopies = FILES_TO_COPY.length * (DESKTOP_PLUGIN_PATHS.length + EMULATOR_PLUGIN_PATHS.length);
+
+if (errors.length === 0 && copiedCount === expectedCopies) {
   console.log('✅ ¡Archivos copiados correctamente!');
-  console.log(`📁 Destino: ${OBSIDIAN_PLUGIN_PATH}`);
-  console.log(`📊 Archivos copiados: ${copiedCount}/${FILES_TO_COPY.length}`);
-  
-  // Mostrar notificación del sistema (macOS)
-  const notification = `osascript -e 'display notification "✅ Plugin Notelert actualizado correctamente\\n${copiedCount} archivos copiados" with title "Build Completado"'`;
-  exec(notification, (error) => {
-    if (error) {
-      // Si falla la notificación, no es crítico
-      console.log('\n💡 Recarga el plugin en Obsidian para ver los cambios.');
-    }
-  });
+  console.log(`📊 Archivos copiados: ${copiedCount}/${expectedCopies}`);
   
   console.log('\n💡 Recarga el plugin en Obsidian:');
   console.log('   Configuración → Plugins → Desactivar/Activar Notelert');
