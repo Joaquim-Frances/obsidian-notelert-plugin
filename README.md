@@ -1,95 +1,144 @@
 # Notelert
 
-Notelert is a companion Obsidian plugin for the Notelert Android app. It detects reminder patterns in your notes, builds a deeplink, and hands the reminder off to the mobile app for delivery. The plugin does not scan your vault.
+Notelert is an Obsidian companion plugin for the Notelert Android app.
 
-## Availability
+The plugin requires the Android app to create and deliver notifications. Install it from Google Play:
 
-Notelert is available in the Obsidian Community Plugins library. Open Obsidian, browse community plugins, and search for `Notelert`.
+https://play.google.com/store/apps/details?id=com.quim79.notelert
+
+Notelert is currently in a testing phase. The plugin, Android app, backend, and premium flows are being actively validated and may change as the system is refined.
 
 ## What It Does
 
-- Date and time reminders from your notes
-- Location reminders through the companion Android app
-- Email reminders for supported premium flows
-- Optional recurrence support
-- Visual indicators and a configurable trigger to open the picker
+Notelert lets you turn lines in Obsidian into reminders handled by the Notelert service and Android app. Open the notification picker from a note, choose the reminder details, and the plugin schedules the notification through Firebase.
+
+The current plugin flow does not use Notelert deeplinks to schedule notifications. Scheduling is handled through authenticated Firebase endpoints using the App link token from the Android app.
 
 ## Requirements
 
-- Obsidian 0.15.0 or higher
-- The Notelert Android app installed on your device
-- A plugin token from the mobile app for premium features
-- Premium in the companion app for location reminders and email reminders
+- Obsidian 1.13.0 or newer
+- The Notelert Android app
+- An App link token generated in the Android app
+- Internet access for Firebase scheduling and premium validation
+- A Premium plan for some advanced features
 
-## How It Works
+The iOS app is not available yet. iOS support is planned, but this plugin currently depends on the Android app.
 
-1. You type the configured trigger in a note. The default trigger is `:@`.
-2. The plugin opens the picker and reads only the relevant reminder text.
-3. You confirm the reminder details.
-4. The plugin sends the reminder to the Notelert backend and the Android app handles delivery.
+## Main Features
 
-### Date and Time
-
-The plugin parses date and time patterns from the current note and creates a reminder without scanning your vault.
-
-### Location
-
-Location reminders use the companion app and backend services to resolve and deliver geofenced notifications.
-
-### Email
-
-Email reminders are scheduled through the backend and require the token configured in the plugin settings.
-
-## Privacy and Remote Services
-
-Notelert uses remote services because the notifications have to be delivered even when Obsidian is not active.
-
-### Services Used
-
-- Firebase Functions for scheduling and delivery
-- Firebase and Google cloud infrastructure for the backend transport layer
-- Google Maps services for location-related features
-- Resend for email delivery
-
-### Data Sent
-
-- The note title and the specific reminder text you select
-- Scheduled date and time
-- Location search text when you request a location reminder
-- Your plugin token for premium verification and authenticated requests
-
-### What Is Not Sent
-
-- Full vault contents
-- File contents from your notes
-- Marketing identifiers or ad-tech payloads from this plugin
-
-### Tracking and Analytics
-
-- This plugin repository does not include marketing trackers.
-- Google/Firebase infrastructure may process the technical metadata required to operate the service securely, such as request and device-level information handled by the backend.
-- There is no plugin-side analytics switch in this repository. If the companion app exposes anonymous usage analytics, that control should live in the mobile app settings and can be disabled there.
+- Push notifications for date and time reminders
+- Location-based notifications using saved locations from the Android app
+- Email reminders when an email is configured and the account supports them
+- Recurring reminders with daily, weekly, monthly, or yearly intervals
+- Recurrence end rules: never, after a number of times, or on a specific date
+- Saved location loading from the Notelert backend
+- Quick actions such as today, tomorrow, in 1 hour, and in 2 hours
+- Configurable picker trigger, defaulting to `:@`
+- Multilanguage UI for the settings and picker
+- Obsidian return links included in scheduled notifications when the note context is available
+- Optional local list of scheduled email reminders inside plugin settings
 
 ## Premium Features
 
-- Free mode: date and time reminders
-- Premium mode: location reminders and email reminders
+Some Notelert features are Premium because they depend on backend processing, geofencing, email delivery, or recurring scheduling.
+
+Premium-related features include:
+
+- Location notifications
+- Recurring notifications
+- Email reminder delivery
+- Higher backend limits where applicable
+- Calendar sync when enabled from the Notelert app and backend account
+
+Free users can still use basic date and time push reminders, subject to the limits shown in the app.
+
+## How To Use
+
+1. Install the Notelert Android app from Google Play.
+2. Open the Android app and create or access your account.
+3. Generate an App link token in the app settings.
+4. In Obsidian, install Notelert from Community Plugins.
+5. Open Settings > Notelert.
+6. Paste the token into App link token.
+7. Type the configured trigger in a note. The default trigger is `:@`.
+8. Choose date/time, location, and recurrence options in the picker.
+9. Confirm the reminder.
+
+The plugin sends the selected reminder data to Firebase. The Android app and Notelert backend then handle delivery.
+
+## Firebase And Remote Services
+
+Notelert uses remote services because reminders must be delivered even when Obsidian is closed.
+
+Services used by the Notelert system include:
+
+- Firebase Functions for scheduling push notifications and emails
+- Firebase and Google cloud infrastructure for backend processing
+- Firebase Cloud Messaging for push delivery through the Android app
+- Google Maps services for saved locations and location-based reminders
+- Resend or equivalent email infrastructure for email reminders
+
+The plugin authenticates requests with the App link token. API keys are not stored in the plugin.
+
+## Data Sent
+
+The plugin sends only the data needed to create the requested reminder:
+
+- Reminder title and selected reminder text
+- Scheduled date and time
+- Notification type, such as time or location
+- Saved location name and coordinates when creating a location reminder
+- Recurrence configuration when recurrence is enabled
+- App link token for authentication and premium validation
+- An Obsidian return link when available, so the notification can take you back to the note context
+- Optional email address if email reminders are configured
+
+The plugin does not scan your vault. It works from the reminder you explicitly create in the picker.
+
+## Tracking And Analytics
+
+Notelert uses minimal technical tracking required to schedule and deliver notifications reliably. This can include request metadata, delivery status, error information, notification identifiers, and account or token validation data.
+
+The Android app may also use anonymous analytics to understand whether the testing system is working correctly, diagnose failures, and improve reliability. These analytics are not intended to identify personal note content and can be disabled from the Android app settings.
+
+Notelert does not use the Obsidian plugin to collect marketing analytics from your vault.
+
+## What Is Not Sent
+
+- Full vault contents
+- Entire note files
+- Unrelated note content
+- Folder scans for analytics
+- Advertising payloads from the Obsidian plugin
+
+## Calendar Sync
+
+Calendar sync belongs to the broader Notelert app and backend system. When enabled for an account, calendar-related reminder data is handled by the Android app and backend, not by local vault scanning in the Obsidian plugin.
+
+Because the system is still in testing, availability can depend on the app version, account configuration, and Premium status.
 
 ## Development
+
+Build the plugin:
 
 ```bash
 npm run build
 ```
 
-This compiles the plugin into `dist/main.js` and `dist/manifest.json`.
+Prepare Obsidian release assets:
 
 ```bash
 npm run release:assets
 ```
 
-This prepares the release assets in `releases/` for GitHub Releases.
+The public release should include only:
 
-## Notes
+- `main.js`
+- `manifest.json`
+- `styles.css`
 
-- The plugin only reads the reminder line you trigger, not the rest of the vault.
-- The settings UI includes a plugin token field because premium features depend on the companion backend.
+Do not upload ZIP files as public Obsidian release assets.
+
+## Status
+
+Notelert is under active testing. Feedback from Obsidian review, Android testing, and real reminder delivery is being used to stabilize the plugin and companion app before broader release.
