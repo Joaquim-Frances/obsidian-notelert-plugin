@@ -5,6 +5,16 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2026-05-16
+
+### Corregido
+- Renombrada la configuración de token como App link token y actualizado el enlace correcto de Google Play.
+- Corregido el selector de idioma de la pantalla de ajustes.
+- Eliminada la tarjeta visible de modo debug de la configuración del plugin.
+- Ajustado el banner de app requerida para evitar solapamientos con el botón de cierre.
+- Eliminado el uso de APIs DOM problemáticas detectadas por la review de Obsidian.
+- Reescrito el README para reflejar el flujo actual por Firebase, privacidad, premium y fase de pruebas.
+
 ## [1.1.4] - 2026-05-15
 
 ### Corregido
