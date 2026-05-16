@@ -5,6 +5,13 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6] - 2026-05-16
+
+### Corregido
+- Publicada una nueva versión para disparar de nuevo la pipeline de review con los manifests ya alineados.
+- Mantenida la compatibilidad de instalación con `minAppVersion` en `1.0.0`.
+- Confirmada la descripción del manifest sin la palabra "Obsidian".
+
 ## [1.1.5] - 2026-05-16
 
 ### Corregido
