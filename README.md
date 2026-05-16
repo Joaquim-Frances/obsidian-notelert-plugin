@@ -6,6 +6,8 @@ The plugin requires the Android app to create and deliver notifications. Install
 
 https://play.google.com/store/apps/details?id=com.quim79.notelert
 
+Privacy note: Notelert only sends the notification line that you choose to turn into a reminder. It never scans your vaults, never reads unrelated notes, and never uploads full note files.
+
 Notelert is currently in a testing phase. The plugin, Android app, backend, and premium flows are being actively validated and may change as the system is refined.
 
 ## What It Does
@@ -64,6 +66,8 @@ Free users can still use basic date and time push reminders, subject to the limi
 8. Choose date/time, location, and recurrence options in the picker.
 9. Confirm the reminder.
 
+The app and plugin linking steps only need to be completed once per device or Obsidian installation. Make sure the same App link token is available in both the mobile app and the desktop plugin. On mobile Obsidian, token synchronization should happen automatically when everything is working correctly. On desktop, or if automatic synchronization does not complete, you may need to copy the token manually from the Android app into the plugin settings.
+
 The plugin sends the selected reminder data to Firebase. The Android app and Notelert backend then handle delivery.
 
 ## Firebase And Remote Services
@@ -82,7 +86,7 @@ The plugin authenticates requests with the App link token. API keys are not stor
 
 ## Data Sent
 
-The plugin sends only the data needed to create the requested reminder:
+The plugin sends only the data needed to create the requested reminder. In normal use, this means the line selected for the notification and the scheduling metadata around it:
 
 - Reminder title and selected reminder text
 - Scheduled date and time
