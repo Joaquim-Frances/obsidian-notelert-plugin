@@ -75,7 +75,7 @@ export async function scheduleEmailReminderProxy(
     if (!pluginToken || pluginToken.trim() === '') {
       return {
         success: false,
-        error: 'Token del plugin requerido. Configura tu token en Settings > Notelert > Plugin Token.'
+        error: 'App link token requerido. Configura tu token en Settings > Notelert > App link token.'
       };
     }
 
@@ -223,7 +223,7 @@ export async function schedulePushNotification(
     if (!pluginToken || pluginToken.trim() === '') {
       return {
         success: false,
-        error: 'Token del plugin requerido. Configura tu token en Settings > Notelert > Plugin Token.'
+        error: 'App link token requerido. Configura tu token en Settings > Notelert > App link token.'
       };
     }
 

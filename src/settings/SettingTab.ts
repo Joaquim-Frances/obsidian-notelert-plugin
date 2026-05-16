@@ -50,24 +50,10 @@ export class NotelertSettingTab extends PluginSettingTabBase {
           void (async () => {
             this.plugin.settings.language = value;
             await this.plugin.saveSettings();
-            this.update();
+            this.display();
           })();
         });
       });
-
-    new Setting(containerEl)
-      .setName(getTranslation(language, "settings.debugMode"))
-      .setDesc(getTranslation(language, "settings.debugModeDesc"))
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.debugMode)
-          .onChange((value) => {
-            void (async () => {
-              this.plugin.settings.debugMode = value;
-              await this.plugin.saveSettings();
-            })();
-          })
-      );
 
     this.renderLegacySection(containerEl, getTranslation(language, "settings.pluginToken.title"));
     let pluginTokenInput: HTMLInputElement | null = null;
@@ -75,7 +61,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       .setName(getTranslation(language, "settings.pluginToken.title"))
       .setDesc(
         getTranslation(language, "settings.pluginToken.descDesktop") ||
-          "Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token."
+          "Token que vincula el plugin con la app para poder usar las notificaciones."
       )
       .addText((text) => {
         text
@@ -88,7 +74,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
             this.plugin.settings.pluginToken = value.trim();
             this.app.saveLocalStorage(this.bannerDismissedKey, null);
             await this.plugin.saveSettings();
-            this.update();
+            this.display();
           })();
         });
       })
@@ -102,10 +88,10 @@ export class NotelertSettingTab extends PluginSettingTabBase {
           });
       });
 
-    this.renderLegacySection(containerEl, getTranslation(language, "settings.generalSettings.title") || "Configuración General");
+    this.renderLegacySection(containerEl, getTranslation(language, "settings.generalSettings.title"));
     new Setting(containerEl)
-      .setName("Combinación de caracteres para abrir el modal")
-      .setDesc("Escribe la combinación de caracteres que quieres usar para abrir el modal de notificaciones (por defecto: :@)")
+      .setName(getTranslation(language, "settings.generalSettings.datePickerTriggerTitle"))
+      .setDesc(getTranslation(language, "settings.generalSettings.datePickerTriggerDesc"))
       .addText((text) => {
         text
           .setPlaceholder(":@")
@@ -135,6 +121,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
           border-radius: 8px;
           border-left: 4px solid var(--text-warning);
           position: relative;
+          padding-right: 56px;
           margin-bottom: 1rem;
         `
       }
@@ -159,22 +146,22 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     });
     closeButton.onclick = () => {
       this.app.saveLocalStorage(this.bannerDismissedKey, "true");
-      this.update();
+      this.display();
     };
 
     createEl(bannerContainer, "p", {
       text:
         getTranslation(language, "settings.appRequired.message") ||
-        "Este plugin requiere instalar la app de Android para funcionar. Una vez instalada, genera un token desde Settings > Plugin Token en la app y configúralo aquí.",
+        "Este plugin requiere instalar la app de Android para funcionar. Una vez instalada, genera un token desde Settings > App link token en la app y configúralo aquí.",
       attr: {
-        style: "margin: 0 0 10px 0; color: var(--text-muted); font-size: 13px; line-height: 1.6;"
+        style: "margin: 0 0 10px 0; color: var(--text-muted); font-size: 13px; line-height: 1.6; max-width: 68ch;"
       }
     });
 
     createEl(bannerContainer, "a", {
       text: getTranslation(language, "settings.appRequired.downloadLink") || "Descargar app de Android",
       attr: {
-        href: "https://play.google.com/store/apps/details?id=com.notelert",
+        href: "https://play.google.com/store/apps/details?id=com.quim79.notelert",
         target: "_blank",
         style: `
           display: inline-block;
