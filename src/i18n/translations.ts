@@ -36,22 +36,27 @@ export const TRANSLATIONS = {
       times: 'Horas:',
       examples: 'Ejemplos:',
       basicSettings: 'Configuración básica',
+      generalSettings: {
+        title: 'Configuración general',
+        datePickerTriggerTitle: 'Combinación de caracteres para abrir el modal',
+        datePickerTriggerDesc: 'Escribe la combinación de caracteres que quieres usar para abrir el modal de notificaciones (por defecto: :@)'
+      },
       appRequired: {
         title: '📱 App de Android Requerida',
-        message: 'Este plugin requiere instalar la app de Android para funcionar. Una vez instalada, genera un token desde Settings > Plugin Token en la app y configúralo aquí.',
+        message: 'Este plugin requiere instalar la app de Android para funcionar. Una vez instalada, genera un token desde Settings > App link token en la app y configúralo aquí.',
         downloadLink: 'Descargar app de Android'
       },
       pluginToken: {
-        title: '🔑 Token del plugin',
-        descDesktop: 'Token de autenticación para usar geocodificación y emails premium. Obtén tu token desde la app móvil en Settings > Plugin Token.',
-        descMobile: 'Token de autenticación para usar geocodificación premium. Obtén tu token desde la app móvil en Settings > Plugin Token.',
+        title: '🔗 App link token',
+        descDesktop: 'Token que vincula el plugin con la app para poder usar las notificaciones.',
+        descMobile: 'Token que vincula el plugin con la app para poder usar las notificaciones.',
         placeholder: 'Pega tu token aquí...',
         showHide: 'Mostrar/Ocultar'
       },
       desktopSettings: {
         title: '💻 Configuración de escritorio',
         userEmailTitle: 'Email del usuario (opcional)',
-        userEmailDesc: 'Email donde recibirás las notificaciones. Ya no es necesario si usas token del plugin.',
+        userEmailDesc: 'Email donde recibirás las notificaciones. Ya no es necesario si usas App link token.',
         userEmailPlaceholder: 'usuario@email.com'
       },
       scheduledEmails: {
@@ -96,11 +101,11 @@ export const TRANSLATIONS = {
       tokenLinked: '✅ Token vinculado correctamente desde la app móvil',
       tokenLinkError: '❌ Error al vincular token',
       tokenInvalidFormat: '❌ Formato de token inválido',
-      tokenInvalid403: '❌ Token inválido o expirado. Genera un nuevo token en la app (Settings > Token del Plugin) y vincúlalo de nuevo.',
+      tokenInvalid403: '❌ Token inválido o expirado. Genera un nuevo token en la app (Settings > App link token) y vincúlalo de nuevo.',
       linkError400: '❌ Error de vinculación. Vuelve a realizar el vínculo desde la app y reinicia el plugin.',
       pushNotificationScheduled: '✅ Notificación programada correctamente',
       pushNotificationScheduledLocation: '✅ Notificación de ubicación programada correctamente',
-      tokenRequiredNotice: '🔑 Token del plugin requerido. Configura tu token en Settings.',
+      tokenRequiredNotice: '🔗 App link token requerido. Configura tu token en Settings.',
       iosNotSupported: '⚠️ iOS detectado\n\nNotelert actualmente solo está disponible para Android.\nLa app de iOS está en desarrollo. Por favor, usa un dispositivo Android para crear notificaciones.'
     },
     modal: {
@@ -137,8 +142,8 @@ export const TRANSLATIONS = {
       openAppToUpgrade: '📱 Abrir app para actualizar',
       installApp: '📥 Instalar app desde Play Store',
       locationsErrorDesc: 'Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. La conexión con Notelert esté disponible',
-      tokenRequiredTitle: 'Token del plugin requerido',
-      tokenRequiredDesc: 'Las notificaciones de ubicación requieren un usuario Premium con token válido.\n\nPara obtener tu token:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > Token del Plugin\n3. Copia el token y pégalo en Settings > Notelert > Plugin Token',
+      tokenRequiredTitle: 'App link token requerido',
+      tokenRequiredDesc: 'Las notificaciones de ubicación requieren un App link token válido.\n\nPara obtener tu token:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > App link token\n3. Copia el token y pégalo en Settings > Notelert > App link token',
       openSettings: '⚙️ Abrir Settings',
       selectSavedLocation: 'Seleccionar Ubicación Guardada',
       hours: 'Horas',
@@ -231,22 +236,27 @@ export const TRANSLATIONS = {
       times: 'Times:',
       examples: 'Examples:',
       basicSettings: 'Basic settings',
+      generalSettings: {
+        title: 'General settings',
+        datePickerTriggerTitle: 'Character combination to open the modal',
+        datePickerTriggerDesc: 'Enter the character combination you want to use to open the notification modal (default: :@)'
+      },
       appRequired: {
         title: '📱 Android App Required',
-        message: 'This plugin requires installing the Android app to work. Once installed, generate a token from Settings > Plugin Token in the app and configure it here.',
+        message: 'This plugin requires installing the Android app to work. Once installed, generate a token from Settings > App link token in the app and configure it here.',
         downloadLink: 'Download Android app'
       },
       pluginToken: {
-        title: '🔑 Plugin token',
-        descDesktop: 'Authentication token for premium geocoding and emails. Get your token from the mobile app in Settings > Plugin Token.',
-        descMobile: 'Authentication token for premium geocoding. Get your token from the mobile app in Settings > Plugin Token.',
+        title: '🔗 App link token',
+        descDesktop: 'Token that links the plugin with the app so notifications can be used.',
+        descMobile: 'Token that links the plugin with the app so notifications can be used.',
         placeholder: 'Paste your token here...',
         showHide: 'Show/Hide'
       },
       desktopSettings: {
         title: '💻 Desktop settings',
         userEmailTitle: 'User email (optional)',
-        userEmailDesc: 'Email where you will receive notifications. No longer needed if using plugin token.',
+        userEmailDesc: 'Email where you will receive notifications. No longer needed if using App link token.',
         userEmailPlaceholder: 'user@email.com'
       },
       scheduledEmails: {
@@ -291,11 +301,11 @@ export const TRANSLATIONS = {
       tokenLinked: '✅ Token linked successfully from mobile app',
       tokenLinkError: '❌ Error linking token',
       tokenInvalidFormat: '❌ Invalid token format',
-      tokenInvalid403: '❌ Invalid or expired token. Generate a new token in the app (Settings > Plugin Token) and link it again.',
+      tokenInvalid403: '❌ Invalid or expired token. Generate a new token in the app (Settings > App link token) and link it again.',
       linkError400: '❌ Linking error. Please perform the link again from the app and restart the plugin.',
       pushNotificationScheduled: '✅ Notification scheduled successfully',
       pushNotificationScheduledLocation: '✅ Location notification scheduled successfully',
-      tokenRequiredNotice: '🔑 Plugin token required. Configure your token in Settings.',
+      tokenRequiredNotice: '🔗 App link token required. Configure your token in Settings.',
       iosNotSupported: '⚠️ iOS detected\n\nNotelert is currently only available for Android.\nThe iOS app is under development. Please use an Android device to create notifications.'
     },
     modal: {
@@ -332,8 +342,8 @@ export const TRANSLATIONS = {
       openAppToUpgrade: '📱 Open app to upgrade',
       installApp: '📥 Install app from Play Store',
       locationsErrorDesc: 'Please verify:\n1. The token is correct\n2. You have saved locations in the app\n3. Use the \'View logs\' button for more details',
-      tokenRequiredTitle: 'Plugin token required',
-      tokenRequiredDesc: 'Location notifications require a Premium user with a valid token.\n\nTo get your token:\n1. Open the Notelert app on your mobile\n2. Go to Settings > Plugin Token\n3. Copy the token and paste it in Settings > Notelert > Plugin Token',
+      tokenRequiredTitle: 'App link token required',
+      tokenRequiredDesc: 'Location notifications require a valid App link token.\n\nTo get your token:\n1. Open the Notelert app on your mobile\n2. Go to Settings > App link token\n3. Copy the token and paste it in Settings > Notelert > App link token',
       openSettings: '⚙️ Open Settings',
       selectSavedLocation: 'Select Saved Location',
       hours: 'Hours',
@@ -426,22 +436,27 @@ export const TRANSLATIONS = {
       times: 'Hores:',
       examples: 'Exemples:',
       basicSettings: 'Configuració Bàsica',
+      generalSettings: {
+        title: 'Configuració general',
+        datePickerTriggerTitle: 'Combinació de caràcters per obrir el modal',
+        datePickerTriggerDesc: 'Escriu la combinació de caràcters que vols usar per obrir el modal de notificacions (per defecte: :@)'
+      },
       appRequired: {
         title: '📱 App d\'Android Requerida',
-        message: 'Aquest plugin requereix instal·lar l\'app d\'Android per funcionar. Un cop instal·lada, genera un token des de Configuració > Token del Plugin a l\'app i configura\'l aquí.',
+        message: 'Aquest plugin requereix instal·lar l\'app d\'Android per funcionar. Un cop instal·lada, genera un token des de Configuració > App link token a l\'app i configura\'l aquí.',
         downloadLink: 'Descarregar app d\'Android'
       },
       pluginToken: {
-        title: '🔑 Token del Plugin',
-        descDesktop: 'Token d\'autenticació per utilitzar geocodificació i correus electrònics premium. Obteniu el vostre token des de l\'aplicació mòbil a Configuració > Token del Plugin.',
-        descMobile: 'Token d\'autenticació per utilitzar geocodificació premium. Obteniu el vostre token des de l\'aplicació mòbil a Configuració > Token del Plugin.',
+        title: '🔗 App link token',
+        descDesktop: 'Token que vincula el plugin amb l\'app per poder usar les notificacions.',
+        descMobile: 'Token que vincula el plugin amb l\'app per poder usar les notificacions.',
         placeholder: 'Enganxa el teu token aquí...',
         showHide: 'Mostra/Amaga'
       },
       desktopSettings: {
         title: '💻 Configuració d\'Escriptori',
         userEmailTitle: 'Correu electrònic de l\'usuari (Opcional)',
-        userEmailDesc: 'Correu electrònic on rebràs les notificacions. Ja no és necessari si utilitzes el token del plugin.',
+        userEmailDesc: 'Correu electrònic on rebràs les notificacions. Ja no és necessari si utilitzes App link token.',
         userEmailPlaceholder: 'usuari@email.com'
       },
       scheduledEmails: {
@@ -486,11 +501,11 @@ export const TRANSLATIONS = {
       tokenLinked: '✅ Token vinculat correctament des de l\'app mòbil',
       tokenLinkError: '❌ Error al vincular token',
       tokenInvalidFormat: '❌ Format de token invàlid',
-      tokenInvalid403: '❌ Token invàlid o expirat. Genera un nou token a l\'app (Settings > Token del Plugin) i torna a vincular-lo.',
+      tokenInvalid403: '❌ Token invàlid o expirat. Genera un nou token a l\'app (Settings > App link token) i torna a vincular-lo.',
       linkError400: '❌ Error de vinculació. Si us plau, torna a realitzar el vincle des de l\'app i reinicia el plugin.',
       pushNotificationScheduled: '✅ Notificació programada correctament',
       pushNotificationScheduledLocation: '✅ Notificació d\'ubicació programada correctament',
-      tokenRequiredNotice: '🔑 Token del plugin requerit. Configura el teu token a Settings.',
+      tokenRequiredNotice: '🔗 App link token requerit. Configura el teu token a Settings.',
       iosNotSupported: '⚠️ iOS detectat\n\nNotelert actualment només està disponible per a Android.\nL\'app d\'iOS està en desenvolupament. Si us plau, utilitza un dispositiu Android per crear notificacions.'
     },
     modal: {
@@ -527,8 +542,8 @@ export const TRANSLATIONS = {
       openAppToUpgrade: '📱 Obrir app per actualitzar',
       installApp: '📥 Instal·lar app des de Play Store',
       locationsErrorDesc: 'Verifica que:\n1. El token sigui correcte\n2. Tinguis ubicacions guardades a l\'app\n3. Usa el botó \'Veure logs\' per més detalls',
-      tokenRequiredTitle: 'Token del plugin requerit',
-      tokenRequiredDesc: 'Les notificacions d\'ubicació requereixen un usuari Premium amb token vàlid.\n\nPer obtenir el teu token:\n1. Obre l\'app Notelert al teu mòbil\n2. Ves a Settings > Token del Plugin\n3. Copia el token i enganxa\'l a Settings > Notelert > Plugin Token',
+      tokenRequiredTitle: 'App link token requerit',
+      tokenRequiredDesc: 'Les notificacions d\'ubicació requereixen un App link token vàlid.\n\nPer obtenir el teu token:\n1. Obre l\'app Notelert al teu mòbil\n2. Ves a Settings > App link token\n3. Copia el token i enganxa\'l a Settings > Notelert > App link token',
       openSettings: '⚙️ Obrir Settings',
       selectSavedLocation: 'Seleccionar Ubicació Guardada',
       hours: 'Hores',
@@ -607,22 +622,27 @@ export const TRANSLATIONS = {
       times: 'Heures:',
       examples: 'Exemples:',
       basicSettings: 'Paramètres de base',
+      generalSettings: {
+        title: 'Paramètres généraux',
+        datePickerTriggerTitle: 'Combinaison de caractères pour ouvrir la fenêtre',
+        datePickerTriggerDesc: 'Saisissez la combinaison de caractères à utiliser pour ouvrir la fenêtre de notification (par défaut : :@)'
+      },
       appRequired: {
         title: '📱 Application Android Requise',
-        message: 'Ce plugin nécessite l\'installation de l\'application Android pour fonctionner. Une fois installée, générez un jeton depuis Paramètres > Jeton du Plugin dans l\'application et configurez-le ici.',
+        message: 'Ce plugin nécessite l\'installation de l\'application Android pour fonctionner. Une fois installée, générez un jeton depuis Paramètres > App link token dans l\'application et configurez-le ici.',
         downloadLink: 'Télécharger l\'application Android'
       },
       pluginToken: {
-        title: '🔑 Jeton du Plugin',
-        descDesktop: 'Jeton d\'authentification pour utiliser le géocodage et les e-mails premium. Obtenez votre jeton depuis l\'application mobile dans Paramètres > Jeton du Plugin.',
-        descMobile: 'Jeton d\'authentification pour utiliser le géocodage premium. Obtenez votre jeton depuis l\'application mobile dans Paramètres > Jeton du Plugin.',
+        title: '🔗 App link token',
+        descDesktop: 'Jeton qui relie le plugin à l\'application afin de pouvoir utiliser les notifications.',
+        descMobile: 'Jeton qui relie le plugin à l\'application afin de pouvoir utiliser les notifications.',
         placeholder: 'Collez votre jeton ici...',
         showHide: 'Afficher/Masquer'
       },
       desktopSettings: {
         title: '💻 Paramètres Bureau',
         userEmailTitle: 'E-mail utilisateur (Optionnel)',
-        userEmailDesc: 'E-mail où vous recevrez les notifications. Plus nécessaire si vous utilisez le jeton du plugin.',
+        userEmailDesc: 'E-mail où vous recevrez les notifications. Plus nécessaire si vous utilisez App link token.',
         userEmailPlaceholder: 'utilisateur@email.com'
       },
       scheduledEmails: {
@@ -667,11 +687,11 @@ export const TRANSLATIONS = {
       tokenLinked: '✅ Token lié avec succès depuis l\'application mobile',
       tokenLinkError: '❌ Erreur lors de la liaison du token',
       tokenInvalidFormat: '❌ Format de jeton invalide',
-      tokenInvalid403: '❌ Jeton invalide ou expiré. Génerer un nouveau jeton dans l\'application (Paramètres > Jeton du Plugin) et liez-le à nouveau.',
+      tokenInvalid403: '❌ Jeton invalide ou expiré. Génerer un nouveau jeton dans l\'application (Paramètres > App link token) et liez-le à nouveau.',
       linkError400: '❌ Erreur de liaison. Veuillez effectuer à nouveau la liaison depuis l\'application et redémarrer le plugin.',
       pushNotificationScheduled: '✅ Notification programmée avec succès',
       pushNotificationScheduledLocation: '✅ Notification de lieu programmée avec succès',
-      tokenRequiredNotice: '🔑 Jeton du plugin requis. Configurez votre jeton dans les Paramètres.',
+      tokenRequiredNotice: '🔗 App link token requis. Configurez votre jeton dans les Paramètres.',
       iosNotSupported: '⚠️ iOS détecté\n\nNotelert est actuellement uniquement disponible pour Android.\nL\'application iOS est en cours de développement. Veuillez utiliser un appareil Android pour créer des notifications.'
     },
     datePicker: {
@@ -699,8 +719,8 @@ export const TRANSLATIONS = {
       openAppToUpgrade: '📱 Ouvrir l\'app pour mettre à niveau',
       installApp: '📥 Installer l\'app depuis Play Store',
       locationsErrorDesc: 'Vérifiez que:\n1. Le token est correct\n2. Vous avez des lieux enregistrés dans l\'app\n3. Utilisez le bouton \'Voir les logs\' pour plus de détails',
-      tokenRequiredTitle: 'Token du plugin requis',
-      tokenRequiredDesc: 'Les notifications de localisation nécessitent un utilisateur Premium avec un token valide.\n\nPour obtenir votre token:\n1. Ouvrez l\'app Notelert sur votre mobile\n2. Allez dans Paramètres > Token du Plugin\n3. Copiez le token et collez-le dans Paramètres > Notelert > Token du Plugin',
+      tokenRequiredTitle: 'App link token requis',
+      tokenRequiredDesc: 'Les notifications de localisation nécessitent un App link token valide.\n\nPour obtenir votre token:\n1. Ouvrez l\'app Notelert sur votre mobile\n2. Allez dans Paramètres > App link token\n3. Copiez le token et collez-le dans Paramètres > Notelert > App link token',
       openSettings: '⚙️ Ouvrir les Paramètres',
       selectSavedLocation: 'Sélectionner un lieu enregistré',
       hours: 'Heures',
@@ -779,22 +799,27 @@ export const TRANSLATIONS = {
       times: 'Zeiten:',
       examples: 'Beispiele:',
       basicSettings: 'Grundeinstellungen',
+      generalSettings: {
+        title: 'Allgemeine Einstellungen',
+        datePickerTriggerTitle: 'Zeichenkombination zum Öffnen des Modals',
+        datePickerTriggerDesc: 'Geben Sie die Zeichenkombination ein, mit der das Benachrichtigungsmodal geöffnet wird (Standard: :@)'
+      },
       appRequired: {
         title: '📱 Android-App Erforderlich',
-        message: 'Dieses Plugin erfordert die Installation der Android-App, um zu funktionieren. Sobald sie installiert ist, generieren Sie ein Token in der App unter Einstellungen > Plugin-Token und konfigurieren Sie es hier.',
+        message: 'Dieses Plugin erfordert die Installation der Android-App, um zu funktionieren. Sobald sie installiert ist, generieren Sie ein Token in der App unter Einstellungen > App link token und konfigurieren Sie es hier.',
         downloadLink: 'Android-App herunterladen'
       },
       pluginToken: {
-        title: '🔑 Plugin-Token',
-        descDesktop: 'Authentifizierungstoken für Premium-Geocodierung und E-Mails. Holen Sie sich Ihr Token aus der mobilen App unter Einstellungen > Plugin-Token.',
-        descMobile: 'Authentifizierungstoken für Premium-Geocodierung. Holen Sie sich Ihr Token aus der mobilen App unter Einstellungen > Plugin-Token.',
+        title: '🔗 App link token',
+        descDesktop: 'Token, das das Plugin mit der App verbindet, damit Benachrichtigungen verwendet werden können.',
+        descMobile: 'Token, das das Plugin mit der App verbindet, damit Benachrichtigungen verwendet werden können.',
         placeholder: 'Fügen Sie Ihr Token hier ein...',
         showHide: 'Anzeigen/Verbergen'
       },
       desktopSettings: {
         title: '💻 Desktop-Einstellungen',
         userEmailTitle: 'Benutzer-E-Mail (Optional)',
-        userEmailDesc: 'E-Mail, an die Sie Benachrichtigungen erhalten. Nicht mehr erforderlich, wenn Sie das Plugin-Token verwenden.',
+        userEmailDesc: 'E-Mail, an die Sie Benachrichtigungen erhalten. Nicht mehr erforderlich, wenn Sie App link token verwenden.',
         userEmailPlaceholder: 'benutzer@email.com'
       },
       scheduledEmails: {
@@ -865,22 +890,27 @@ export const TRANSLATIONS = {
       times: 'Horários:',
       examples: 'Exemplos:',
       basicSettings: 'Configurações Básicas',
+      generalSettings: {
+        title: 'Configurações gerais',
+        datePickerTriggerTitle: 'Combinação de caracteres para abrir o modal',
+        datePickerTriggerDesc: 'Digite a combinação de caracteres que deseja usar para abrir o modal de notificações (padrão: :@)'
+      },
       appRequired: {
         title: '📱 App Android Necessária',
-        message: 'Este plugin requer a instalação do aplicativo Android para funcionar. Uma vez instalado, gere um token em Configurações > Token do Plugin no aplicativo e configure-o aqui.',
+        message: 'Este plugin requer a instalação do aplicativo Android para funcionar. Uma vez instalado, gere um token em Configurações > App link token no aplicativo e configure-o aqui.',
         downloadLink: 'Baixar aplicativo Android'
       },
       pluginToken: {
-        title: '🔑 Token do Plugin',
-        descDesktop: 'Token de autenticação para usar geocodificação e e-mails premium. Obtenha seu token no aplicativo móvel em Configurações > Token do Plugin.',
-        descMobile: 'Token de autenticação para usar geocodificação premium. Obtenha seu token no aplicativo móvel em Configurações > Token do Plugin.',
+        title: '🔗 App link token',
+        descDesktop: 'Token que vincula o plugin ao aplicativo para poder usar as notificações.',
+        descMobile: 'Token que vincula o plugin ao aplicativo para poder usar as notificações.',
         placeholder: 'Cole seu token aqui...',
         showHide: 'Mostrar/Ocultar'
       },
       desktopSettings: {
         title: '💻 Configurações de Desktop',
         userEmailTitle: 'E-mail do Usuário (Opcional)',
-        userEmailDesc: 'E-mail onde você receberá as notificações. Não é mais necessário se usar o token do plugin.',
+        userEmailDesc: 'E-mail onde você receberá as notificações. Não é mais necessário se usar App link token.',
         userEmailPlaceholder: 'usuario@email.com'
       },
       scheduledEmails: {

@@ -51,13 +51,13 @@ export async function createNotification(
   onEmailScheduled?: (email: ScheduledEmail) => void // Callback para guardar el email programado
 ): Promise<void> {
   try {
-    // Validar token del plugin PRIMERO (requerido para todas las plataformas ahora)
+    // Validar App link token PRIMERO (requerido para todas las plataformas ahora)
     if (!settings.pluginToken || settings.pluginToken.trim() === '') {
       new Notice(
-        "Token del plugin requerido\n\n" +
+        "App link token requerido\n\n" +
         "Para usar Notelert, necesitas:\n" +
-        "1. Generar tu token en la app móvil (Settings > Token del Plugin)\n" +
-        "2. Pegar el token en Settings > Notelert > Plugin Token",
+        "1. Generar tu token en la app móvil (Settings > App link token)\n" +
+        "2. Pegar el token en Settings > Notelert > App link token",
         10000
       );
       return;
@@ -226,4 +226,3 @@ export async function createNotification(
     throw error;
   }
 }
-

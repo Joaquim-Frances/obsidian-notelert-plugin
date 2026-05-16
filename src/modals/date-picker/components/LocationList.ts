@@ -4,7 +4,7 @@
 
 import { SavedLocation } from "../../../core/types";
 import { getTranslation } from "../../../i18n";
-import { setCssProps, createDiv, createEl, setElementId, emptyElement, findHTMLElement, addElementListener, getActiveHTMLElementById } from "../../../core/dom";
+import { setCssProps, createDiv, createEl, setElementId, emptyElement, findHTMLElement, addElementListener } from "../../../core/dom";
 import { loadLocationsFromBackend } from "../utils/location-api";
 import { INotelertPlugin } from "../../../core/plugin-interface";
 import { getCachedPremiumStatus } from "../../../features/premium/premium-service";
@@ -106,7 +106,7 @@ export async function createLocationList(
       textAlign: "center",
     });
 
-    createDiv(tokenContainer, { text: "🔑" });
+    createDiv(tokenContainer, { text: "🔗" });
     const icon = findHTMLElement(tokenContainer, "div");
     if (icon) {
       setCssProps(icon, {
@@ -116,7 +116,7 @@ export async function createLocationList(
     }
 
     const tokenTitle = createDiv(tokenContainer, {
-      text: getTranslation(language, "datePicker.tokenRequiredTitle") || "Token del plugin requerido",
+      text: getTranslation(language, "datePicker.tokenRequiredTitle") || "App link token requerido",
     });
     setCssProps(tokenTitle, {
       color: "var(--text-normal)",
@@ -127,7 +127,7 @@ export async function createLocationList(
 
     const tokenDesc = createDiv(tokenContainer, {
       text: getTranslation(language, "datePicker.tokenRequiredDesc") || 
-        "Las notificaciones de ubicación requieren un usuario Premium con token válido.\n\nPara obtener tu token:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > Token del Plugin\n3. Copia el token y pégalo en Settings > Notelert > Plugin Token",
+        "Las notificaciones de ubicación requieren un App link token válido.\n\nPara obtener tu token:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > App link token\n3. Copia el token y pégalo en Settings > Notelert > App link token",
     });
     setCssProps(tokenDesc, {
       color: "var(--text-muted)",
@@ -393,8 +393,8 @@ export async function createLocationList(
 
       const selectLocation = () => {
         locations.forEach((_, idx) => {
-          const item = getActiveHTMLElementById(`location-item-${idx}`);
-          const icon = getActiveHTMLElementById(`check-icon-${idx}`);
+          const item = findHTMLElement(listContainer, `#location-item-${idx}`);
+          const icon = findHTMLElement(listContainer, `#check-icon-${idx}`);
           if (item && icon) {
             const firstDiv = findHTMLElement(item, 'div:first-child');
             setCssProps(item, {

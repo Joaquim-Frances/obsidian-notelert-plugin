@@ -6,9 +6,7 @@ const { execFileSync } = require('child_process');
 
 // Rutas de prueba del plugin en Obsidian desktop
 const DESKTOP_PLUGIN_PATHS = [
-  '/Users/quimfrances/Documents/ObsidianRemoteQuim/.obsidian/plugins/notelert',
   '/Users/quimfrances/Documents/Arca2026/.obsidian/plugins/notelert',
-  '/Users/quimfrances/Documents/RemoteObsidian/.obsidian/plugins/notelert',
 ];
 
 // Rutas de prueba del plugin en Obsidian Android emulator
