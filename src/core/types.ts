@@ -35,7 +35,6 @@ export interface NotelertSettings {
   userEmail?: string; // Email del usuario para recibir notificaciones (DEPRECATED: usar pluginToken)
   userId?: string; // ID del usuario de Google (DEPRECATED: usar pluginToken)
   pluginToken?: string; // Token del plugin para autenticación (requerido para premium features: geocodificación y emails)
-  notelertApiKey?: string; // API Key de Notelert (opcional, solo para cancelar emails - programar usa proxy sin API key)
   scheduledEmails: ScheduledEmail[]; // Lista de emails programados
 }
 
@@ -66,4 +65,3 @@ export interface DetectedPattern {
   type?: 'time' | 'location'; // Tipo de notificación: tiempo o ubicación
   recurrence?: RecurrenceConfig; // Configuración de recurrencia (solo premium)
 }
-
