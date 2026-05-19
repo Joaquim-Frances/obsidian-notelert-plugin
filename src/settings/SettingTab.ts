@@ -3,6 +3,9 @@ import { INotelertPlugin } from "../core/plugin-interface";
 import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
 import { createDiv, createEl } from "../core/dom";
 
+const CONTACT_EMAIL = "notelert@proton.me";
+const CONTACT_MAILTO_URL = `mailto:${CONTACT_EMAIL}?subject=Notelert%20Contact%20%26%20feedback`;
+
 // Obsidian's runtime supports getSettingDefinitions(), but the generated type
 // definitions still model PluginSettingTab as abstract.
 const PluginSettingTabBase = PluginSettingTab as unknown as new (
@@ -101,6 +104,24 @@ export class NotelertSettingTab extends PluginSettingTabBase {
               this.plugin.settings.datePickerTrigger = value.trim() || ":@";
               await this.plugin.saveSettings();
             })();
+          });
+      });
+
+    this.renderLegacySection(
+      containerEl,
+      getTranslation(language, "settings.contactFeedback.title") || "Contact & feedback"
+    );
+    new Setting(containerEl)
+      .setName(getTranslation(language, "settings.contactFeedback.title") || "Contact & feedback")
+      .setDesc(
+        getTranslation(language, "settings.contactFeedback.desc", { email: CONTACT_EMAIL }) ||
+          `Questions, issues, or suggestions: ${CONTACT_EMAIL}`
+      )
+      .addButton((button) => {
+        button
+          .setButtonText(getTranslation(language, "settings.contactFeedback.button") || "Email")
+          .onClick(() => {
+            window.open(CONTACT_MAILTO_URL);
           });
       });
   }

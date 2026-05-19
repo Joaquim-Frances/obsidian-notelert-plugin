@@ -81,6 +81,11 @@ export const TRANSLATIONS = {
         empty: 'No hay ubicaciones guardadas. Haz clic en \'Añadir ubicación\' para empezar.',
         editButton: '✏️ Editar',
         deleteButton: '🗑️'
+      },
+      contactFeedback: {
+        title: 'Contact & feedback',
+        desc: 'Dudas, problemas o sugerencias: {email}',
+        button: 'Email'
       }
     },
     commands: {
@@ -281,6 +286,11 @@ export const TRANSLATIONS = {
         empty: 'No saved locations. Click \'Add location\' to start.',
         editButton: '✏️ Edit',
         deleteButton: '🗑️'
+      },
+      contactFeedback: {
+        title: 'Contact & feedback',
+        desc: 'Questions, issues, or suggestions: {email}',
+        button: 'Email'
       }
     },
     commands: {
@@ -481,6 +491,11 @@ export const TRANSLATIONS = {
         empty: 'No hi ha ubicacions guardades. Fes clic a \'Afegir Ubicació\' per començar.',
         editButton: '✏️ Editar',
         deleteButton: '🗑️'
+      },
+      contactFeedback: {
+        title: 'Contact & feedback',
+        desc: 'Dubtes, problemes o suggeriments: {email}',
+        button: 'Email'
       }
     },
     commands: {
@@ -667,6 +682,11 @@ export const TRANSLATIONS = {
         empty: 'Aucun lieu enregistré. Cliquez sur \'Ajouter un lieu\' pour commencer.',
         editButton: '✏️ Modifier',
         deleteButton: '🗑️'
+      },
+      contactFeedback: {
+        title: 'Contact & feedback',
+        desc: 'Questions, problèmes ou suggestions : {email}',
+        button: 'Email'
       }
     },
     commands: {
@@ -844,6 +864,11 @@ export const TRANSLATIONS = {
         empty: 'Keine gespeicherten Orte. Klicken Sie auf \'Ort hinzufügen\', um zu beginnen.',
         editButton: '✏️ Bearbeiten',
         deleteButton: '🗑️'
+      },
+      contactFeedback: {
+        title: 'Contact & feedback',
+        desc: 'Fragen, Probleme oder Vorschläge: {email}',
+        button: 'Email'
       }
     },
     commands: {
@@ -935,6 +960,11 @@ export const TRANSLATIONS = {
         empty: 'Nenhum local salvo. Clique em \'Adicionar Local\' para começar.',
         editButton: '✏️ Editar',
         deleteButton: '🗑️'
+      },
+      contactFeedback: {
+        title: 'Contact & feedback',
+        desc: 'Dúvidas, problemas ou sugestões: {email}',
+        button: 'Email'
       }
     },
     commands: {
