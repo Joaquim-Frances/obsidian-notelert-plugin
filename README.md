@@ -6,6 +6,8 @@ The plugin requires the Android app to create and deliver notifications. Install
 
 https://play.google.com/store/apps/details?id=com.quim79.notelert
 
+⚠️ ATTENTION: All previous versions of the App in Google Play are not working any more. On May 22 a new version has been uploaded to Google Play that should work fine. Please update your app. If the update gives you any error, uninstall it completely and reinstall it from 0. 🙏🏻
+
 Privacy note: Notelert only sends the notification line that you choose to turn into a reminder. It never scans your vaults, never reads unrelated notes, and never uploads full note files.
 
 Notelert is currently in a testing phase. The plugin, Android app, backend, and premium flows are being actively validated and may change as the system is refined.
