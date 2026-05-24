@@ -170,6 +170,7 @@ export interface SchedulePushNotificationResult {
   error?: string;
   notificationId?: string;
   scheduledFor?: string;
+  hasActiveDevices?: boolean;
   errorCode?: 'LINK_ERROR' | 'TOKEN_INVALID' | 'RATE_LIMIT' | 'PREMIUM_REQUIRED' | 'USER_NOT_FOUND' | 'OTHER';
 }
 
@@ -331,17 +332,28 @@ export async function schedulePushNotification(
       if (response.status === 403) {
         // 403 puede ser por token inválido o por falta de premium
         const errorMsg = getFirebaseErrorMessage(errorData, 'Acceso denegado');
-        if (errorMsg.includes('Token') || errorMsg.includes('token')) {
+        const lowerMsg = errorMsg.toLowerCase();
+        
+        // Si el mensaje indica explícitamente temas de premium/suscripción, es PREMIUM_REQUIRED
+        if (
+          lowerMsg.includes('premium') || 
+          lowerMsg.includes('suscrip') || 
+          lowerMsg.includes('subscription') || 
+          lowerMsg.includes('expir')
+        ) {
           return {
             success: false,
             error: errorMsg,
-            errorCode: 'TOKEN_INVALID',
+            errorCode: 'PREMIUM_REQUIRED',
           };
         }
+        
+        // En cualquier otro caso (token no encontrado, inválido, expirado, o error genérico 403),
+        // devolvemos TOKEN_INVALID para que el usuario reciba la sugerencia de regenerar el token.
         return {
           success: false,
           error: errorMsg,
-          errorCode: 'PREMIUM_REQUIRED',
+          errorCode: 'TOKEN_INVALID',
         };
       }
 
@@ -369,11 +381,21 @@ export async function schedulePushNotification(
     }
 
     const result = parseFirebaseScheduleResponse(response.text, notificationId);
+    let hasActiveDevices = true;
+    try {
+      const responseJson = JSON.parse(response.text);
+      if (responseJson && typeof responseJson.hasActiveDevices === 'boolean') {
+        hasActiveDevices = responseJson.hasActiveDevices;
+      }
+    } catch (e) {
+      // Ignorar fallo en parseo de JSON
+    }
 
     return {
       success: true,
       notificationId: result.notificationId || notificationId,
       scheduledFor: result.scheduledFor,
+      hasActiveDevices,
     };
   } catch (error) {
 

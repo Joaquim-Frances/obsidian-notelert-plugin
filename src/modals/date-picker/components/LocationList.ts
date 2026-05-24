@@ -258,6 +258,25 @@ export async function createLocationList(
       const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
       window.open(playStoreLink, "_blank");
     });
+
+    const checkAgainButton = createEl(premiumContainer, "button", {
+      text: getTranslation(language, "datePicker.reloadLocations") || "Recargar ubicaciones",
+    });
+    setCssProps(checkAgainButton, {
+      padding: "10px 20px",
+      borderRadius: "6px",
+      border: "1px solid var(--interactive-accent)",
+      background: "var(--interactive-accent)",
+      color: "var(--text-on-accent)",
+      fontSize: "14px",
+      fontWeight: "500",
+      cursor: "pointer",
+      marginTop: "12px",
+      width: "100%",
+    });
+    addElementListener(checkAgainButton, "click", () => {
+      void reload(true);
+    });
   };
 
   const renderGenericError = (error: string) => {
@@ -441,12 +460,8 @@ export async function createLocationList(
     });
   };
 
-  const reload = async () => {
+  const reload = async (forceRefreshPremium: boolean = false) => {
     const token = plugin.settings.pluginToken?.trim();
-    
-    // Verificar premium usando el estado precargado (instantáneo)
-    const premiumStatus = getCachedPremiumStatus();
-    onDebugLog(`[Ubicaciones] Estado premium precargado: ${premiumStatus.isPremium}`);
     
     // Si no hay token, mostrar error de token requerido
     if (!token) {
@@ -455,14 +470,20 @@ export async function createLocationList(
       return;
     }
     
-    // Si no es premium, mostrar mensaje inmediatamente sin llamar al servidor
-    if (!premiumStatus.isPremium && !premiumStatus.loading) {
+    renderLoading();
+    onDebugLog(`[Ubicaciones] Iniciando comprobación de estado premium (forceRefresh: ${forceRefreshPremium})`);
+    
+    const { getPremiumStatus } = await import("../../../features/premium/premium-service");
+    const premiumStatus = await getPremiumStatus(token, forceRefreshPremium);
+    onDebugLog(`[Ubicaciones] Estado premium obtenido: isPremium=${premiumStatus.isPremium}, loading=${premiumStatus.loading}`);
+    
+    // Si no es premium, mostrar mensaje
+    if (!premiumStatus.isPremium) {
       onDebugLog(`[Ubicaciones] Usuario no es premium, mostrando mensaje`);
       renderError('PREMIUM_REQUIRED', true);
       return;
     }
     
-    renderLoading();
     onDebugLog(`[Ubicaciones] Iniciando carga de ubicaciones`);
     onDebugLog(`[Ubicaciones] Token presente: ${!!token}, Longitud: ${token?.length || 0}`);
 

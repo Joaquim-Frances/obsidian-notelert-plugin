@@ -208,6 +208,15 @@ export async function createNotification(
       (notificationType === 'location' ? "Notificación de ubicación programada correctamente" : "Notificación programada correctamente");
 
     new Notice(successMessage, 10000);
+    
+    if (pushResult.success && pushResult.hasActiveDevices === false) {
+      new Notice(
+        "⚠️ Notelert: Recordatorio programado con éxito, pero NO tienes ningún dispositivo móvil activo vinculado.\n\n" +
+        "Abre la app móvil Notelert en tu teléfono y concede permisos de notificación para recibir las alertas físicamente.",
+        15000
+      );
+    }
+
     log(`Push notification programada: ${pushResult.notificationId}`);
   } catch (error: unknown) {
     // Solo loggear errores inesperados, los errores de negocio ya se mostraron

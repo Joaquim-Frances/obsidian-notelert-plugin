@@ -136,6 +136,12 @@ export class NotelertDatePickerModal extends Modal {
         if (this.recurrenceSelector) {
           this.recurrenceSelector.updatePremiumStatus(this.isPremium);
         }
+
+        // Actualizar/Recargar lista de ubicaciones si existe
+        if (this.locationList) {
+          this.plugin.log("🔄 Recargando lista de ubicaciones tras actualización de premium");
+          void this.locationList.reload();
+        }
       }
     });
 
