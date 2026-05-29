@@ -5,6 +5,14 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.9] - 2026-05-29
+
+### Añadido
+- Añadidos botones oficiales de descarga (badges) de Google Play e iOS App Store en el archivo README.md, redirigiendo este último a la sección de lista de espera (waitlist) de iPhone de la web oficial.
+
+### Modificado
+- Sincronizado el código con los últimos cambios y mejoras visuales del monorepo, incluyendo la validación de fechas pasadas, traducciones robustas en i18n y ajustes de alineación visual.
+
 ## [1.1.6] - 2026-05-16
 
 ### Corregido

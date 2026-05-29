@@ -4,6 +4,6 @@
   "description": "Creates Notelert reminders from note lines using the Android app and Firebase scheduling.",
   "author": "Joaquim Frances",
   "minAppVersion": "1.0.0",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "isDesktopOnly": false
 }
