@@ -3,6 +3,7 @@
  */
 
 import { setCssProps, createDiv, createEl, setElementId, emptyElement, setElementText } from "../../../core/dom";
+import { getTranslation } from "../../../i18n";
 
 export interface DebugPanelResult {
   container: HTMLElement;
@@ -15,6 +16,7 @@ export interface DebugPanelResult {
  */
 export function createDebugPanel(
   parent: HTMLElement,
+  language: string,
   onLog: (message: string) => void
 ): DebugPanelResult {
   const panelWrapper = createDiv(parent);
@@ -27,7 +29,7 @@ export function createDebugPanel(
 
   // Título
   const title = createEl(panelWrapper, "h3", {
-    text: "Logs de debug",
+    text: getTranslation(language, "settings.debugMode"),
   });
   setCssProps(title, {
     margin: "0 0 10px 0",
@@ -81,7 +83,7 @@ export function createDebugPanel(
     
     if (logs.length === 0) {
       const emptyEl = createDiv(logContainer, {
-        text: "No hay logs aún. Los logs aparecerán aquí cuando se carguen las ubicaciones.",
+        text: getTranslation(language, "datePicker.noDebugLogs"),
       });
       setCssProps(emptyEl, {
         padding: "10px",

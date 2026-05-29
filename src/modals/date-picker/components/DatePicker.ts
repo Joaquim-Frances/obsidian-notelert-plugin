@@ -5,6 +5,7 @@
 import type {} from "obsidian";
 import { getTranslation } from "../../../i18n";
 import { setCssProps, createDiv, createEl } from "../../../core/dom";
+import { getToday } from "../utils/date-utils";
 
 export interface DatePickerResult {
   dateInput: HTMLInputElement;
@@ -49,6 +50,7 @@ export function createDatePicker(
     fontSize: "14px",
   });
   dateInput.value = initialDate;
+  dateInput.min = getToday();
 
   return {
     dateInput,

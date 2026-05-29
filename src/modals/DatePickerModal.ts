@@ -4,7 +4,7 @@ import { getTranslation } from "../i18n";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { setCssProps, isHTMLElement } from "../core/dom";
 import { NotificationType } from "./date-picker/types";
-import { getToday } from "./date-picker/utils/date-utils";
+import { getToday, isDateTimeInPast } from "./date-picker/utils/date-utils";
 import { createNotificationFromDatePicker, createNotificationFromLocation } from "./date-picker/utils/notification-utils";
 import { showLoadingState, hideLoadingState } from "./date-picker/utils/ui-helpers";
 import { createDatePicker, DatePickerResult } from "./date-picker/components/DatePicker";
@@ -231,6 +231,7 @@ export class NotelertDatePickerModal extends Modal {
       if (!isDesktop) {
         this.debugPanel = createDebugPanel(
           this.container,
+          this.language,
           (message: string) => {
             this.plugin.log(message);
           }
@@ -499,7 +500,7 @@ export class NotelertDatePickerModal extends Modal {
           if (this.notificationType === 'location') {
             if (!this.selectedLocation) {
               hideLoadingState(confirmButton, this.language);
-              new Notice(getTranslation(this.language, "datePicker.selectSavedLocation") || "Por favor, selecciona una ubicación", 10000);
+              new Notice(getTranslation(this.language, "datePicker.selectLocationRequired"), 10000);
               return;
             }
             const success = await createNotificationFromLocation(
@@ -525,6 +526,12 @@ export class NotelertDatePickerModal extends Modal {
             const time: string = this.timePicker.timeInput.value;
 
             if (date && time) {
+              if (isDateTimeInPast(date, time)) {
+                hideLoadingState(confirmButton, this.language);
+                new Notice(getTranslation(this.language, "datePicker.pastDateTime"), 10000);
+                return;
+              }
+
               // Reemplazar el trigger con trigger+fecha, hora
               const replacement = `${this.trigger}${date}, ${time}`;
               const line = this.editor.getLine(this.cursor.line);

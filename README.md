@@ -1,12 +1,11 @@
 # Notelert
 
-Notelert is an Obsidian companion plugin for the Notelert Android app.
+Notelert is an Obsidian companion plugin for the Notelert app.
 
-The plugin requires the Android app to create and deliver notifications. Install it from Google Play:
+The plugin requires the mobile app to create and deliver notifications. Download it for your device:
 
-https://play.google.com/store/apps/details?id=com.quim79.notelert
-
-⚠️ ATTENTION: All previous versions of the App in Google Play are not working any more. On May 22 a new version has been uploaded to Google Play that should work fine. Please update your app. If the update gives you any error, uninstall it completely and reinstall it from 0. 🙏🏻
+<a href="https://play.google.com/store/apps/details?id=com.quim79.notelert"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="60" align="middle"/></a>
+<a href="https://notelert.com/#iphone-waitlist"><img src="https://developer.apple.com/app-store/marketing/guidelines/images/badge-download-on-the-app-store.svg" alt="Download on the App Store" height="42" align="middle"/></a>
 
 Privacy note: Notelert only sends the notification line that you choose to turn into a reminder. It never scans your vaults, never reads unrelated notes, and never uploads full note files.
 

@@ -127,8 +127,7 @@ export async function createNotificationFromLocation(
     plugin.log(`Error creando notificación de ubicación: ${errorMessage}`);
     const { getTranslation } = await import("../../../i18n");
     const { Notice } = await import("obsidian");
-    new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: "Recordatorio de ubicación" }), 10000);
+    new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: getTranslation(language, "notices.defaultLocationReminderTitle") }), 10000);
     return false;
   }
 }
-

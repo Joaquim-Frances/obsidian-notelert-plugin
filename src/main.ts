@@ -114,16 +114,36 @@ export class NotelertPlugin extends Plugin {
     }
   }
 
+  private getSafeReturnLink(params: Record<string, string>) {
+    const rawReturnLink = params.returnLink || params.returnUrl;
+    if (!rawReturnLink) {
+      return null;
+    }
+
+    let returnLink = rawReturnLink;
+    try {
+      returnLink = decodeURIComponent(rawReturnLink);
+    } catch {
+      returnLink = rawReturnLink;
+    }
+
+    return returnLink.startsWith("notelert://") ? returnLink : null;
+  }
+
+  private openReturnLink(returnLink: string) {
+    const openedWindow = window.open(returnLink, "_blank");
+    if (!openedWindow) {
+      window.location.href = returnLink;
+    }
+  }
+
   // Manejar deep link de vinculación con la app móvil
   private async handleTokenLink(params: Record<string, string>) {
     const token = params.token;
+    const returnLink = this.getSafeReturnLink(params);
 
     if (!token) {
-      new Notice(
-        getTranslation(this.settings.language, "notices.tokenLinkError") ||
-        "Token no encontrado en el enlace",
-        10000
-      );
+      new Notice(getTranslation(this.settings.language, "notices.tokenNotFound"), 10000);
       this.log("Error: token no encontrado en deep link");
       return;
     }
@@ -131,11 +151,7 @@ export class NotelertPlugin extends Plugin {
     try {
       // Validar formato del token (debe tener 64 caracteres)
       if (token.length !== 64) {
-        new Notice(
-          getTranslation(this.settings.language, "notices.tokenInvalidFormat") ||
-          "Formato de token inválido",
-          10000
-        );
+        new Notice(getTranslation(this.settings.language, "notices.tokenInvalidFormat"), 10000);
         this.log(`Error: token con formato inválido (longitud: ${token.length})`);
         return;
       }
@@ -147,12 +163,18 @@ export class NotelertPlugin extends Plugin {
       void preloadPremiumStatus(this.settings.pluginToken);
 
       // Mostrar notificación de éxito
-      new Notice(
-        getTranslation(this.settings.language, "notices.tokenLinked") ||
-        "Token vinculado correctamente",
-        10000
-      );
+      new Notice(getTranslation(this.settings.language, "notices.tokenLinked"), 10000);
       this.log("Token vinculado correctamente desde la app móvil");
+
+      if (returnLink) {
+        window.setTimeout(() => {
+          try {
+            this.openReturnLink(returnLink);
+          } catch (error) {
+            this.log(`Error volviendo a la app móvil: ${error}`);
+          }
+        }, 500);
+      }
 
       // Opcional: Abrir la configuración del plugin para que el usuario vea el token
       // this.app.setting.openTabById("notelert");

@@ -2,6 +2,7 @@ import { requestUrl } from "obsidian";
 import { PLUGIN_SCHEDULE_EMAIL_URL, PLUGIN_SCHEDULE_PUSH_NOTIFICATION_URL } from "../../core/config";
 import { errorToString } from "./utils";
 import { DetectedPattern } from "../../core/types";
+import { getTranslation } from "../../i18n";
 
 export interface ScheduleEmailResult {
   success: boolean;
@@ -60,7 +61,8 @@ export async function scheduleEmailReminderProxy(
   message: string,
   scheduledDate: Date,
   notificationId: string,
-  pluginToken: string
+  pluginToken: string,
+  language = 'en'
 ): Promise<ScheduleEmailResult> {
   try {
     const requestBody = {
@@ -96,28 +98,28 @@ export async function scheduleEmailReminderProxy(
       if (response.status === 400) {
         return {
           success: false,
-          error: getFirebaseErrorMessage(errorData, 'Datos inválidos'),
+          error: getFirebaseErrorMessage(errorData, getTranslation(language, "firebaseErrors.invalidData")),
         };
       }
 
       if (response.status === 403) {
         return {
           success: false,
-          error: getFirebaseErrorMessage(errorData, 'Usuario no es premium o suscripción expirada'),
+          error: getFirebaseErrorMessage(errorData, getTranslation(language, "firebaseErrors.premiumExpired")),
         };
       }
 
       if (response.status === 404) {
         return {
           success: false,
-          error: getFirebaseErrorMessage(errorData, 'Usuario no encontrado. Debes registrarte primero en la app móvil.'),
+          error: getFirebaseErrorMessage(errorData, getTranslation(language, "firebaseErrors.userNotFound")),
         };
       }
 
       if (response.status === 429) {
         return {
           success: false,
-          error: getFirebaseErrorMessage(errorData, 'Límite de emails alcanzado (máximo 100)'),
+          error: getFirebaseErrorMessage(errorData, getTranslation(language, "firebaseErrors.emailLimit")),
         };
       }
 
@@ -146,18 +148,18 @@ export async function scheduleEmailReminderProxy(
       if (errorMessage.includes('CORS')) {
         return {
           success: false,
-          error: 'Error de CORS. El servidor no permite la petición. Verifica la configuración del token.',
+          error: getTranslation(language, "firebaseErrors.cors"),
         };
       }
       return {
         success: false,
-        error: `Error de conexión: ${errorMessage}. Verifica tu internet e intenta de nuevo.`,
+        error: getTranslation(language, "firebaseErrors.connection", { error: errorMessage }),
       };
     }
 
     return {
       success: false,
-      error: errorMessage || 'Error de red al programar email',
+      error: errorMessage || getTranslation(language, "firebaseErrors.networkEmail"),
     };
   }
 }
@@ -182,6 +184,9 @@ interface NotificationLocation {
   longitude: number;
   address: string;
   triggerType: string;
+  radius?: number;
+  locationId?: string;
+  name?: string;
 }
 
 /**
@@ -218,13 +223,14 @@ export async function schedulePushNotification(
   pattern: DetectedPattern,
   notificationId: string,
   pluginToken: string,
-  obsidianDeepLink?: string
+  obsidianDeepLink?: string,
+  language = 'en'
 ): Promise<SchedulePushNotificationResult> {
   try {
     if (!pluginToken || pluginToken.trim() === '') {
       return {
         success: false,
-        error: 'App link token requerido. Configura tu token en Settings > Notelert > App link token.'
+        error: getTranslation(language, "notices.tokenRequiredNotice")
       };
     }
 
@@ -248,7 +254,7 @@ export async function schedulePushNotification(
       if (isNaN(scheduledDate.getTime())) {
         return {
           success: false,
-          error: `Fecha inválida: ${dateTimeString}`,
+          error: getTranslation(language, "notices.invalidDate", { date: dateTimeString }),
         };
       }
 
@@ -262,7 +268,7 @@ export async function schedulePushNotification(
       if (!pattern.location || pattern.latitude === undefined || pattern.longitude === undefined) {
         return {
           success: false,
-          error: 'Datos de ubicación incompletos. Se requiere nombre, latitud y longitud.',
+          error: getTranslation(language, "firebaseErrors.locationIncomplete"),
         };
       }
 
@@ -271,6 +277,8 @@ export async function schedulePushNotification(
         longitude: pattern.longitude,
         address: pattern.location,
         triggerType: 'arrive', // Por defecto 'arrive', podría hacerse configurable en el futuro
+        radius: pattern.radius,
+        name: pattern.location,
       };
     } else {
       // Caso defensivo: notificationType debería ser siempre 'time' o 'location'
@@ -278,7 +286,7 @@ export async function schedulePushNotification(
       const notificationTypeStr = String(notificationType);
       return {
         success: false,
-        error: `Tipo de notificación no soportado: ${notificationTypeStr}`,
+        error: getTranslation(language, "firebaseErrors.unsupportedNotificationType", { type: notificationTypeStr }),
       };
     }
 
@@ -316,7 +324,7 @@ export async function schedulePushNotification(
       if (response.status === 400) {
         return {
           success: false,
-          error: getFirebaseErrorMessage(errorData, 'Datos inválidos'),
+          error: getFirebaseErrorMessage(errorData, getTranslation(language, "firebaseErrors.invalidData")),
           errorCode: 'LINK_ERROR',
         };
       }
@@ -324,14 +332,14 @@ export async function schedulePushNotification(
       if (response.status === 401) {
         return {
           success: false,
-          error: getFirebaseErrorMessage(errorData, 'Token inválido o expirado.'),
+          error: getFirebaseErrorMessage(errorData, getTranslation(language, "firebaseErrors.tokenInvalid")),
           errorCode: 'TOKEN_INVALID',
         };
       }
 
       if (response.status === 403) {
         // 403 puede ser por token inválido o por falta de premium
-        const errorMsg = getFirebaseErrorMessage(errorData, 'Acceso denegado');
+        const errorMsg = getFirebaseErrorMessage(errorData, getTranslation(language, "firebaseErrors.accessDenied"));
         const lowerMsg = errorMsg.toLowerCase();
         
         // Si el mensaje indica explícitamente temas de premium/suscripción, es PREMIUM_REQUIRED
@@ -360,7 +368,7 @@ export async function schedulePushNotification(
       if (response.status === 404) {
         return {
           success: false,
-          error: getFirebaseErrorMessage(errorData, 'Usuario no encontrado. Debes registrarte primero en la app móvil.'),
+          error: getFirebaseErrorMessage(errorData, getTranslation(language, "firebaseErrors.userNotFound")),
           errorCode: 'USER_NOT_FOUND',
         };
       }
@@ -368,7 +376,7 @@ export async function schedulePushNotification(
       if (response.status === 429) {
         return {
           success: false,
-          error: getFirebaseErrorMessage(errorData, 'Límite de notificaciones alcanzado (máximo 100/mes para usuarios free)'),
+          error: getFirebaseErrorMessage(errorData, getTranslation(language, "firebaseErrors.notificationLimit")),
           errorCode: 'RATE_LIMIT',
         };
       }
@@ -411,18 +419,18 @@ export async function schedulePushNotification(
       if (errorMessage.includes('CORS')) {
         return {
           success: false,
-          error: 'Error de CORS. El servidor no permite la petición. Verifica la configuración del token.',
+          error: getTranslation(language, "firebaseErrors.cors"),
         };
       }
       return {
         success: false,
-        error: `Error de conexión: ${errorMessage}. Verifica tu internet e intenta de nuevo.`,
+        error: getTranslation(language, "firebaseErrors.connection", { error: errorMessage }),
       };
     }
 
     return {
       success: false,
-      error: errorMessage || 'Error de red al programar notificación push',
+      error: errorMessage || getTranslation(language, "firebaseErrors.networkPush"),
     };
   }
 }

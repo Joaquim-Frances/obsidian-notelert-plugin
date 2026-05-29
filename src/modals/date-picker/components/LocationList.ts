@@ -34,7 +34,7 @@ export async function createLocationList(
 
   // Título
   const title = createEl(listWrapper, "h3", {
-    text: getTranslation(language, "datePicker.selectLocationTitle") || "Selecciona una ubicación",
+    text: getTranslation(language, "datePicker.selectLocationTitle"),
   });
   setCssProps(title, {
     margin: "0 0 10px 0",
@@ -126,8 +126,7 @@ export async function createLocationList(
     });
 
     const tokenDesc = createDiv(tokenContainer, {
-      text: getTranslation(language, "datePicker.tokenRequiredDesc") || 
-        "Las notificaciones de ubicación requieren un App link token válido.\n\nPara obtener tu token:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > App link token\n3. Copia el token y pégalo en Settings > Notelert > App link token",
+      text: getTranslation(language, "datePicker.tokenRequiredDesc"),
     });
     setCssProps(tokenDesc, {
       color: "var(--text-muted)",
@@ -197,8 +196,7 @@ export async function createLocationList(
     });
 
     const premiumDesc = createDiv(premiumContainer, {
-      text: getTranslation(language, "datePicker.premiumRequiredDesc") || 
-        "Las notificaciones de ubicación solo están disponibles en el plan Premium.\n\nActualiza a Premium para usar esta función.",
+      text: getTranslation(language, "datePicker.premiumRequiredDesc"),
     });
     setCssProps(premiumDesc, {
       color: "var(--text-muted)",
@@ -297,8 +295,7 @@ export async function createLocationList(
     });
 
     const errDesc = createDiv(errContainer, {
-      text: getTranslation(language, "datePicker.locationsErrorDesc") || 
-        "Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. La conexión con Notelert esté disponible",
+      text: getTranslation(language, "datePicker.locationsErrorDesc"),
     });
     setCssProps(errDesc, {
       color: "var(--text-muted)",
@@ -336,8 +333,7 @@ export async function createLocationList(
     });
 
     const emptyDesc = createDiv(emptyContainer, {
-      text: getTranslation(language, "datePicker.noSavedLocationsDesc") || 
-        "Para crear ubicaciones:\n1. Abre la app Notelert en tu móvil\n2. Ve a Settings > Mis Ubicaciones\n3. Añade ubicaciones desde el mapa\n4. Vuelve aquí y recarga la lista",
+      text: getTranslation(language, "datePicker.noSavedLocationsDesc"),
     });
     setCssProps(emptyDesc, {
       color: "var(--text-muted)",

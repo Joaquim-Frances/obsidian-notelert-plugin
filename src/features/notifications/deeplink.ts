@@ -53,25 +53,13 @@ export async function createNotification(
   try {
     // Validar App link token PRIMERO (requerido para todas las plataformas ahora)
     if (!settings.pluginToken || settings.pluginToken.trim() === '') {
-      new Notice(
-        "App link token requerido\n\n" +
-        "Para usar Notelert, necesitas:\n" +
-        "1. Generar tu token en la app móvil (Settings > App link token)\n" +
-        "2. Pegar el token en Settings > Notelert > App link token",
-        10000
-      );
+      new Notice(getTranslation(settings.language, "notices.tokenRequiredFull"), 10000);
       return;
     }
 
     // Verificar si es iOS (solo en móvil)
     if (Platform.isMobile && isIOS()) {
-      new Notice(
-        getTranslation(settings.language, "notices.iosNotSupported") ||
-        "iOS detectado\n\n" +
-        "Notelert actualmente solo está disponible para Android.\n" +
-        "La app de iOS está en desarrollo. Por favor, usa un dispositivo Android para crear notificaciones.",
-        10000
-      );
+      new Notice(getTranslation(settings.language, "notices.iosNotSupported"), 10000);
       return;
     }
 
@@ -107,7 +95,7 @@ export async function createNotification(
 
       // Validar que la fecha sea válida
       if (isNaN(scheduledDate.getTime())) {
-        new Notice(`Fecha inválida: ${dateTimeString}`, 10000);
+        new Notice(getTranslation(settings.language, "notices.invalidDate", { date: dateTimeString }), 10000);
         log(`Error: fecha inválida - ${dateTimeString}`);
         return;
       }
@@ -126,7 +114,7 @@ export async function createNotification(
     log(`  - Notification ID: ${notificationId}`);
 
     // Mostrar feedback visual inmediato
-    const loadingNotice = new Notice("Programando notificación...", 0); // 0 = no auto-close
+    const loadingNotice = new Notice(getTranslation(settings.language, "notices.schedulingNotification"), 0); // 0 = no auto-close
 
     // Programar push notification (funciona para tiempo y ubicación)
     const pushResult = await schedulePushNotification(
@@ -136,7 +124,8 @@ export async function createNotification(
       },
       notificationId,
       settings.pluginToken,
-      obsidianDeepLink
+      obsidianDeepLink,
+      settings.language
     );
 
     // Cerrar el notice de carga
@@ -144,7 +133,7 @@ export async function createNotification(
 
     if (!pushResult.success) {
       // Error al programar push notification
-      let errorMessage = pushResult.error || 'Error al programar notificación push';
+      let errorMessage = pushResult.error || getTranslation(settings.language, "notices.pushScheduleError");
 
       // Manejar códigos de error específicos con mensajes traducidos
       if (pushResult.errorCode === 'TOKEN_INVALID') {
@@ -170,7 +159,8 @@ export async function createNotification(
         cleanMessage,
         scheduledDate,
         notificationId, // Mismo ID para mantener consistencia
-        settings.pluginToken
+        settings.pluginToken,
+        settings.language
       );
 
       if (emailResult.success && emailResult.notificationId) {
@@ -204,17 +194,12 @@ export async function createNotification(
       ? "notices.pushNotificationScheduledLocation"
       : "notices.pushNotificationScheduled";
 
-    const successMessage = getTranslation(settings.language, successKey) ||
-      (notificationType === 'location' ? "Notificación de ubicación programada correctamente" : "Notificación programada correctamente");
+    const successMessage = getTranslation(settings.language, successKey);
 
     new Notice(successMessage, 10000);
     
     if (pushResult.success && pushResult.hasActiveDevices === false) {
-      new Notice(
-        "⚠️ Notelert: Recordatorio programado con éxito, pero NO tienes ningún dispositivo móvil activo vinculado.\n\n" +
-        "Abre la app móvil Notelert en tu teléfono y concede permisos de notificación para recibir las alertas físicamente.",
-        15000
-      );
+      new Notice(getTranslation(settings.language, "notices.noActiveDevice"), 15000);
     }
 
     log(`Push notification programada: ${pushResult.notificationId}`);

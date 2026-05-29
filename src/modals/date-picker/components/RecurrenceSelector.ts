@@ -143,24 +143,24 @@ export function createRecurrenceSelector(
     minWidth: "100px",
   });
 
-  const units: { value: RecurrenceUnit; labelKey: string; defaultLabel: string }[] = [
-    { value: 'day', labelKey: 'recurrence.day', defaultLabel: 'Día(s)' },
-    { value: 'week', labelKey: 'recurrence.week', defaultLabel: 'Semana(s)' },
-    { value: 'month', labelKey: 'recurrence.month', defaultLabel: 'Mes(es)' },
-    { value: 'year', labelKey: 'recurrence.year', defaultLabel: 'Año(s)' },
+  const units: { value: RecurrenceUnit; labelKey: string }[] = [
+    { value: 'day', labelKey: 'recurrence.day' },
+    { value: 'week', labelKey: 'recurrence.week' },
+    { value: 'month', labelKey: 'recurrence.month' },
+    { value: 'year', labelKey: 'recurrence.year' },
   ];
 
   units.forEach(unit => {
     const option = createEl(unitSelect, "option", {
       value: unit.value,
-      text: getTranslation(language, unit.labelKey) || unit.defaultLabel,
+      text: getTranslation(language, unit.labelKey),
     });
     if (unit.value === 'day') option.selected = true;
   });
 
   // Fila: Termina
   const endLabel = createDiv(optionsContainer, {
-    text: getTranslation(language, "recurrence.ends") || "Termina:",
+    text: getTranslation(language, "recurrence.ends"),
   });
   setCssProps(endLabel, {
     marginBottom: "8px",
@@ -188,7 +188,7 @@ export function createRecurrenceSelector(
   neverRadio.name = "recurrence-end";
   neverRadio.value = "never";
   neverRadio.checked = true;
-  createSpan(neverRow, { text: getTranslation(language, "recurrence.never") || "Nunca" });
+  createSpan(neverRow, { text: getTranslation(language, "recurrence.never") });
 
   // Opción: Después de X veces
   const countRow = createEl(endOptionsContainer, "label");
@@ -203,7 +203,7 @@ export function createRecurrenceSelector(
   const countRadio = createEl(countRow, "input", { type: "radio" });
   countRadio.name = "recurrence-end";
   countRadio.value = "count";
-  createSpan(countRow, { text: getTranslation(language, "recurrence.after") || "Después de" });
+  createSpan(countRow, { text: getTranslation(language, "recurrence.after") });
   
   const countInput = createEl(countRow, "input", { type: "number" });
   countInput.value = "10";

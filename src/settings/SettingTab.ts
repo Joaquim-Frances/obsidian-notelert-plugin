@@ -171,16 +171,14 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     };
 
     createEl(bannerContainer, "p", {
-      text:
-        getTranslation(language, "settings.appRequired.message") ||
-        "Este plugin requiere instalar la app de Android para funcionar. Una vez instalada, genera un token desde Settings > App link token en la app y configúralo aquí.",
+      text: getTranslation(language, "settings.appRequired.message"),
       attr: {
         style: "margin: 0 0 10px 0; color: var(--text-muted); font-size: 13px; line-height: 1.6; max-width: 68ch;"
       }
     });
 
     createEl(bannerContainer, "a", {
-      text: getTranslation(language, "settings.appRequired.downloadLink") || "Descargar app de Android",
+      text: getTranslation(language, "settings.appRequired.downloadLink"),
       attr: {
         href: "https://play.google.com/store/apps/details?id=com.quim79.notelert",
         target: "_blank",

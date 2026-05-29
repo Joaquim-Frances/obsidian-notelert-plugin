@@ -36,18 +36,30 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"
       
-      - name: Prepare release assets
-        run: npm run release:assets
-
-      - name: Upload plugin assets
+      - name: Create download ZIP
+        run: |
+          mkdir -p release
+          cp dist/main.js release/
+          cp dist/manifest.json release/
+          cp styles.css release/
+          cd release
+          zip -r ../notelert-plugin.zip .
+          cd ..
+      
+      - name: Upload ZIP as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: notelert-plugin-assets
-          path: |
-            releases/main.js
-            releases/manifest.json
-            releases/styles.css
+          name: notelert-plugin
+          path: notelert-plugin.zip
           retention-days: 90
+      
+      - name: Prepare releases folder
+        run: |
+          mkdir -p releases
+          cp dist/main.js releases/
+          cp dist/manifest.json releases/
+          cp styles.css releases/
+          cp notelert-plugin.zip releases/notelert-plugin.zip
       
       - name: Commit built files to repo
         run: |
