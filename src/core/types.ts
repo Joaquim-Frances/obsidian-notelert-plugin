@@ -15,6 +15,8 @@ export interface ScheduledEmail {
   createdAt: string; // ISO 8601 format
 }
 
+export type DeliveryMode = 'push' | 'email' | 'both';
+
 export interface NotelertSettings {
   autoProcess: boolean;
   processOnSave: boolean;
@@ -35,6 +37,14 @@ export interface NotelertSettings {
   userEmail?: string; // Email del usuario para recibir notificaciones (DEPRECATED: usar pluginToken)
   userId?: string; // ID del usuario de Google (DEPRECATED: usar pluginToken)
   pluginToken?: string; // Token del plugin para autenticación (requerido para premium features: geocodificación y emails)
+  pluginInstallationId: string;
+  notificationEmail: string;
+  notificationEmailStatus: 'missing' | 'pending' | 'verified' | 'disabled';
+  pendingNotificationEmail: string;
+  emailVerificationId: string;
+  emailVerificationExpiresAt: string;
+  hasActivePushDevice?: boolean;
+  deliveryMode: DeliveryMode;
   scheduledEmails: ScheduledEmail[]; // Lista de emails programados
 }
 
