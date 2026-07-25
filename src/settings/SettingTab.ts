@@ -1,4 +1,4 @@
-import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
 import { createDiv, createEl } from "../core/dom";
@@ -69,6 +69,10 @@ export class NotelertSettingTab extends PluginSettingTabBase {
   }
 
   display(): void {
+    this.render();
+  }
+
+  private render(): void {
     const { containerEl } = this;
     containerEl.empty();
 
@@ -91,7 +95,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
           void (async () => {
             this.plugin.settings.language = value;
             await this.plugin.saveSettings();
-            this.display();
+            this.render();
           })();
         });
       });
@@ -120,7 +124,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
             this.plugin.settings.pluginToken = value.trim();
             this.app.saveLocalStorage(this.bannerDismissedKey, null);
             await this.plugin.saveSettings();
-            this.display();
+            this.render();
           })();
         });
       })
@@ -315,12 +319,14 @@ export class NotelertSettingTab extends PluginSettingTabBase {
         isDelete ? "settings.accountPrivacy.finalDelete" : "settings.accountPrivacy.finalExport"
       ))
       .addButton((button) => {
-        const update = () => button.setDisabled(
-          this.isConfirmingAccountAction ||
-          !/^\d{6}$/.test(this.accountActionCode) ||
-          (isDelete && this.accountDeletionConfirmation.toUpperCase() !==
-            getTranslation(language, "settings.accountPrivacy.deleteWord").toUpperCase())
-        );
+        const update = () => {
+          button.setDisabled(
+            this.isConfirmingAccountAction ||
+            !/^\d{6}$/.test(this.accountActionCode) ||
+            (isDelete && this.accountDeletionConfirmation.toUpperCase() !==
+              getTranslation(language, "settings.accountPrivacy.deleteWord").toUpperCase())
+          );
+        };
         update();
         refreshConfirmButton = update;
         button
@@ -344,7 +350,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
         .setDisabled(this.isConfirmingAccountAction)
         .onClick(() => {
           this.resetAccountAction();
-          this.display();
+          this.render();
         }));
   }
 
@@ -355,7 +361,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     try {
       this.accountSummary = await getAccountSummary(token);
       this.accountSummaryToken = token;
-      this.display();
+      this.render();
     } catch (error) {
       this.plugin.log(`No se pudo cargar el resumen de cuenta: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -366,7 +372,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
   private async beginAccountAction(action: AccountAction, language: string): Promise<void> {
     this.accountAction = action;
     this.isRequestingAccountAction = true;
-    this.display();
+    this.render();
     try {
       const result = await requestAccountAction({
         pluginToken: this.plugin.settings.pluginToken || "",
@@ -382,7 +388,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       new Notice(error instanceof Error ? error.message : String(error), 10000);
     } finally {
       this.isRequestingAccountAction = false;
-      this.display();
+      this.render();
     }
   }
 
@@ -390,7 +396,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     if (!this.accountAction || !this.accountActionVerificationId) return;
     const action = this.accountAction;
     this.isConfirmingAccountAction = true;
-    this.display();
+    this.render();
     try {
       const result = await confirmAccountAction<Record<string, unknown>>({
         pluginToken: this.plugin.settings.pluginToken || "",
@@ -412,7 +418,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       new Notice(error instanceof Error ? error.message : String(error), 10000);
     } finally {
       this.isConfirmingAccountAction = false;
-      this.display();
+      this.render();
     }
   }
 
@@ -428,11 +434,17 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     return fileName;
   }
 
-  private async revokeInstallation(language: string): Promise<void> {
-    const accepted = window.confirm(getTranslation(language, "settings.accountPrivacy.revokeConfirm"));
-    if (!accepted) return;
+  private revokeInstallation(language: string): void {
+    new RevokeInstallationModal(
+      this.app,
+      getTranslation(language, "settings.accountPrivacy.revokeConfirm"),
+      () => void this.performRevokeInstallation(language)
+    ).open();
+  }
+
+  private async performRevokeInstallation(language: string): Promise<void> {
     this.isRevokingInstallation = true;
-    this.display();
+    this.render();
     try {
       await revokeCurrentInstallation(this.plugin.settings.pluginToken || "");
       await this.clearLocalAccountState();
@@ -441,7 +453,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       new Notice(error instanceof Error ? error.message : String(error), 10000);
     } finally {
       this.isRevokingInstallation = false;
-      this.display();
+      this.render();
     }
   }
 
@@ -571,7 +583,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
 
   private async openStripeCheckout(period: "monthly" | "yearly"): Promise<void> {
     this.isOpeningBilling = true;
-    this.display();
+    this.render();
     try {
       const url = await createStripeCheckout(
         this.plugin.settings.pluginToken || "",
@@ -584,7 +596,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       new Notice(error instanceof Error ? error.message : String(error), 10000);
     } finally {
       this.isOpeningBilling = false;
-      this.display();
+      this.render();
     }
   }
 
@@ -609,7 +621,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     try {
       const status = await getPremiumStatus(token, true);
       if (this.planStatusKey(status) !== before) {
-        this.display();
+        this.render();
       }
 
       const premiumUsageReady = status.isPremium
@@ -628,7 +640,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
 
   private async openStripePortal(): Promise<void> {
     this.isOpeningBilling = true;
-    this.display();
+    this.render();
     try {
       const url = await createStripePortal(this.plugin.settings.pluginToken || "");
       window.open(url, "_blank");
@@ -636,7 +648,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       new Notice(error instanceof Error ? error.message : String(error), 10000);
     } finally {
       this.isOpeningBilling = false;
-      this.display();
+      this.render();
     }
   }
 
@@ -651,7 +663,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     try {
       const status = await getPremiumStatus(token, true);
       if (this.planStatusKey(status) !== before) {
-        this.display();
+        this.render();
       }
     } finally {
       this.isRefreshingPlanStatus = false;
@@ -693,7 +705,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
             .onClick(() => {
               this.candidateEmail = "";
               this.isEditingNotificationEmail = true;
-              this.display();
+              this.render();
             });
         });
       }
@@ -815,10 +827,9 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       return;
     }
 
-    const spinner = document.createElement("span");
+    const spinner = buttonEl.createEl("span");
     spinner.className = "notelert-spinner notelert-button-spinner";
     spinner.setAttribute("aria-hidden", "true");
-    buttonEl.appendChild(spinner);
     buttonEl.setAttribute("aria-busy", "true");
     buttonEl.setAttribute("aria-label", label);
   }
@@ -831,7 +842,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     }
 
     this.isSendingVerificationCode = true;
-    this.display();
+    this.render();
     try {
       const result = await requestEmailVerification({
         email,
@@ -851,7 +862,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       new Notice(error instanceof Error ? error.message : String(error), 10000);
     } finally {
       this.isSendingVerificationCode = false;
-      this.display();
+      this.render();
     }
   }
 
@@ -862,7 +873,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     }
 
     this.isVerifyingEmailCode = true;
-    this.display();
+    this.render();
     try {
       const result = await verifyNotificationEmail({
         verificationId: this.plugin.settings.emailVerificationId,
@@ -891,7 +902,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       new Notice(error instanceof Error ? error.message : String(error), 10000);
     } finally {
       this.isVerifyingEmailCode = false;
-      this.display();
+      this.render();
     }
   }
 
@@ -958,7 +969,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     });
     closeButton.onclick = () => {
       this.app.saveLocalStorage(this.bannerDismissedKey, "true");
-      this.display();
+      this.render();
     };
 
     createEl(bannerContainer, "p", {
@@ -982,5 +993,37 @@ export class NotelertSettingTab extends PluginSettingTabBase {
         `
       }
     });
+  }
+}
+
+class RevokeInstallationModal extends Modal {
+  constructor(
+    app: App,
+    private readonly message: string,
+    private readonly onConfirm: () => void
+  ) {
+    super(app);
+  }
+
+  onOpen(): void {
+    this.contentEl.empty();
+    this.contentEl.createEl("p", { text: this.message });
+    const actions = this.contentEl.createDiv({ cls: "modal-button-container" });
+
+    const cancelButton = actions.createEl("button", { text: "Cancel" });
+    cancelButton.addEventListener("click", () => this.close());
+
+    const confirmButton = actions.createEl("button", {
+      text: "Confirm",
+      cls: "mod-warning",
+    });
+    confirmButton.addEventListener("click", () => {
+      this.onConfirm();
+      this.close();
+    });
+  }
+
+  onClose(): void {
+    this.contentEl.empty();
   }
 }

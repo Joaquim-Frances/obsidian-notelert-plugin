@@ -51,7 +51,7 @@ export function createDebugPanel(
     boxSizing: "border-box",
     fontFamily: "monospace",
     fontSize: "11px",
-  } as Partial<CSSStyleDeclaration>);
+  });
   setElementId(logContainer, "debug-log-container");
 
   const logs: string[] = [];
@@ -114,7 +114,7 @@ export function createDebugPanel(
           borderRadius: "2px",
           wordWrap: "break-word",
           whiteSpace: "pre-wrap",
-        } as Partial<CSSStyleDeclaration>);
+        });
         setElementText(logLine, log);
       });
       

@@ -7,7 +7,6 @@ import { getTranslation } from "../../../i18n";
 import { setCssProps, createDiv, createEl, setElementId, emptyElement, findHTMLElement, addElementListener } from "../../../core/dom";
 import { loadLocationsFromBackend } from "../utils/location-api";
 import { INotelertPlugin } from "../../../core/plugin-interface";
-import { getCachedPremiumStatus } from "../../../features/premium/premium-service";
 
 export interface LocationListResult {
   container: HTMLElement;
@@ -54,7 +53,7 @@ export async function createLocationList(
     border: "2px solid var(--interactive-accent)",
     borderRadius: "8px",
     boxSizing: "border-box",
-  } as Partial<CSSStyleDeclaration>);
+  });
   setElementId(listContainer, "location-list-container");
 
   let selectedLocation: SavedLocation | null = null;

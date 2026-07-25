@@ -388,11 +388,16 @@ export async function schedulePushNotification(
     const result = parseFirebaseScheduleResponse(response.text, notificationId);
     let hasActiveDevices = true;
     try {
-      const responseJson = JSON.parse(response.text);
-      if (responseJson && typeof responseJson.hasActiveDevices === 'boolean') {
+      const responseJson: unknown = JSON.parse(response.text);
+      if (
+        responseJson !== null &&
+        typeof responseJson === 'object' &&
+        'hasActiveDevices' in responseJson &&
+        typeof responseJson.hasActiveDevices === 'boolean'
+      ) {
         hasActiveDevices = responseJson.hasActiveDevices;
       }
-    } catch (e) {
+    } catch {
       // Ignorar fallo en parseo de JSON
     }
 
