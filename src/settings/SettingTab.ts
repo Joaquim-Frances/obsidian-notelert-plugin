@@ -827,7 +827,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       return;
     }
 
-    const spinner = buttonEl.createEl("span");
+    const spinner = createEl(buttonEl, "span");
     spinner.className = "notelert-spinner notelert-button-spinner";
     spinner.setAttribute("aria-hidden", "true");
     buttonEl.setAttribute("aria-busy", "true");
@@ -1007,13 +1007,13 @@ class RevokeInstallationModal extends Modal {
 
   onOpen(): void {
     this.contentEl.empty();
-    this.contentEl.createEl("p", { text: this.message });
-    const actions = this.contentEl.createDiv({ cls: "modal-button-container" });
+    createEl(this.contentEl, "p", { text: this.message });
+    const actions = createDiv(this.contentEl, { cls: "modal-button-container" });
 
-    const cancelButton = actions.createEl("button", { text: "Cancel" });
+    const cancelButton = createEl(actions, "button", { text: "Cancel" });
     cancelButton.addEventListener("click", () => this.close());
 
-    const confirmButton = actions.createEl("button", {
+    const confirmButton = createEl(actions, "button", {
       text: "Confirm",
       cls: "mod-warning",
     });
