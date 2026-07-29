@@ -31,11 +31,16 @@ async function billingRequest(url: string, pluginToken: string, body: Record<str
 export function createStripeCheckout(
   pluginToken: string,
   billingPeriod: 'monthly' | 'yearly',
-  locale: string
+  locale: string,
+  obsidianVault: string
 ): Promise<string> {
-  return billingRequest(PLUGIN_CREATE_STRIPE_CHECKOUT_URL, pluginToken, { billingPeriod, locale });
+  return billingRequest(PLUGIN_CREATE_STRIPE_CHECKOUT_URL, pluginToken, {
+    billingPeriod,
+    locale,
+    obsidianVault,
+  });
 }
 
-export function createStripePortal(pluginToken: string): Promise<string> {
-  return billingRequest(PLUGIN_CREATE_STRIPE_PORTAL_URL, pluginToken, {});
+export function createStripePortal(pluginToken: string, obsidianVault: string): Promise<string> {
+  return billingRequest(PLUGIN_CREATE_STRIPE_PORTAL_URL, pluginToken, { obsidianVault });
 }

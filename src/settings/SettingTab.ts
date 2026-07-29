@@ -1,4 +1,4 @@
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { App, Modal, Notice, Platform, Plugin, PluginSettingTab, Setting } from "obsidian";
 import { INotelertPlugin } from "../core/plugin-interface";
 import { SUPPORTED_LANGUAGES, getTranslation } from "../i18n";
 import { createDiv, createEl } from "../core/dom";
@@ -566,33 +566,71 @@ export class NotelertSettingTab extends PluginSettingTabBase {
         getTranslation(language, "settings.emailPlan.manageBilling")
       );
     } else if (!status.isPremium || status.source === "trial") {
+      const monthlyLabel = getTranslation(language, "settings.emailPlan.upgradeMonthly");
+      const yearlyLabel = getTranslation(language, "settings.emailPlan.upgradeYearly");
+      const actionWidth = this.measurePlanActionWidth([monthlyLabel, yearlyLabel]);
       const monthlyButton = createEl(actions, "button", {
-        text: getTranslation(language, "settings.emailPlan.upgradeMonthly"),
+        text: monthlyLabel,
       });
-      monthlyButton.addClass("mod-cta");
+      monthlyButton.addClass("mod-cta", "notelert-plan-action-button");
+      monthlyButton.style.width = actionWidth;
       monthlyButton.disabled = this.isOpeningBilling;
       monthlyButton.addEventListener("click", () => void this.openStripeCheckout("monthly"));
+      this.renderButtonLoading(
+        monthlyButton,
+        this.isOpeningBilling,
+        monthlyLabel
+      );
 
       const yearlyButton = createEl(actions, "button", {
-        text: getTranslation(language, "settings.emailPlan.upgradeYearly"),
+        text: yearlyLabel,
       });
+      yearlyButton.addClass("notelert-plan-action-button");
+      yearlyButton.style.width = actionWidth;
       yearlyButton.disabled = this.isOpeningBilling;
       yearlyButton.addEventListener("click", () => void this.openStripeCheckout("yearly"));
+      this.renderButtonLoading(
+        yearlyButton,
+        this.isOpeningBilling,
+        yearlyLabel
+      );
     }
   }
 
+  /** Measures both localized labels before a loading state replaces them. */
+  private measurePlanActionWidth(labels: string[]): string {
+    const widths = labels.map((label) => {
+      const measure = createEl(document.body, "button", { text: label });
+      measure.addClass("notelert-plan-action-button", "notelert-plan-action-measure");
+      const width = Math.ceil(measure.getBoundingClientRect().width);
+      measure.remove();
+      return width;
+    });
+    return `${Math.max(...widths)}px`;
+  }
+
   private async openStripeCheckout(period: "monthly" | "yearly"): Promise<void> {
+    // Android hands an about:blank tab to its external browser but doesn't let
+    // the Obsidian webview navigate it afterwards. Pre-open only on desktop;
+    // mobile keeps a visible in-plugin spinner until Stripe returns the URL.
+    const checkoutWindow = Platform.isMobile ? null : window.open("about:blank", "_blank");
     this.isOpeningBilling = true;
     this.render();
     try {
       const url = await createStripeCheckout(
         this.plugin.settings.pluginToken || "",
         period,
-        this.plugin.settings.language
+        this.plugin.settings.language,
+        this.app.vault.getName()
       );
-      window.open(url, "_blank");
+      if (checkoutWindow && !checkoutWindow.closed) {
+        checkoutWindow.location.href = url;
+      } else {
+        window.open(url, "_blank");
+      }
       this.startCheckoutStatusPolling();
     } catch (error) {
+      checkoutWindow?.close();
       new Notice(error instanceof Error ? error.message : String(error), 10000);
     } finally {
       this.isOpeningBilling = false;
@@ -600,11 +638,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     }
   }
 
-  /**
-   * Stripe confirms Checkout asynchronously through its webhook. Keep the
-   * complete plan snapshot fresh while the customer is in the external
-   * browser so the badge, quota and billing action change together on return.
-   */
+  /** Keeps the entitlement UI fresh while Stripe confirms Checkout by webhook. */
   private startCheckoutStatusPolling(): void {
     const pollId = ++this.checkoutStatusPollId;
     window.setTimeout(() => void this.pollCheckoutStatus(pollId, 45), 1500);
@@ -620,9 +654,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     this.isRefreshingPlanStatus = true;
     try {
       const status = await getPremiumStatus(token, true);
-      if (this.planStatusKey(status) !== before) {
-        this.render();
-      }
+      if (this.planStatusKey(status) !== before) this.render();
 
       const premiumUsageReady = status.isPremium
         && status.plan === "premium"
@@ -632,17 +664,14 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       this.isRefreshingPlanStatus = false;
     }
 
-    window.setTimeout(
-      () => void this.pollCheckoutStatus(pollId, attemptsRemaining - 1),
-      2000
-    );
+    window.setTimeout(() => void this.pollCheckoutStatus(pollId, attemptsRemaining - 1), 2000);
   }
 
   private async openStripePortal(): Promise<void> {
     this.isOpeningBilling = true;
     this.render();
     try {
-      const url = await createStripePortal(this.plugin.settings.pluginToken || "");
+      const url = await createStripePortal(this.plugin.settings.pluginToken || "", this.app.vault.getName());
       window.open(url, "_blank");
     } catch (error) {
       new Notice(error instanceof Error ? error.message : String(error), 10000);

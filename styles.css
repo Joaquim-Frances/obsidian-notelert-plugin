@@ -164,9 +164,23 @@ button[aria-busy="true"] {
 
 .notelert-plan-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 0.5rem;
   margin-top: 0.8rem;
+}
+
+.notelert-plan-action-button {
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.notelert-plan-action-measure {
+  position: fixed;
+  visibility: hidden;
+  pointer-events: none;
+  inset: -9999px auto auto -9999px;
+  width: auto !important;
 }
 
 .notelert-validate-email-button:disabled {
