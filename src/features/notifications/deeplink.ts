@@ -3,6 +3,7 @@ import { DetectedPattern, NotelertSettings, ScheduledEmail } from "../../core/ty
 import { getTranslation } from "../../i18n";
 import { scheduleEmailReminderProxy, schedulePushNotification, generateNotificationId } from "./firebase-api";
 import { isIOS, errorToString } from "./utils";
+import { getPremiumStatus } from "../premium/premium-service";
 
 export function generateDeepLink(pattern: DetectedPattern, app: App): string {
   const title = encodeURIComponent(pattern.title);
@@ -116,52 +117,76 @@ export async function createNotification(
     // Mostrar feedback visual inmediato
     const loadingNotice = new Notice(getTranslation(settings.language, "notices.schedulingNotification"), 0); // 0 = no auto-close
 
-    // Programar push notification (funciona para tiempo y ubicación)
-    const pushResult = await schedulePushNotification(
-      {
-        ...pattern,
-        message: cleanMessage, // Usar mensaje limpio
-      },
-      notificationId,
-      settings.pluginToken,
-      obsidianDeepLink,
-      settings.language
-    );
+    const hasVerifiedEmail = notificationType === 'time' &&
+      settings.notificationEmailStatus === 'verified' &&
+      !!settings.notificationEmail &&
+      !!scheduledDate;
+    const deliveryMode = settings.deliveryMode || (hasVerifiedEmail ? 'both' : 'push');
+    const wantsEmail = notificationType === 'time' && deliveryMode !== 'push';
+    const wantsPush = notificationType === 'location' || deliveryMode !== 'email';
+    // `undefined` conserva el flujo push de instalaciones antiguas hasta que
+    // se sincronice la configuración. Las cuentas email-only reciben false.
+    const hasPushDelivery = settings.hasActivePushDevice !== false;
+    const shouldSchedulePush = wantsPush && hasPushDelivery;
+    const shouldScheduleEmail = wantsEmail && hasVerifiedEmail;
 
-    // Cerrar el notice de carga
-    loadingNotice.hide();
-
-    if (!pushResult.success) {
-      // Error al programar push notification
-      let errorMessage = pushResult.error || getTranslation(settings.language, "notices.pushScheduleError");
-
-      // Manejar códigos de error específicos con mensajes traducidos
-      if (pushResult.errorCode === 'TOKEN_INVALID') {
-        errorMessage = getTranslation(settings.language, "notices.tokenInvalid403") || errorMessage;
-      } else if (pushResult.errorCode === 'LINK_ERROR') {
-        errorMessage = getTranslation(settings.language, "notices.linkError400") || errorMessage;
-      } else if (pushResult.errorCode === 'PREMIUM_REQUIRED') {
-        errorMessage = getTranslation(settings.language, "datePicker.premiumRequiredDesc") || errorMessage;
-      }
-
-      new Notice(errorMessage, 10000); // 10 segundos para que el usuario pueda leerlo bien
-      log(`Error programando push notification: ${errorMessage}`);
-      throw new Error(errorMessage);
+    let unavailableDeliveryMessage = '';
+    if (notificationType === 'location' && deliveryMode === 'email') {
+      unavailableDeliveryMessage = getTranslation(settings.language, "notices.locationRequiresPush");
+    } else if (wantsEmail && !hasVerifiedEmail) {
+      unavailableDeliveryMessage = getTranslation(settings.language, "notices.emailDeliveryUnavailable");
+    } else if (wantsPush && !hasPushDelivery) {
+      unavailableDeliveryMessage = getTranslation(settings.language, "notices.pushDeliveryUnavailable");
     }
 
-    // Si es notificación de tiempo y tenemos email configurado, también programar email
-    if (notificationType === 'time' && settings.userEmail && scheduledDate) {
-      log(`También programando email para notificación de tiempo`);
+    if (unavailableDeliveryMessage || (!shouldSchedulePush && !shouldScheduleEmail)) {
+      loadingNotice.hide();
+      const errorMessage = unavailableDeliveryMessage || getTranslation(settings.language, "notices.deliveryRequired");
+      new Notice(errorMessage, 10000);
+      const deliveryError = new Error(errorMessage);
+      deliveryError.name = 'DeliveryConfigurationError';
+      throw deliveryError;
+    }
 
+    let pushSucceeded = false;
+    let emailSucceeded = false;
+    let deliveryError = '';
+
+    if (shouldSchedulePush) {
+      const pushResult = await schedulePushNotification(
+        { ...pattern, message: cleanMessage },
+        notificationId,
+        settings.pluginToken,
+        obsidianDeepLink,
+        settings.language
+      );
+      pushSucceeded = pushResult.success;
+      if (!pushResult.success) {
+        deliveryError = pushResult.error || getTranslation(settings.language, "notices.pushScheduleError");
+        if (pushResult.errorCode === 'TOKEN_INVALID') {
+          deliveryError = getTranslation(settings.language, "notices.tokenInvalid403") || deliveryError;
+        } else if (pushResult.errorCode === 'LINK_ERROR') {
+          deliveryError = getTranslation(settings.language, "notices.linkError400") || deliveryError;
+        } else if (pushResult.errorCode === 'PREMIUM_REQUIRED') {
+          deliveryError = getTranslation(settings.language, "datePicker.premiumRequiredDesc") || deliveryError;
+        }
+        log(`Error programando push notification: ${deliveryError}`);
+      } else if (pushResult.hasActiveDevices === false) {
+        settings.hasActivePushDevice = false;
+      }
+    }
+
+    if (shouldScheduleEmail && scheduledDate) {
+      log(`Programando entrega por email verificado`);
       const emailResult = await scheduleEmailReminderProxy(
-        settings.userEmail,
         pattern.title,
         cleanMessage,
         scheduledDate,
-        notificationId, // Mismo ID para mantener consistencia
+        notificationId,
         settings.pluginToken,
         settings.language
       );
+      emailSucceeded = emailResult.success;
 
       if (emailResult.success && emailResult.notificationId) {
         // Guardar el email programado en settings
@@ -178,19 +203,34 @@ export async function createNotification(
           onEmailScheduled(scheduledEmail);
         }
 
-        log(`Email también programado: ${emailResult.notificationId}`);
+        log(`Email programado: ${emailResult.notificationId}`);
+        void getPremiumStatus(settings.pluginToken, true);
       } else {
-        // No fallar si el email falla, solo loggear
-        log(`Advertencia: Push notification programada pero email falló: ${emailResult.error || 'Error desconocido'}`);
-        // Mostrar el error al usuario si es crítico
-        if (emailResult.error && (emailResult.error.includes('Token') || emailResult.error.includes('premium'))) {
-          new Notice(`⚠️ ${emailResult.error}`, 10000);
-        }
+        deliveryError = emailResult.error || deliveryError;
+        log(`Error programando email: ${deliveryError || 'Error desconocido'}`);
       }
     }
 
+    loadingNotice.hide();
+    if (!pushSucceeded && !emailSucceeded) {
+      const errorMessage = deliveryError || getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title });
+      new Notice(errorMessage, 10000);
+      throw new Error(errorMessage);
+    }
+
+    const partialDelivery = (shouldSchedulePush && !pushSucceeded) || (shouldScheduleEmail && !emailSucceeded);
+    if (partialDelivery) {
+      new Notice(getTranslation(settings.language, "notices.deliveryPartiallyScheduled"), 10000);
+      log(`Recordatorio programado parcialmente (push=${pushSucceeded}, email=${emailSucceeded}): ${deliveryError}`);
+      return;
+    }
+
     // Mostrar mensaje de éxito
-    const successKey = notificationType === 'location'
+    const successKey = emailSucceeded && pushSucceeded
+      ? "notices.bothScheduled"
+      : emailSucceeded && !pushSucceeded
+      ? "notices.emailScheduled"
+      : notificationType === 'location'
       ? "notices.pushNotificationScheduledLocation"
       : "notices.pushNotificationScheduled";
 
@@ -198,14 +238,11 @@ export async function createNotification(
 
     new Notice(successMessage, 10000);
     
-    if (pushResult.success && pushResult.hasActiveDevices === false) {
-      new Notice(getTranslation(settings.language, "notices.noActiveDevice"), 15000);
-    }
-
-    log(`Push notification programada: ${pushResult.notificationId}`);
+    log(`Recordatorio programado (push=${pushSucceeded}, email=${emailSucceeded})`);
   } catch (error: unknown) {
     // Solo loggear errores inesperados, los errores de negocio ya se mostraron
     if (error instanceof Error && (
+      error.name === 'DeliveryConfigurationError' ||
       error.message.includes('Error al programar email') ||
       error.message.includes('Token') ||
       error.message.includes('inválido') ||

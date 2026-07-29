@@ -7,6 +7,6 @@ export interface INotelertPlugin {
   log(message: string): void;
   createNotificationAndMarkProcessed(pattern: DetectedPattern): Promise<void>;
   saveSettings(): Promise<void>;
+  syncDeliveryConfiguration?(): Promise<void>;
   loadSettings?(): Promise<void>; // Opcional para compatibilidad
 }
-

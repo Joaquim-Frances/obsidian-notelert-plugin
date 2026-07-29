@@ -6,6 +6,7 @@ import { handleEditorChange } from "./features/datetime/handlers";
 import { createNotification } from "./features/notifications";
 import { getTranslation } from "./i18n";
 import { invalidatePremiumCache, preloadPremiumStatus } from "./features/premium/premium-service";
+import { getNotificationEmailConfiguration } from "./features/notifications/email-verification-api";
 
 export class NotelertPlugin extends Plugin {
   settings: NotelertSettings;
@@ -13,6 +14,7 @@ export class NotelertPlugin extends Plugin {
   async onload() {
     console.debug("Cargando plugin Notelert");
     await this.loadSettings();
+    await this.ensureInstallationId();
 
     // Configuración del plugin
     this.addSettingTab(new NotelertSettingTab(this.app, this));
@@ -41,6 +43,7 @@ export class NotelertPlugin extends Plugin {
 
     // Precargar estado premium en segundo plano (no bloquea la carga del plugin)
     void this.preloadPremium();
+    void this.syncDeliveryConfiguration();
 
     console.debug("Plugin Notelert cargado correctamente");
   }
@@ -64,10 +67,49 @@ export class NotelertPlugin extends Plugin {
   async loadSettings() {
     const loadedSettings = (await this.loadData()) as Partial<NotelertSettings> | null;
     this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedSettings ?? {});
+    // Migración no disruptiva: los usuarios existentes conservan push como
+    // único canal salvo que ya tengan un email verificado, en cuyo caso el
+    // comportamiento anterior era programar ambos canales disponibles.
+    if (!loadedSettings?.deliveryMode) {
+      this.settings.deliveryMode = this.settings.notificationEmailStatus === "verified"
+        ? "both"
+        : "push";
+    }
   }
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+
+  private async ensureInstallationId(): Promise<void> {
+    if (this.settings.pluginInstallationId) {
+      return;
+    }
+
+    const bytes = new Uint8Array(24);
+    window.crypto.getRandomValues(bytes);
+    this.settings.pluginInstallationId = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    await this.saveSettings();
+  }
+
+  public async syncDeliveryConfiguration(): Promise<void> {
+    const token = this.settings.pluginToken?.trim();
+    if (!token) {
+      return;
+    }
+
+    try {
+      const configuration = await getNotificationEmailConfiguration(token);
+      this.settings.notificationEmail = configuration.notificationEmail || "";
+      this.settings.notificationEmailStatus = configuration.status;
+      this.settings.hasActivePushDevice = configuration.hasActivePushDevice;
+      // Compatibilidad de lectura con versiones anteriores. El servidor sigue
+      // siendo la única fuente autorizada del destinatario.
+      this.settings.userEmail = configuration.notificationEmail || "";
+      await this.saveSettings();
+    } catch (error) {
+      this.log(`No se pudo sincronizar la configuración de entrega: ${error}`);
+    }
   }
 
   // Crear la notificación (función separada para reutilizar)
@@ -161,6 +203,7 @@ export class NotelertPlugin extends Plugin {
       await this.saveSettings();
       invalidatePremiumCache();
       void preloadPremiumStatus(this.settings.pluginToken);
+      void this.syncDeliveryConfiguration();
 
       // Mostrar notificación de éxito
       new Notice(getTranslation(this.settings.language, "notices.tokenLinked"), 10000);

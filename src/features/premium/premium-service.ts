@@ -15,6 +15,18 @@ const PLUGIN_GET_PREMIUM_STATUS_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginGetPr
 export interface PremiumStatus {
   isPremium: boolean;
   expiresAt?: Date;
+  source?: 'developer' | 'purchase' | 'stripe' | 'trial' | 'none';
+  plan?: 'free' | 'trial' | 'premium';
+  hasStripeBilling?: boolean;
+  emailUsage?: {
+    used: number;
+    reserved: number;
+    sent: number;
+    limit: number;
+    remaining: number;
+    periodKey: string;
+    resetsAt?: Date;
+  };
   cached?: boolean;
   loading?: boolean;
 }
@@ -144,7 +156,23 @@ async function fetchPremiumStatus(
     console.debug(`[PremiumService] Respuesta recibida: status=${response.status}`);
 
     // Parsear respuesta
-    const data = response.json as { isPremium?: boolean; expiresAt?: string; error?: string };
+    const data = response.json as {
+      isPremium?: boolean;
+      expiresAt?: string;
+      source?: PremiumStatus['source'];
+      plan?: PremiumStatus['plan'];
+      hasStripeBilling?: boolean;
+      emailUsage?: {
+        used: number;
+        reserved: number;
+        sent: number;
+        limit: number;
+        remaining: number;
+        periodKey: string;
+        resetsAt?: string | null;
+      };
+      error?: string;
+    };
 
     if (response.status === 200) {
       const isPremium = data.isPremium === true;
@@ -152,6 +180,13 @@ async function fetchPremiumStatus(
         isPremium,
         loading: false,
         expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
+        source: data.source,
+        plan: data.plan || (isPremium ? 'premium' : 'free'),
+        hasStripeBilling: data.hasStripeBilling === true,
+        emailUsage: data.emailUsage ? {
+          ...data.emailUsage,
+          resetsAt: data.emailUsage.resetsAt ? new Date(data.emailUsage.resetsAt) : undefined,
+        } : undefined,
       };
 
       console.debug(`[PremiumService] ${isPremium ? '✅ Usuario ES premium' : '❌ Usuario NO es premium'}`);

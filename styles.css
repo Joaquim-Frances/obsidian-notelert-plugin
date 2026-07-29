@@ -18,7 +18,187 @@
   animation: notelert-spin 1s linear infinite;
 }
 
+.notelert-button-spinner {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+button[aria-busy="true"] {
+  min-width: 44px;
+  cursor: wait;
+}
+
 .notelert-legacy-section-heading {
   margin-top: 1.25rem;
   margin-bottom: 0.75rem;
+}
+
+.notelert-account-privacy {
+  margin: 1.5rem 0 0.5rem;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  background: var(--background-secondary);
+  overflow: hidden;
+}
+
+.notelert-account-privacy-summary {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem 0.85rem 2.35rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.notelert-account-privacy-summary:hover {
+  background: var(--background-modifier-hover);
+}
+
+.notelert-account-privacy-summary::-webkit-details-marker {
+  display: none;
+}
+
+.notelert-account-privacy-summary::before {
+  content: "›";
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  transform: translateY(-50%);
+  transition: transform 150ms ease;
+}
+
+.notelert-account-privacy[open] > .notelert-account-privacy-summary::before {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+.notelert-account-privacy-title {
+  color: var(--text-normal);
+  font-weight: 600;
+}
+
+.notelert-account-privacy-hint {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  font-weight: 400;
+}
+
+.notelert-account-privacy-content {
+  padding: 0 1rem 0.35rem;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.notelert-active-email .setting-item-description {
+  color: var(--text-success);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.notelert-plan-card {
+  margin: 0.75rem 0 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  background: var(--background-secondary);
+}
+
+.notelert-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.notelert-plan-title,
+.notelert-email-counter {
+  font-weight: 600;
+}
+
+.notelert-plan-badge {
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.notelert-plan-badge.is-free {
+  color: var(--text-normal);
+  background: var(--background-modifier-border);
+}
+
+.notelert-plan-badge.is-premium {
+  color: #fff;
+  background: var(--interactive-accent);
+}
+
+.notelert-email-progress {
+  height: 7px;
+  margin: 0.5rem 0 0.65rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--background-modifier-border);
+}
+
+.notelert-email-progress-value {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--interactive-accent);
+  transition: width 180ms ease;
+}
+
+.notelert-plan-description {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.notelert-plan-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.notelert-plan-action-button {
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+body .notelert-plan-action-measure {
+  position: fixed;
+  visibility: hidden;
+  pointer-events: none;
+  inset: -9999px auto auto -9999px;
+  width: auto;
+}
+
+.notelert-validate-email-button:disabled {
+  opacity: 0.28;
+  filter: saturate(0.2);
+  cursor: not-allowed;
+}
+
+.notelert-validate-email-button.is-valid,
+.notelert-validate-email-button.is-valid:hover,
+.notelert-validate-email-button.is-valid:focus-visible {
+  background-color: #258750;
+  border-color: #258750;
+  color: #fff;
+  opacity: 1;
+}
+
+.notelert-validate-email-button.is-valid:hover {
+  background-color: #1f7545;
+  border-color: #1f7545;
 }

@@ -56,7 +56,6 @@ function getFirebaseErrorMessage(errorData: FirebaseErrorResponse, fallback: str
  * Usa autenticación por userId/userEmail
  */
 export async function scheduleEmailReminderProxy(
-  userEmail: string,
   title: string,
   message: string,
   scheduledDate: Date,
@@ -66,12 +65,10 @@ export async function scheduleEmailReminderProxy(
 ): Promise<ScheduleEmailResult> {
   try {
     const requestBody = {
-      to: userEmail,
       title: title,
       message: message,
       scheduledDate: scheduledDate.toISOString(),
       notificationId: notificationId,
-      userEmail: userEmail, // Requerido para autenticación (deprecated, ahora se usa token)
     };
 
     if (!pluginToken || pluginToken.trim() === '') {
@@ -391,11 +388,16 @@ export async function schedulePushNotification(
     const result = parseFirebaseScheduleResponse(response.text, notificationId);
     let hasActiveDevices = true;
     try {
-      const responseJson = JSON.parse(response.text);
-      if (responseJson && typeof responseJson.hasActiveDevices === 'boolean') {
+      const responseJson: unknown = JSON.parse(response.text);
+      if (
+        responseJson !== null &&
+        typeof responseJson === 'object' &&
+        'hasActiveDevices' in responseJson &&
+        typeof responseJson.hasActiveDevices === 'boolean'
+      ) {
         hasActiveDevices = responseJson.hasActiveDevices;
       }
-    } catch (e) {
+    } catch {
       // Ignorar fallo en parseo de JSON
     }
 

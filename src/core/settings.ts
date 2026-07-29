@@ -20,6 +20,13 @@ export const DEFAULT_SETTINGS: NotelertSettings = {
   userEmail: "", // Email del usuario (requerido en desktop - DEPRECATED: usar pluginToken)
   userId: "", // ID del usuario de Google (opcional - DEPRECATED: usar pluginToken)
   pluginToken: "", // Token del plugin para autenticación (requerido para premium features)
+  pluginInstallationId: "",
+  notificationEmail: "",
+  notificationEmailStatus: "missing",
+  pendingNotificationEmail: "",
+  emailVerificationId: "",
+  emailVerificationExpiresAt: "",
+  hasActivePushDevice: undefined,
+  deliveryMode: "push",
   scheduledEmails: [], // Lista de emails programados
 };
-
