@@ -175,12 +175,12 @@ button[aria-busy="true"] {
   white-space: nowrap;
 }
 
-.notelert-plan-action-measure {
+body .notelert-plan-action-measure {
   position: fixed;
   visibility: hidden;
   pointer-events: none;
   inset: -9999px auto auto -9999px;
-  width: auto !important;
+  width: auto;
 }
 
 .notelert-validate-email-button:disabled {
