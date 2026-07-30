@@ -248,6 +248,17 @@ export function invalidatePremiumCache(): void {
 }
 
 /**
+ * Clears the account-derived Premium state after unlinking or deleting the
+ * local installation. Unlike invalidation, this is final for the current
+ * session and notifies open settings/modals immediately.
+ */
+export function clearPremiumStatus(): void {
+  cachedStatus = { isPremium: false, loading: false };
+  cacheTimestamp = Date.now();
+  notifyStatusChange(cachedStatus);
+}
+
+/**
  * Verifica si el usuario es premium (versión síncrona usando cache)
  * Devuelve false si no hay cache válido
  */
