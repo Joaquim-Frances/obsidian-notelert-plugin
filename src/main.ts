@@ -75,6 +75,11 @@ export class NotelertPlugin extends Plugin {
         ? "both"
         : "push";
     }
+    if (!loadedSettings?.deliveryChannels) {
+      this.settings.deliveryChannels = this.settings.deliveryMode === "both"
+        ? ["push", "email"]
+        : [this.settings.deliveryMode];
+    }
   }
 
   async saveSettings() {

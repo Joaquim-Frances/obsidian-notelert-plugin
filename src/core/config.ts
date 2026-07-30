@@ -29,3 +29,7 @@ export const PLUGIN_LIST_LOCATIONS_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginLi
 
 // URL del endpoint para programar notificaciones push desde el plugin
 export const PLUGIN_SCHEDULE_PUSH_NOTIFICATION_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginSchedulePushNotification`;
+export const PLUGIN_GOOGLE_CALENDAR_CONNECTION_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginGoogleCalendarConnection`;
+export const PLUGIN_SCHEDULE_GOOGLE_CALENDAR_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginScheduleGoogleCalendar`;
+export const PLUGIN_TELEGRAM_CONNECTION_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginTelegramConnection`;
+export const PLUGIN_SCHEDULE_TELEGRAM_URL = `${FIREBASE_FUNCTION_BASE_URL}/pluginScheduleTelegram`;

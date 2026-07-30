@@ -219,3 +219,41 @@ body .notelert-plan-action-measure {
   background-color: #1f7545;
   border-color: #1f7545;
 }
+
+.notelert-email-channel-setup,
+.notelert-telegram-channel-setup {
+  margin: -0.35rem 0 0.65rem;
+  padding: 0 1rem;
+  border-radius: 0 0 0.75rem 0.75rem;
+  background: var(--background-secondary);
+}
+
+.notelert-email-channel-setup > summary,
+.notelert-telegram-channel-setup > summary {
+  padding: 0.7rem 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  user-select: none;
+}
+
+.notelert-email-channel-setup > summary:hover,
+.notelert-telegram-channel-setup > summary:hover {
+  color: var(--text-normal);
+}
+
+.notelert-email-channel-setup-content,
+.notelert-telegram-channel-setup-content {
+  padding: 0 0 0.75rem;
+}
+
+.notelert-email-channel-setup-content .setting-item,
+.notelert-telegram-channel-setup-content .setting-item {
+  padding-left: 0;
+  padding-right: 0;
+}
+.notelert-channel-status-connected {
+  color: var(--color-green);
+  font-weight: 600;
+}

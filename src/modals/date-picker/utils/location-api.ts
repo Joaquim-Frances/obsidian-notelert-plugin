@@ -5,7 +5,7 @@
 import { requestUrl } from "obsidian";
 import { SavedLocation } from "../../../core/types";
 import { PLUGIN_LIST_LOCATIONS_URL } from "../../../core/config";
-import { isPremiumError } from "../types";
+import { isPremiumError, PremiumError } from "../types";
 import { errorToString } from "../../../features/notifications/utils";
 
 export interface LocationLoadResult {

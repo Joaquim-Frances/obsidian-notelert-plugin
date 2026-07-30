@@ -4,6 +4,8 @@ import { getTranslation } from "../../i18n";
 import { scheduleEmailReminderProxy, schedulePushNotification, generateNotificationId } from "./firebase-api";
 import { isIOS, errorToString } from "./utils";
 import { getPremiumStatus } from "../premium/premium-service";
+import { scheduleGoogleCalendarReminder } from "./google-calendar-api";
+import { scheduleTelegramReminder } from "./telegram-api";
 
 export function generateDeepLink(pattern: DetectedPattern, app: App): string {
   const title = encodeURIComponent(pattern.title);
@@ -121,9 +123,15 @@ export async function createNotification(
       settings.notificationEmailStatus === 'verified' &&
       !!settings.notificationEmail &&
       !!scheduledDate;
-    const deliveryMode = settings.deliveryMode || (hasVerifiedEmail ? 'both' : 'push');
-    const wantsEmail = notificationType === 'time' && deliveryMode !== 'push';
-    const wantsPush = notificationType === 'location' || deliveryMode !== 'email';
+    const selectedChannels = settings.deliveryChannels?.length
+      ? settings.deliveryChannels
+      : settings.deliveryMode === 'both'
+        ? ['push', 'email']
+        : [settings.deliveryMode || (hasVerifiedEmail ? 'email' : 'push')];
+    const wantsEmail = notificationType === 'time' && selectedChannels.includes('email');
+    const wantsCalendar = notificationType === 'time' && selectedChannels.includes('calendar');
+    const wantsTelegram = notificationType === 'time' && selectedChannels.includes('telegram');
+    const wantsPush = notificationType === 'location' || selectedChannels.includes('push');
     // `undefined` conserva el flujo push de instalaciones antiguas hasta que
     // se sincronice la configuración. Las cuentas email-only reciben false.
     const hasPushDelivery = settings.hasActivePushDevice !== false;
@@ -131,7 +139,7 @@ export async function createNotification(
     const shouldScheduleEmail = wantsEmail && hasVerifiedEmail;
 
     let unavailableDeliveryMessage = '';
-    if (notificationType === 'location' && deliveryMode === 'email') {
+    if (notificationType === 'location' && !selectedChannels.includes('push')) {
       unavailableDeliveryMessage = getTranslation(settings.language, "notices.locationRequiresPush");
     } else if (wantsEmail && !hasVerifiedEmail) {
       unavailableDeliveryMessage = getTranslation(settings.language, "notices.emailDeliveryUnavailable");
@@ -139,7 +147,10 @@ export async function createNotification(
       unavailableDeliveryMessage = getTranslation(settings.language, "notices.pushDeliveryUnavailable");
     }
 
-    if (unavailableDeliveryMessage || (!shouldSchedulePush && !shouldScheduleEmail)) {
+    if (
+      unavailableDeliveryMessage ||
+      (!shouldSchedulePush && !shouldScheduleEmail && !wantsCalendar && !wantsTelegram)
+    ) {
       loadingNotice.hide();
       const errorMessage = unavailableDeliveryMessage || getTranslation(settings.language, "notices.deliveryRequired");
       new Notice(errorMessage, 10000);
@@ -150,7 +161,9 @@ export async function createNotification(
 
     let pushSucceeded = false;
     let emailSucceeded = false;
-    let deliveryError = '';
+    let calendarSucceeded = false;
+    let telegramSucceeded = false;
+    const deliveryErrors: string[] = [];
 
     if (shouldSchedulePush) {
       const pushResult = await schedulePushNotification(
@@ -162,7 +175,7 @@ export async function createNotification(
       );
       pushSucceeded = pushResult.success;
       if (!pushResult.success) {
-        deliveryError = pushResult.error || getTranslation(settings.language, "notices.pushScheduleError");
+        let deliveryError = pushResult.error || getTranslation(settings.language, "notices.pushScheduleError");
         if (pushResult.errorCode === 'TOKEN_INVALID') {
           deliveryError = getTranslation(settings.language, "notices.tokenInvalid403") || deliveryError;
         } else if (pushResult.errorCode === 'LINK_ERROR') {
@@ -170,6 +183,7 @@ export async function createNotification(
         } else if (pushResult.errorCode === 'PREMIUM_REQUIRED') {
           deliveryError = getTranslation(settings.language, "datePicker.premiumRequiredDesc") || deliveryError;
         }
+        deliveryErrors.push(deliveryError);
         log(`Error programando push notification: ${deliveryError}`);
       } else if (pushResult.hasActiveDevices === false) {
         settings.hasActivePushDevice = false;
@@ -206,39 +220,86 @@ export async function createNotification(
         log(`Email programado: ${emailResult.notificationId}`);
         void getPremiumStatus(settings.pluginToken, true);
       } else {
-        deliveryError = emailResult.error || deliveryError;
-        log(`Error programando email: ${deliveryError || 'Error desconocido'}`);
+        const deliveryError = emailResult.error || getTranslation(settings.language, "notices.emailDeliveryUnavailable");
+        deliveryErrors.push(deliveryError);
+        log(`Error programando email: ${deliveryError}`);
+      }
+    }
+
+    if (wantsCalendar && scheduledDate) {
+      try {
+        log(`Programando entrega en Google Calendar`);
+        await scheduleGoogleCalendarReminder({
+          pluginToken: settings.pluginToken,
+          notificationId,
+          title: pattern.title,
+          message: cleanMessage,
+          scheduledDate,
+          obsidianDeepLink,
+        });
+        calendarSucceeded = true;
+      } catch (error) {
+        const deliveryError = errorToString(error);
+        deliveryErrors.push(deliveryError);
+        log(`Error programando Google Calendar: ${deliveryError}`);
+      }
+    }
+
+    if (wantsTelegram && scheduledDate) {
+      try {
+        log(`Programando entrega en Telegram`);
+        await scheduleTelegramReminder({
+          pluginToken: settings.pluginToken,
+          notificationId,
+          title: pattern.title,
+          message: cleanMessage,
+          scheduledDate,
+          obsidianDeepLink,
+        });
+        telegramSucceeded = true;
+      } catch (error) {
+        const deliveryError = errorToString(error);
+        deliveryErrors.push(deliveryError);
+        log(`Error programando Telegram: ${deliveryError}`);
       }
     }
 
     loadingNotice.hide();
-    if (!pushSucceeded && !emailSucceeded) {
-      const errorMessage = deliveryError || getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title });
+    if (!pushSucceeded && !emailSucceeded && !calendarSucceeded && !telegramSucceeded) {
+      const errorMessage = deliveryErrors[0] ||
+        getTranslation(settings.language, "notices.errorCreatingNotification", { title: pattern.title });
       new Notice(errorMessage, 10000);
       throw new Error(errorMessage);
     }
 
-    const partialDelivery = (shouldSchedulePush && !pushSucceeded) || (shouldScheduleEmail && !emailSucceeded);
+    const channelResults = [
+      { requested: shouldSchedulePush, succeeded: pushSucceeded, label: 'Android' },
+      { requested: shouldScheduleEmail, succeeded: emailSucceeded, label: 'Email' },
+      { requested: wantsCalendar, succeeded: calendarSucceeded, label: 'Google Calendar' },
+      { requested: wantsTelegram, succeeded: telegramSucceeded, label: 'Telegram' },
+    ];
+    const successfulChannels = channelResults
+      .filter(channel => channel.requested && channel.succeeded)
+      .map(channel => channel.label);
+    const failedChannels = channelResults
+      .filter(channel => channel.requested && !channel.succeeded)
+      .map(channel => channel.label);
+    const partialDelivery = failedChannels.length > 0;
+
     if (partialDelivery) {
-      new Notice(getTranslation(settings.language, "notices.deliveryPartiallyScheduled"), 10000);
-      log(`Recordatorio programado parcialmente (push=${pushSucceeded}, email=${emailSucceeded}): ${deliveryError}`);
+      new Notice(getTranslation(settings.language, "notices.deliveryPartialSummary", {
+        successful: successfulChannels.join(', '),
+        failed: failedChannels.join(', '),
+      }), 10000);
+      log(`Recordatorio programado parcialmente. Correctos: ${successfulChannels.join(', ')}. Fallidos: ${failedChannels.join(', ')}. ${deliveryErrors.join(' | ')}`);
       return;
     }
 
-    // Mostrar mensaje de éxito
-    const successKey = emailSucceeded && pushSucceeded
-      ? "notices.bothScheduled"
-      : emailSucceeded && !pushSucceeded
-      ? "notices.emailScheduled"
-      : notificationType === 'location'
-      ? "notices.pushNotificationScheduledLocation"
-      : "notices.pushNotificationScheduled";
-
-    const successMessage = getTranslation(settings.language, successKey);
-
-    new Notice(successMessage, 10000);
+    new Notice(getTranslation(settings.language, "notices.deliveryScheduledSummary", {
+      channels: successfulChannels.join(', '),
+    }), 10000);
     
-    log(`Recordatorio programado (push=${pushSucceeded}, email=${emailSucceeded})`);
+    log(`Recordatorio programado (push=${pushSucceeded}, email=${emailSucceeded}, calendar=${calendarSucceeded}, telegram=${telegramSucceeded})`);
   } catch (error: unknown) {
     // Solo loggear errores inesperados, los errores de negocio ya se mostraron
     if (error instanceof Error && (

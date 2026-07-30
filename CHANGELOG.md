@@ -5,17 +5,28 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.11] - 2026-07-30
+## [1.2.0] - 2026-07-30
 
-### Corregido
-- Al desvincular una instalación o eliminar la cuenta local, el estado Premium
-  se limpia inmediatamente de la interfaz. La cuenta y su suscripción no se
-  modifican por la desvinculación.
+### Añadido
+- Entrega independiente mediante Android, email, Google Calendar y Telegram.
+- Conexión persistente de Google Calendar mediante OAuth desde el plugin.
+- Conexión segura con el bot oficial de Telegram mediante código de un solo uso.
+- Cuota Free compartida de 10 recordatorios mensuales: un recordatorio cuenta
+  una vez aunque utilice varios canales.
 
 ### Modificado
-- La cuota gratuita muestra inicialmente solo el contador y el progreso.
-  Las opciones Premium mensual y anual pasan a una sección desplegable
-  «Más recordatorios», para no interrumpir la configuración inicial.
+- Email y Telegram se configuran dentro de paneles plegables junto a sus
+  interruptores.
+- Los avisos de resultado enumeran todos los canales programados y fallidos.
+- Android deja de ser obligatorio para recordatorios de fecha y hora.
+- Actualizadas las declaraciones de privacidad, servicios externos y planes.
+
+### Seguridad
+- Credenciales OAuth, secretos de Telegram y `chat_id` permanecen cifrados o
+  exclusivamente en el backend.
+- Estados OAuth y códigos de Telegram son aleatorios, de un solo uso y se
+  eliminan automáticamente tras caducar.
+- Calendar y Telegram se desconectan si el proveedor revoca el acceso.
 
 ## [1.1.9] - 2026-05-29
 
@@ -122,56 +133,6 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 
 ---
 
-## 🔮 Roadmap Futuro
-
-### Versión 1.1.0 (Próxima)
-- [ ] **Soporte para fechas en inglés**: today, tomorrow, yesterday
-- [ ] **Soporte para horas en formato 12h**: 3:30 PM, 9:00 AM
-- [ ] **Patrones más flexibles**: detección de contexto
-- [ ] **Integración con calendario**: sincronización con Google Calendar
-- [ ] **Notificaciones de confirmación**: feedback visual en Obsidian
-
-### Versión 1.2.0 (Futuro)
-- [ ] **Soporte para múltiples apps**: integración con otras apps de notificaciones
-- [ ] **Plantillas personalizadas**: crear plantillas de recordatorios
-- [ ] **Análisis de patrones**: estadísticas de uso
-- [ ] **Exportación/importación**: backup de configuraciones
-- [ ] **API pública**: para desarrolladores externos
-
-### Versión 2.0.0 (Lejano)
-- [ ] **Interfaz gráfica**: panel lateral en Obsidian
-- [ ] **Sincronización en la nube**: configuración compartida
-- [ ] **Machine Learning**: detección inteligente de patrones
-- [ ] **Integración con IA**: generación automática de recordatorios
-- [ ] **Soporte para múltiples idiomas**: internacionalización
-
----
-
-## 🤝 Contribuciones
-
-### Cómo Contribuir
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-### Tipos de Contribuciones
-- **🐛 Bug fixes**: Corrección de errores
-- **✨ Features**: Nuevas funcionalidades
-- **📚 Documentation**: Mejoras en documentación
-- **🧪 Tests**: Añadir o mejorar tests
-- **🎨 UI/UX**: Mejoras en interfaz de usuario
-- **⚡ Performance**: Optimizaciones de rendimiento
-
-### Reportar Bugs
-- Usa el template de issue de GitHub
-- Incluye información del sistema
-- Proporciona pasos para reproducir
-- Añade logs de error si es posible
-
----
-
 ## 📄 Licencia
 
 Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
@@ -179,8 +140,7 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 ## 👨‍💻 Autor
 
 **Quim Frances**
-- GitHub: [@tu-usuario](https://github.com/tu-usuario)
-- Email: tu-email@ejemplo.com
+- GitHub: [@Joaquim-Frances](https://github.com/Joaquim-Frances)
 
 ---
 

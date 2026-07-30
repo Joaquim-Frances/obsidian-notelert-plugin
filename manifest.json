@@ -1,9 +1,9 @@
 {
   "id": "notelert",
   "name": "Notelert",
-  "description": "Creates Notelert reminders from note lines using the Android app and Firebase scheduling.",
+  "description": "Send reminders from note lines to Android, email, Google Calendar, or Telegram.",
   "author": "Joaquim Frances",
   "minAppVersion": "1.8.7",
-  "version": "1.1.11",
+  "version": "1.2.0",
   "isDesktopOnly": false
 }

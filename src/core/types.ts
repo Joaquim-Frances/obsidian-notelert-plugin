@@ -16,6 +16,7 @@ export interface ScheduledEmail {
 }
 
 export type DeliveryMode = 'push' | 'email' | 'both';
+export type DeliveryChannel = 'push' | 'email' | 'calendar' | 'telegram';
 
 export interface NotelertSettings {
   autoProcess: boolean;
@@ -45,6 +46,7 @@ export interface NotelertSettings {
   emailVerificationExpiresAt: string;
   hasActivePushDevice?: boolean;
   deliveryMode: DeliveryMode;
+  deliveryChannels: DeliveryChannel[];
   scheduledEmails: ScheduledEmail[]; // Lista de emails programados
 }
 

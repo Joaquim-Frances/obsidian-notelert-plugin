@@ -26,6 +26,15 @@ import {
   NOTELERT_PRIVACY_URL,
   NOTELERT_TERMS_URL,
 } from "../core/config";
+import {
+  beginGoogleCalendarConnection,
+  getGoogleCalendarConnectionStatus,
+} from "../features/notifications/google-calendar-api";
+import { DeliveryChannel } from "../core/types";
+import {
+  beginTelegramConnection,
+  getTelegramConnectionStatus,
+} from "../features/notifications/telegram-api";
 
 const CONTACT_EMAIL = "notelert@proton.me";
 const CONTACT_MAILTO_URL = `mailto:${CONTACT_EMAIL}?subject=Notelert%20Contact%20%26%20feedback`;
@@ -43,6 +52,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
   private candidateEmail = "";
   private verificationCode = "";
   private isEditingNotificationEmail = false;
+  private isEmailDeliverySetupExpanded = false;
   private isSendingVerificationCode = false;
   private isVerifyingEmailCode = false;
   private isRefreshingPlanStatus = false;
@@ -59,6 +69,15 @@ export class NotelertSettingTab extends PluginSettingTabBase {
   private isConfirmingAccountAction = false;
   private isRevokingInstallation = false;
   private isAccountPrivacyExpanded = false;
+  private googleCalendarConnected: boolean | null = null;
+  private googleCalendarStatusToken = "";
+  private isLoadingGoogleCalendar = false;
+  private isConnectingGoogleCalendar = false;
+  private telegramConnected: boolean | null = null;
+  private telegramStatusToken = "";
+  private isLoadingTelegram = false;
+  private isConnectingTelegram = false;
+  private isTelegramSetupExpanded = false;
 
   constructor(app: App, plugin: Plugin & INotelertPlugin) {
     super(app, plugin);
@@ -105,9 +124,10 @@ export class NotelertSettingTab extends PluginSettingTabBase {
         });
       });
 
-    this.renderNotificationEmailSettings(containerEl, language);
     this.renderPlanAndEmailUsage(containerEl, language);
     this.renderDeliveryModeSettings(containerEl, language);
+    void this.refreshGoogleCalendarStatus();
+    void this.refreshTelegramStatus();
     void this.refreshPlanStatus();
 
     this.renderLegacySection(containerEl, getTranslation(language, "settings.pluginToken.title"));
@@ -474,6 +494,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     this.plugin.settings.emailVerificationExpiresAt = "";
     this.plugin.settings.hasActivePushDevice = undefined;
     this.plugin.settings.deliveryMode = "push";
+    this.plugin.settings.deliveryChannels = ["push"];
     this.plugin.settings.scheduledEmails = [];
     this.accountSummary = null;
     this.accountSummaryToken = "";
@@ -729,8 +750,6 @@ export class NotelertSettingTab extends PluginSettingTabBase {
   }
 
   private renderNotificationEmailSettings(containerEl: HTMLElement, language: string): void {
-    this.renderLegacySection(containerEl, getTranslation(language, "settings.notificationEmail.title"));
-
     const verifiedEmail = this.plugin.settings.notificationEmailStatus === "verified"
       ? this.plugin.settings.notificationEmail
       : "";
@@ -848,22 +867,376 @@ export class NotelertSettingTab extends PluginSettingTabBase {
   }
 
   private renderDeliveryModeSettings(containerEl: HTMLElement, language: string): void {
-    new Setting(containerEl)
-      .setName(getTranslation(language, "settings.deliveryMode.title"))
-      .setDesc(getTranslation(language, "settings.deliveryMode.desc"))
-      .addDropdown((dropdown) => {
-        dropdown
-          .addOption("push", getTranslation(language, "settings.deliveryMode.push"))
-          .addOption("email", getTranslation(language, "settings.deliveryMode.email"))
-          .addOption("both", getTranslation(language, "settings.deliveryMode.both"))
-          .setValue(this.plugin.settings.deliveryMode)
-          .onChange((value) => {
+    this.renderLegacySection(containerEl, getTranslation(language, "settings.deliveryMode.title"));
+    const channels = new Set<DeliveryChannel>(
+      this.plugin.settings.deliveryChannels || ["push"]
+    );
+    const renderChannelToggle = (
+      channel: DeliveryChannel,
+      name: string,
+      description: string,
+      disabled = false
+    ) => {
+      new Setting(containerEl)
+        .setName(name)
+        .setDesc(description)
+        .addToggle(toggle => toggle
+          .setValue(channels.has(channel))
+          .setDisabled(disabled)
+          .onChange(value => {
             void (async () => {
-              this.plugin.settings.deliveryMode = value as "push" | "email" | "both";
+              const next = new Set<DeliveryChannel>(
+                this.plugin.settings.deliveryChannels || ["push"]
+              );
+              if (value) next.add(channel);
+              else next.delete(channel);
+              if (next.size === 0) {
+                new Notice("Selecciona al menos un canal de entrega.", 6000);
+                this.render();
+                return;
+              }
+              this.plugin.settings.deliveryChannels = Array.from(next);
+              this.plugin.settings.deliveryMode = next.has("push") && next.has("email")
+                ? "both"
+                : next.has("email")
+                  ? "email"
+                  : "push";
               await this.plugin.saveSettings();
             })();
-          });
-      });
+          }));
+    };
+
+    renderChannelToggle(
+      "push",
+      "Android",
+      getTranslation(language, "settings.deliveryMode.desc")
+    );
+    const hasVerifiedEmail = this.plugin.settings.notificationEmailStatus === "verified" &&
+      Boolean(this.plugin.settings.notificationEmail);
+    const hasPendingEmail = Boolean(this.plugin.settings.emailVerificationId);
+    const emailEnabled = hasVerifiedEmail && channels.has("email");
+    const emailStatus = hasVerifiedEmail
+      ? this.plugin.settings.notificationEmail
+      : hasPendingEmail
+        ? "Pendiente de verificar"
+        : "Pendiente de conectar";
+    const emailSetting = new Setting(containerEl)
+      .setName("Email")
+      .setDesc(emailStatus)
+      .addToggle(toggle => toggle
+        .setValue(emailEnabled || (!hasVerifiedEmail && this.isEmailDeliverySetupExpanded))
+        .setDisabled(this.isSendingVerificationCode || this.isVerifyingEmailCode)
+        .onChange(value => void this.handleEmailToggle(value)));
+    if (hasVerifiedEmail) {
+      emailSetting.descEl.addClass("notelert-channel-status-connected");
+    }
+
+    const emailSetup = createEl(containerEl, "details", {
+      cls: "notelert-email-channel-setup",
+    });
+    emailSetup.open = hasPendingEmail || this.isEmailDeliverySetupExpanded;
+    const emailSetupSummary = createEl(emailSetup, "summary", {
+      text: hasVerifiedEmail ? "Cambiar dirección de email" : "Configurar dirección de email",
+    });
+    emailSetupSummary.setAttribute("aria-label", emailSetupSummary.textContent || "");
+    emailSetup.addEventListener("toggle", () => {
+      this.isEmailDeliverySetupExpanded = emailSetup.open;
+    });
+    const emailSetupContent = createDiv(emailSetup, {
+      cls: "notelert-email-channel-setup-content",
+    });
+    this.renderNotificationEmailSettings(emailSetupContent, language);
+
+    const calendarEnabled = this.googleCalendarConnected === true && channels.has("calendar");
+    const calendarStatus = this.googleCalendarConnected === true
+      ? "Conectado"
+      : this.isConnectingGoogleCalendar
+        ? "Esperando autorización…"
+        : "Pendiente de conectar";
+    const calendarSetting = new Setting(containerEl)
+      .setName("Google Calendar")
+      .setDesc(calendarStatus)
+      .addToggle(toggle => toggle
+        .setValue(calendarEnabled || this.isConnectingGoogleCalendar)
+        .setDisabled(
+          !this.hasPluginToken() ||
+          this.isLoadingGoogleCalendar ||
+          this.isConnectingGoogleCalendar
+        )
+        .onChange(value => void this.handleCalendarToggle(value)));
+    if (this.googleCalendarConnected === true) {
+      calendarSetting.descEl.addClass("notelert-channel-status-connected");
+    }
+
+    const telegramEnabled = this.telegramConnected === true && channels.has("telegram");
+    const telegramStatus = this.telegramConnected === true
+      ? "Conectado"
+      : this.isConnectingTelegram
+        ? "Esperando conexión con el bot…"
+        : "Pendiente de conectar";
+    const telegramSetting = new Setting(containerEl)
+      .setName("Telegram")
+      .setDesc(telegramStatus)
+      .addToggle(toggle => toggle
+        .setValue(
+          telegramEnabled ||
+          this.isConnectingTelegram ||
+          (this.telegramConnected !== true && this.isTelegramSetupExpanded)
+        )
+        .setDisabled(
+          !this.hasPluginToken() ||
+          this.isLoadingTelegram ||
+          this.isConnectingTelegram
+        )
+        .onChange(value => void this.handleTelegramToggle(value)));
+    if (this.telegramConnected === true) {
+      telegramSetting.descEl.addClass("notelert-channel-status-connected");
+    }
+
+    const telegramSetup = createEl(containerEl, "details", {
+      cls: "notelert-telegram-channel-setup",
+    });
+    telegramSetup.open = this.isConnectingTelegram || this.isTelegramSetupExpanded;
+    createEl(telegramSetup, "summary", {
+      text: this.telegramConnected === true
+        ? "Configuración de Telegram"
+        : "Configurar Telegram",
+    });
+    telegramSetup.addEventListener("toggle", () => {
+      this.isTelegramSetupExpanded = telegramSetup.open;
+    });
+    const telegramSetupContent = createDiv(telegramSetup, {
+      cls: "notelert-telegram-channel-setup-content",
+    });
+    const telegramConnectionSetting = new Setting(telegramSetupContent)
+      .setName(this.telegramConnected === true ? "Telegram conectado" : "Conectar con el bot")
+      .setDesc(this.telegramConnected === true
+        ? "El bot ya puede entregar recordatorios en tu chat privado."
+        : "Se abrirá el bot oficial de Notelert. Pulsa «Iniciar» para vincular este chat.");
+    if (this.telegramConnected !== true) {
+      telegramConnectionSetting.addButton(button => button
+        .setCta()
+        .setButtonText(this.isConnectingTelegram ? "Esperando…" : "Abrir Telegram")
+        .setDisabled(this.isLoadingTelegram || this.isConnectingTelegram)
+        .onClick(() => void this.connectTelegram()));
+    }
+  }
+
+  private async handleEmailToggle(enabled: boolean): Promise<void> {
+    const hasVerifiedEmail = this.plugin.settings.notificationEmailStatus === "verified" &&
+      Boolean(this.plugin.settings.notificationEmail);
+
+    if (enabled && !hasVerifiedEmail) {
+      this.isEmailDeliverySetupExpanded = true;
+      this.render();
+      return;
+    }
+
+    const next = new Set<DeliveryChannel>(
+      this.plugin.settings.deliveryChannels || ["push"]
+    );
+    if (enabled) next.add("email");
+    else next.delete("email");
+    if (next.size === 0) next.add("push");
+    this.plugin.settings.deliveryChannels = Array.from(next);
+    this.plugin.settings.deliveryMode = next.has("push") && next.has("email")
+      ? "both"
+      : next.has("email")
+        ? "email"
+        : "push";
+    this.isEmailDeliverySetupExpanded = false;
+    await this.plugin.saveSettings();
+    this.render();
+  }
+
+  private async refreshGoogleCalendarStatus(force = false): Promise<boolean> {
+    const token = this.plugin.settings.pluginToken?.trim() || "";
+    if (!token) {
+      this.googleCalendarConnected = false;
+      return false;
+    }
+    if (
+      this.isLoadingGoogleCalendar ||
+      (!force && this.googleCalendarStatusToken === token && this.googleCalendarConnected !== null)
+    ) return this.googleCalendarConnected === true;
+    this.isLoadingGoogleCalendar = true;
+    try {
+      this.googleCalendarConnected = await getGoogleCalendarConnectionStatus(token);
+      this.googleCalendarStatusToken = token;
+      this.render();
+    } catch (error) {
+      this.googleCalendarConnected = false;
+      this.googleCalendarStatusToken = token;
+      this.plugin.log(`No se pudo comprobar Google Calendar: ${error instanceof Error ? error.message : String(error)}`);
+      this.render();
+    } finally {
+      this.isLoadingGoogleCalendar = false;
+    }
+    return this.googleCalendarConnected === true;
+  }
+
+  private async handleCalendarToggle(enabled: boolean): Promise<void> {
+    if (!enabled) {
+      this.plugin.settings.deliveryChannels =
+        this.plugin.settings.deliveryChannels.filter(channel => channel !== "calendar");
+      if (this.plugin.settings.deliveryChannels.length === 0) {
+        this.plugin.settings.deliveryChannels = ["push"];
+      }
+      await this.plugin.saveSettings();
+      this.render();
+      return;
+    }
+
+    if (this.googleCalendarConnected === true) {
+      if (!this.plugin.settings.deliveryChannels.includes("calendar")) {
+        this.plugin.settings.deliveryChannels.push("calendar");
+        await this.plugin.saveSettings();
+      }
+      this.render();
+      return;
+    }
+
+    await this.connectCalendar();
+  }
+
+  private async connectCalendar(): Promise<void> {
+    this.isLoadingGoogleCalendar = true;
+    this.isConnectingGoogleCalendar = true;
+    this.render();
+    try {
+      const authUrl = await beginGoogleCalendarConnection(
+        this.plugin.settings.pluginToken || ""
+      );
+      window.open(authUrl, "_blank");
+      new Notice("Completa el acceso en Google. Calendar se activará automáticamente al volver.", 10000);
+      window.addEventListener("focus", () => {
+        window.setTimeout(() => void this.completeCalendarConnection(), 750);
+      }, { once: true });
+    } catch (error) {
+      this.isConnectingGoogleCalendar = false;
+      new Notice(error instanceof Error ? error.message : String(error), 10000);
+    } finally {
+      this.isLoadingGoogleCalendar = false;
+      this.render();
+    }
+  }
+
+  private async completeCalendarConnection(): Promise<void> {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const connected = await this.refreshGoogleCalendarStatus(true);
+      if (connected) {
+        if (!this.plugin.settings.deliveryChannels.includes("calendar")) {
+          this.plugin.settings.deliveryChannels.push("calendar");
+          await this.plugin.saveSettings();
+        }
+        this.isConnectingGoogleCalendar = false;
+        new Notice("Google Calendar conectado.", 6000);
+        this.render();
+        return;
+      }
+      await new Promise(resolve => window.setTimeout(resolve, 750));
+    }
+    this.isConnectingGoogleCalendar = false;
+    new Notice("No se pudo confirmar la conexión con Google Calendar.", 8000);
+    this.render();
+  }
+
+  private async refreshTelegramStatus(force = false): Promise<boolean> {
+    const token = this.plugin.settings.pluginToken?.trim() || "";
+    if (!token) {
+      this.telegramConnected = false;
+      return false;
+    }
+    if (
+      this.isLoadingTelegram ||
+      (!force && this.telegramStatusToken === token && this.telegramConnected !== null)
+    ) return this.telegramConnected === true;
+    this.isLoadingTelegram = true;
+    try {
+      this.telegramConnected = await getTelegramConnectionStatus(token);
+      this.telegramStatusToken = token;
+      this.render();
+    } catch (error) {
+      this.telegramConnected = false;
+      this.telegramStatusToken = token;
+      this.plugin.log(`No se pudo comprobar Telegram: ${error instanceof Error ? error.message : String(error)}`);
+      this.render();
+    } finally {
+      this.isLoadingTelegram = false;
+    }
+    return this.telegramConnected === true;
+  }
+
+  private async handleTelegramToggle(enabled: boolean): Promise<void> {
+    if (!enabled) {
+      this.isTelegramSetupExpanded = false;
+      this.plugin.settings.deliveryChannels =
+        this.plugin.settings.deliveryChannels.filter(channel => channel !== "telegram");
+      if (this.plugin.settings.deliveryChannels.length === 0) {
+        this.plugin.settings.deliveryChannels = ["push"];
+      }
+      await this.plugin.saveSettings();
+      this.render();
+      return;
+    }
+    if (this.telegramConnected !== true) {
+      this.isTelegramSetupExpanded = true;
+      this.render();
+      return;
+    }
+    if (this.telegramConnected === true) {
+      if (!this.plugin.settings.deliveryChannels.includes("telegram")) {
+        this.plugin.settings.deliveryChannels.push("telegram");
+        await this.plugin.saveSettings();
+      }
+      this.render();
+      return;
+    }
+  }
+
+  private async connectTelegram(): Promise<void> {
+    this.isLoadingTelegram = true;
+    this.isConnectingTelegram = true;
+    this.isTelegramSetupExpanded = true;
+    this.render();
+    try {
+      const connectUrl = await beginTelegramConnection(
+        this.plugin.settings.pluginToken || ""
+      );
+      window.open(connectUrl, "_blank");
+      new Notice("Pulsa «iniciar» en el bot. Telegram se activará automáticamente al volver.", 10000);
+      window.addEventListener("focus", () => {
+        window.setTimeout(() => void this.completeTelegramConnection(), 750);
+      }, { once: true });
+    } catch (error) {
+      this.isConnectingTelegram = false;
+      new Notice(error instanceof Error ? error.message : String(error), 10000);
+    } finally {
+      this.isLoadingTelegram = false;
+      this.render();
+    }
+  }
+
+  private async completeTelegramConnection(): Promise<void> {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const connected = await this.refreshTelegramStatus(true);
+      if (connected) {
+        if (!this.plugin.settings.deliveryChannels.includes("telegram")) {
+          this.plugin.settings.deliveryChannels.push("telegram");
+          await this.plugin.saveSettings();
+        }
+        this.isConnectingTelegram = false;
+        this.isTelegramSetupExpanded = false;
+        new Notice("Telegram conectado.", 6000);
+        this.render();
+        return;
+      }
+      await new Promise(resolve => window.setTimeout(resolve, 750));
+    }
+    this.isConnectingTelegram = false;
+    this.isTelegramSetupExpanded = true;
+    new Notice("No se pudo confirmar la conexión con Telegram.", 8000);
+    this.render();
   }
 
   private renderButtonLoading(buttonEl: HTMLButtonElement, loading: boolean, label: string): void {
@@ -941,6 +1314,13 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       this.verificationCode = "";
       this.candidateEmail = "";
       this.isEditingNotificationEmail = false;
+      this.isEmailDeliverySetupExpanded = false;
+      if (!this.plugin.settings.deliveryChannels.includes("email")) {
+        this.plugin.settings.deliveryChannels.push("email");
+      }
+      this.plugin.settings.deliveryMode = this.plugin.settings.deliveryChannels.includes("push")
+        ? "both"
+        : "email";
       await this.plugin.saveSettings();
       new Notice(getTranslation(language, "settings.notificationEmail.success", {
         email: result.notificationEmail || "",

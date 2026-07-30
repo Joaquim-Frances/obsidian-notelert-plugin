@@ -1,8 +1,8 @@
 {
   "name": "obsidian-notelert-plugin",
-  "version": "1.1.11",
-  "description": "Automatiza la creación de notificaciones para la app móvil Notelert detectando patrones de fecha/hora en tus notas",
-  "main": "lib/main.js",
+  "version": "1.2.0",
+  "description": "Send Obsidian reminders through Android, email, Google Calendar, and Telegram",
+  "main": "dist/main.js",
   "license": "MIT",
   "keywords": [
     "obsidian",
@@ -19,18 +19,18 @@
     "url": "https://github.com/Joaquim-Frances/obsidian-notelert-plugin.git"
   },
   "scripts": {
-    "build": "obsidian-plugin build src/main.ts",
+    "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
     "build:install": "npm run build && node scripts/copy-to-obsidian.js",
-    "dev": "obsidian-plugin dev src/main.ts",
-    "watch": "obsidian-plugin dev src/main.ts --watch",
+    "dev": "node esbuild.config.mjs",
+    "watch": "node esbuild.config.mjs",
     "install:obsidian": "node scripts/copy-to-obsidian.js",
     "release:assets": "node scripts/create-release-zip.js",
     "release:zip": "node scripts/create-release-zip.js"
   },
   "devDependencies": {
+    "esbuild": "0.28.1",
     "obsidian": "obsidianmd/obsidian-api",
-    "obsidian-plugin-cli": "^0.4.3",
-    "typescript": "^4.1.5"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=14.0.0"

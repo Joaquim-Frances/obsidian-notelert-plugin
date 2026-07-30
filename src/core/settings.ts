@@ -28,5 +28,6 @@ export const DEFAULT_SETTINGS: NotelertSettings = {
   emailVerificationExpiresAt: "",
   hasActivePushDevice: undefined,
   deliveryMode: "push",
+  deliveryChannels: ["push"],
   scheduledEmails: [], // Lista de emails programados
 };
