@@ -5,6 +5,18 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.11] - 2026-07-30
+
+### Corregido
+- Al desvincular una instalación o eliminar la cuenta local, el estado Premium
+  se limpia inmediatamente de la interfaz. La cuenta y su suscripción no se
+  modifican por la desvinculación.
+
+### Modificado
+- La cuota gratuita muestra inicialmente solo el contador y el progreso.
+  Las opciones Premium mensual y anual pasan a una sección desplegable
+  «Más recordatorios», para no interrumpir la configuración inicial.
+
 ## [1.1.9] - 2026-05-29
 
 ### Añadido
