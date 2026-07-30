@@ -6,7 +6,12 @@ import {
   requestEmailVerification,
   verifyNotificationEmail,
 } from "../features/notifications/email-verification-api";
-import { getCachedPremiumStatus, getPremiumStatus, PremiumStatus } from "../features/premium/premium-service";
+import {
+  clearPremiumStatus,
+  getCachedPremiumStatus,
+  getPremiumStatus,
+  PremiumStatus,
+} from "../features/premium/premium-service";
 import { createStripeCheckout, createStripePortal } from "../features/premium/billing-api";
 import {
   AccountAction,
@@ -458,6 +463,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
   }
 
   private async clearLocalAccountState(): Promise<void> {
+    clearPremiumStatus();
     this.plugin.settings.pluginToken = "";
     this.plugin.settings.userId = "";
     this.plugin.settings.userEmail = "";
@@ -492,14 +498,16 @@ export class NotelertSettingTab extends PluginSettingTabBase {
 
     const isTrial = status.plan === "trial" || status.source === "trial";
     const isPremium = status.isPremium;
-    const badge = createEl(header, "span", {
-      text: getTranslation(
-        language,
-        isTrial ? "settings.emailPlan.trialLabel" : isPremium ? "settings.emailPlan.premiumLabel" : "settings.emailPlan.freeLabel"
-      ),
-      cls: `notelert-plan-badge ${isPremium ? "is-premium" : "is-free"}`,
-    });
-    badge.setAttribute("aria-label", badge.textContent || "");
+    if (isPremium) {
+      const badge = createEl(header, "span", {
+        text: getTranslation(
+          language,
+          isTrial ? "settings.emailPlan.trialLabel" : "settings.emailPlan.premiumLabel"
+        ),
+        cls: "notelert-plan-badge is-premium",
+      });
+      badge.setAttribute("aria-label", badge.textContent || "");
+    }
 
     const usage = status.emailUsage;
     if (status.loading && !usage) {
@@ -539,22 +547,14 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     progress.setAttribute("aria-valuemax", String(usage.limit));
     progress.setAttribute("aria-valuenow", String(usage.used));
 
-    createDiv(card, {
-      text: getTranslation(
-        language,
-        isTrial
-          ? "settings.emailPlan.trialDescription"
-          : isPremium
-          ? "settings.emailPlan.premiumDescription"
-          : "settings.emailPlan.freeDescription"
-      ),
-      cls: "notelert-plan-description",
-    });
-
     if (!this.hasPluginToken()) return;
 
-    const actions = createDiv(card, { cls: "notelert-plan-actions" });
     if (status.hasStripeBilling || status.source === "stripe") {
+      createDiv(card, {
+        text: getTranslation(language, "settings.emailPlan.premiumDescription"),
+        cls: "notelert-plan-description",
+      });
+      const actions = createDiv(card, { cls: "notelert-plan-actions" });
       const manageButton = createEl(actions, "button", {
         text: getTranslation(language, "settings.emailPlan.manageBilling"),
       });
@@ -566,6 +566,19 @@ export class NotelertSettingTab extends PluginSettingTabBase {
         getTranslation(language, "settings.emailPlan.manageBilling")
       );
     } else if (!status.isPremium || status.source === "trial") {
+      const upgradeDetails = createEl(card, "details", { cls: "notelert-plan-upgrade" });
+      createEl(upgradeDetails, "summary", {
+        text: getTranslation(language, "settings.emailPlan.getMoreReminders"),
+      });
+      const upgradeContent = createDiv(upgradeDetails, { cls: "notelert-plan-upgrade-content" });
+      createDiv(upgradeContent, {
+        text: getTranslation(
+          language,
+          isTrial ? "settings.emailPlan.trialDescription" : "settings.emailPlan.freeDescription"
+        ),
+        cls: "notelert-plan-description",
+      });
+      const actions = createDiv(upgradeContent, { cls: "notelert-plan-actions" });
       const monthlyLabel = getTranslation(language, "settings.emailPlan.upgradeMonthly");
       const yearlyLabel = getTranslation(language, "settings.emailPlan.upgradeYearly");
       const actionWidth = this.measurePlanActionWidth([monthlyLabel, yearlyLabel]);
@@ -594,6 +607,11 @@ export class NotelertSettingTab extends PluginSettingTabBase {
         this.isOpeningBilling,
         yearlyLabel
       );
+    } else {
+      createDiv(card, {
+        text: getTranslation(language, "settings.emailPlan.premiumDescription"),
+        cls: "notelert-plan-description",
+      });
     }
   }
 

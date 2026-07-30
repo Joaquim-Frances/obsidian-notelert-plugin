@@ -131,11 +131,6 @@ button[aria-busy="true"] {
   letter-spacing: 0.04em;
 }
 
-.notelert-plan-badge.is-free {
-  color: var(--text-normal);
-  background: var(--background-modifier-border);
-}
-
 .notelert-plan-badge.is-premium {
   color: #fff;
   background: var(--interactive-accent);
@@ -168,6 +163,28 @@ button[aria-busy="true"] {
   align-items: flex-start;
   gap: 0.5rem;
   margin-top: 0.8rem;
+}
+
+.notelert-plan-upgrade {
+  margin-top: 0.85rem;
+  border-top: 1px solid var(--background-modifier-border);
+  padding-top: 0.75rem;
+}
+
+.notelert-plan-upgrade > summary {
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  user-select: none;
+}
+
+.notelert-plan-upgrade > summary:hover {
+  color: var(--text-normal);
+}
+
+.notelert-plan-upgrade-content {
+  padding-top: 0.7rem;
 }
 
 .notelert-plan-action-button {

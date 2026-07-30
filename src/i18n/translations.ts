@@ -83,6 +83,7 @@ export const TRANSLATIONS = {
         "freeDescription": "Free incluye 10 recordatorios al mes. Cada recordatorio cuenta una vez, tanto si usa push, email o ambos.",
         "trialDescription": "Tu prueba Premium incluye 25 recordatorios por email durante el periodo de prueba.",
         "premiumDescription": "Premium incluye hasta 300 recordatorios por email al mes y recordatorios recurrentes.",
+        "getMoreReminders": "Más recordatorios",
         "upgradeMonthly": "Premium mensual · 3,99 €",
         "upgradeYearly": "Premium anual · 39,99 €",
         "manageBilling": "Gestionar facturación"
@@ -399,6 +400,7 @@ export const TRANSLATIONS = {
         "freeDescription": "Free includes 10 reminders per month. Each reminder counts once whether it uses push, email, or both.",
         "trialDescription": "Your Premium trial includes 25 email reminders during the trial period.",
         "premiumDescription": "Premium includes up to 300 email reminders per month and recurring reminders.",
+        "getMoreReminders": "Get more reminders",
         "upgradeMonthly": "Monthly Premium · €3.99",
         "upgradeYearly": "Yearly Premium · €39.99",
         "manageBilling": "Manage billing"
@@ -692,7 +694,8 @@ export const TRANSLATIONS = {
         "counterFree": "{used} de {limit} notificacions utilitzades",
         "freeDescription": "Free inclou 10 recordatoris al mes. Cada recordatori compta una vegada, tant si usa push, email o tots dos.",
         "trialDescription": "La prova Premium inclou 25 recordatoris per email durant el període de prova.",
-        "premiumDescription": "Premium inclou fins a 300 recordatoris per email al mes i recordatoris recurrents."
+        "premiumDescription": "Premium inclou fins a 300 recordatoris per email al mes i recordatoris recurrents.",
+        "getMoreReminders": "Més recordatoris"
       },
       "deliveryMode": {
         "title": "Canal de lliurament",
@@ -929,7 +932,8 @@ export const TRANSLATIONS = {
         "counterFree": "{used} notifications utilisées sur {limit}",
         "freeDescription": "Free inclut 10 rappels par mois. Chaque rappel compte une fois, qu’il utilise les push, l’e-mail ou les deux.",
         "trialDescription": "L'essai Premium inclut 25 rappels par e-mail pendant la période d'essai.",
-        "premiumDescription": "Premium inclut jusqu'à 300 rappels par e-mail par mois et les rappels récurrents."
+        "premiumDescription": "Premium inclut jusqu'à 300 rappels par e-mail par mois et les rappels récurrents.",
+        "getMoreReminders": "Plus de rappels"
       },
       "deliveryMode": {
         "title": "Canal de livraison",
@@ -1180,7 +1184,8 @@ export const TRANSLATIONS = {
         "counterFree": "{used} von {limit} Benachrichtigungen verwendet",
         "freeDescription": "Free enthält 10 Erinnerungen pro Monat. Jede Erinnerung zählt einmal, egal ob per Push, E-Mail oder über beide Kanäle.",
         "trialDescription": "Der Premium-Test enthält 25 E-Mail-Erinnerungen während des Testzeitraums.",
-        "premiumDescription": "Premium enthält bis zu 300 E-Mail-Erinnerungen pro Monat und wiederkehrende Erinnerungen."
+        "premiumDescription": "Premium enthält bis zu 300 E-Mail-Erinnerungen pro Monat und wiederkehrende Erinnerungen.",
+        "getMoreReminders": "Mehr Erinnerungen"
       },
       "deliveryMode": {
         "title": "Zustellungskanal",
@@ -1431,7 +1436,8 @@ export const TRANSLATIONS = {
         "counterFree": "{used} de {limit} notificações usadas",
         "freeDescription": "Free inclui 10 lembretes por mês. Cada lembrete conta uma vez, seja por push, e-mail ou ambos.",
         "trialDescription": "O teste Premium inclui 25 lembretes por e-mail durante o período de teste.",
-        "premiumDescription": "Premium inclui até 300 lembretes por e-mail por mês e lembretes recorrentes."
+        "premiumDescription": "Premium inclui até 300 lembretes por e-mail por mês e lembretes recorrentes.",
+        "getMoreReminders": "Mais lembretes"
       },
       "deliveryMode": {
         "title": "Canal de entrega",
