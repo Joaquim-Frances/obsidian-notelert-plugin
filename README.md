@@ -25,7 +25,7 @@ The Free plan includes 10 reminders per month. One reminder consumes one unit
 even when it is delivered through several selected channels.
 
 Premium features and limits are shown before purchase in the plugin. They can
-include higher email allowances, recurring reminders, and location reminders.
+include a higher shared notification allowance, recurring reminders, and location reminders.
 Current prices and entitlements are confirmed by the checkout provider before
 payment.
 
@@ -73,6 +73,11 @@ secure the service. Notelert also keeps anonymous daily counters for channel
 selection, connection state, delivery outcome, and quota blocks. Those
 aggregated counters contain no reminder content, email address, Calendar ID,
 Telegram chat ID, or Notelert account ID.
+
+For active-user reporting, the backend refreshes the account's latest
+authenticated activity timestamp at most once every 15 minutes. `/ops` exposes
+only aggregate active-user, DAU, and MAU counts, never user lists or account
+identifiers.
 
 ## Data sent
 

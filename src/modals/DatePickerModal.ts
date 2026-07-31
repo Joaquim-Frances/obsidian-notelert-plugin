@@ -14,6 +14,10 @@ import { createTypeSelector, TypeSelectorResult } from "./date-picker/components
 import { createDebugPanel, DebugPanelResult } from "./date-picker/components/DebugPanel";
 import { createLocationList, LocationListResult } from "./date-picker/components/LocationList";
 import { createRecurrenceSelector, RecurrenceSelectorResult } from "./date-picker/components/RecurrenceSelector";
+import {
+  createDeliveryChannelSelector,
+  DeliveryChannelSelectorResult,
+} from "./date-picker/components/DeliveryChannelSelector";
 import { getCachedPremiumStatus, onPremiumStatusChange, PremiumStatus } from "../features/premium/premium-service";
 
 export class NotelertDatePickerModal extends Modal {
@@ -36,6 +40,7 @@ export class NotelertDatePickerModal extends Modal {
   private debugPanel: DebugPanelResult | null = null;
   private locationList: LocationListResult | null = null;
   private recurrenceSelector: RecurrenceSelectorResult | null = null;
+  private deliveryChannelSelector: DeliveryChannelSelectorResult | null = null;
   private container: HTMLElement | null = null;
 
   // Estado premium
@@ -170,10 +175,18 @@ export class NotelertDatePickerModal extends Modal {
         (type: NotificationType) => {
           this.notificationType = type;
           this.selectedLocation = null;
+          this.deliveryChannelSelector?.updateNotificationType(type);
           this.updateModalContent();
         }
       );
       this.plugin.log("TypeSelector creado");
+
+      this.deliveryChannelSelector = createDeliveryChannelSelector(
+        this.container,
+        this.language,
+        this.plugin.settings.deliveryChannels || ["push"],
+        this.notificationType
+      );
 
       // Selector de fecha
       this.plugin.log("Creando DatePicker...");
@@ -497,6 +510,28 @@ export class NotelertDatePickerModal extends Modal {
 
       void (async () => {
         try {
+          const selectedChannels =
+            this.deliveryChannelSelector?.getSelectedChannels() || [];
+          if (
+            this.notificationType === "location" &&
+            !selectedChannels.includes("push")
+          ) {
+            hideLoadingState(confirmButton, this.language);
+            new Notice(
+              getTranslation(this.language, "notices.locationRequiresPush"),
+              10000
+            );
+            return;
+          }
+          if (selectedChannels.length === 0) {
+            hideLoadingState(confirmButton, this.language);
+            new Notice(
+              getTranslation(this.language, "notices.deliveryRequired"),
+              10000
+            );
+            return;
+          }
+
           if (this.notificationType === 'location') {
             if (!this.selectedLocation) {
               hideLoadingState(confirmButton, this.language);
@@ -509,7 +544,8 @@ export class NotelertDatePickerModal extends Modal {
               this.cursor,
               this.trigger,
               this.selectedLocation,
-              this.language
+              this.language,
+              selectedChannels
             );
             hideLoadingState(confirmButton, this.language);
             if (success) {
@@ -561,7 +597,8 @@ export class NotelertDatePickerModal extends Modal {
                 time,
                 newLine,
                 this.language,
-                recurrenceConfig
+                recurrenceConfig,
+                selectedChannels
               );
 
               hideLoadingState(confirmButton, this.language);
@@ -600,5 +637,6 @@ export class NotelertDatePickerModal extends Modal {
     this.debugPanel = null;
     this.locationList = null;
     this.recurrenceSelector = null;
+    this.deliveryChannelSelector = null;
   }
 }

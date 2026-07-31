@@ -220,6 +220,7 @@ body .notelert-plan-action-measure {
   border-color: #1f7545;
 }
 
+.notelert-android-channel-setup,
 .notelert-email-channel-setup,
 .notelert-telegram-channel-setup {
   margin: -0.35rem 0 0.65rem;
@@ -228,6 +229,7 @@ body .notelert-plan-action-measure {
   background: var(--background-secondary);
 }
 
+.notelert-android-channel-setup > summary,
 .notelert-email-channel-setup > summary,
 .notelert-telegram-channel-setup > summary {
   padding: 0.7rem 0;
@@ -238,20 +240,89 @@ body .notelert-plan-action-measure {
   user-select: none;
 }
 
+.notelert-android-channel-setup > summary:hover,
 .notelert-email-channel-setup > summary:hover,
 .notelert-telegram-channel-setup > summary:hover {
   color: var(--text-normal);
 }
 
+.notelert-android-channel-setup-content,
 .notelert-email-channel-setup-content,
 .notelert-telegram-channel-setup-content {
   padding: 0 0 0.75rem;
 }
 
+.notelert-android-channel-setup-content .setting-item,
 .notelert-email-channel-setup-content .setting-item,
 .notelert-telegram-channel-setup-content .setting-item {
   padding-left: 0;
   padding-right: 0;
+}
+
+.notelert-android-store-link {
+  display: inline-block;
+  color: var(--text-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.notelert-android-store-link:hover {
+  text-decoration: underline;
+}
+
+.notelert-delivery-channel-selector {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 12px 15px;
+  border-radius: 6px;
+  background: var(--background-secondary);
+}
+
+.notelert-delivery-channel-selector-title {
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.notelert-delivery-channel-selector-desc,
+.notelert-delivery-channel-selector-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.notelert-delivery-channel-selector-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.notelert-delivery-channel-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.notelert-delivery-channel-option:has(input:checked) {
+  border-color: var(--interactive-accent);
+  background: color-mix(in srgb, var(--interactive-accent) 18%, transparent);
+}
+
+.notelert-delivery-channel-option.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.notelert-delivery-channel-selector-hint {
+  margin-top: 8px;
 }
 .notelert-channel-status-connected {
   color: var(--color-green);

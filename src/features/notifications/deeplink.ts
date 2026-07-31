@@ -123,11 +123,14 @@ export async function createNotification(
       settings.notificationEmailStatus === 'verified' &&
       !!settings.notificationEmail &&
       !!scheduledDate;
-    const selectedChannels = settings.deliveryChannels?.length
+    const configuredChannels = settings.deliveryChannels?.length
       ? settings.deliveryChannels
       : settings.deliveryMode === 'both'
         ? ['push', 'email']
         : [settings.deliveryMode || (hasVerifiedEmail ? 'email' : 'push')];
+    const selectedChannels = pattern.deliveryChannels !== undefined
+      ? pattern.deliveryChannels.filter(channel => configuredChannels.includes(channel))
+      : configuredChannels;
     const wantsEmail = notificationType === 'time' && selectedChannels.includes('email');
     const wantsCalendar = notificationType === 'time' && selectedChannels.includes('calendar');
     const wantsTelegram = notificationType === 'time' && selectedChannels.includes('telegram');

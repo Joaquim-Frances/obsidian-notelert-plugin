@@ -3,7 +3,7 @@
  */
 
 import { Editor, EditorPosition } from "obsidian";
-import { DetectedPattern, SavedLocation, RecurrenceConfig } from "../../../core/types";
+import { DeliveryChannel, DetectedPattern, SavedLocation, RecurrenceConfig } from "../../../core/types";
 import { INotelertPlugin } from "../../../core/plugin-interface";
 import { errorToString } from "../../../features/notifications/utils";
 
@@ -19,7 +19,8 @@ export async function createNotificationFromDatePicker(
   time: string,
   fullText: string,
   language: string,
-  recurrence?: RecurrenceConfig
+  recurrence?: RecurrenceConfig,
+  deliveryChannels?: DeliveryChannel[]
 ): Promise<boolean> {
   try {
     // Obtener el título de la nota (nombre del archivo sin extensión)
@@ -46,6 +47,7 @@ export async function createNotificationFromDatePicker(
       lineNumber: cursor.line + 1,
       type: 'time',
       recurrence: recurrence?.enabled ? recurrence : undefined,
+      deliveryChannels,
     };
 
     // Crear la notificación directamente
@@ -71,7 +73,8 @@ export async function createNotificationFromLocation(
   cursor: EditorPosition,
   trigger: string,
   location: SavedLocation,
-  language: string
+  language: string,
+  deliveryChannels?: DeliveryChannel[]
 ): Promise<boolean> {
   try {
     // Reemplazar el trigger con :#nombreUbicacion (siempre usamos :# para ubicaciones)
@@ -114,7 +117,8 @@ export async function createNotificationFromLocation(
       latitude: location.latitude,
       longitude: location.longitude,
       radius: location.radius,
-      type: 'location'
+      type: 'location',
+      deliveryChannels,
     };
 
     // Crear la notificación directamente
