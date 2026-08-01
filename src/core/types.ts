@@ -76,4 +76,6 @@ export interface DetectedPattern {
   radius?: number; // Radio en metros para la geofence
   type?: 'time' | 'location'; // Tipo de notificación: tiempo o ubicación
   recurrence?: RecurrenceConfig; // Configuración de recurrencia (solo premium)
+  /** Per-reminder override selected in the creation modal. */
+  deliveryChannels?: DeliveryChannel[];
 }

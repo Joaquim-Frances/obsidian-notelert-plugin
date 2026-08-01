@@ -27,6 +27,8 @@ export interface PremiumStatus {
     periodKey: string;
     resetsAt?: Date;
   };
+  /** Shared allowance across Android, email, Calendar, and Telegram. */
+  notificationUsage?: PremiumStatus['emailUsage'];
   cached?: boolean;
   loading?: boolean;
 }
@@ -171,11 +173,25 @@ async function fetchPremiumStatus(
         periodKey: string;
         resetsAt?: string | null;
       };
+      notificationUsage?: {
+        used: number;
+        reserved: number;
+        sent: number;
+        limit: number;
+        remaining: number;
+        periodKey: string;
+        resetsAt?: string | null;
+      };
       error?: string;
     };
 
     if (response.status === 200) {
       const isPremium = data.isPremium === true;
+      const rawUsage = data.notificationUsage || data.emailUsage;
+      const notificationUsage = rawUsage ? {
+        ...rawUsage,
+        resetsAt: rawUsage.resetsAt ? new Date(rawUsage.resetsAt) : undefined,
+      } : undefined;
       const status: PremiumStatus = {
         isPremium,
         loading: false,
@@ -183,10 +199,9 @@ async function fetchPremiumStatus(
         source: data.source,
         plan: data.plan || (isPremium ? 'premium' : 'free'),
         hasStripeBilling: data.hasStripeBilling === true,
-        emailUsage: data.emailUsage ? {
-          ...data.emailUsage,
-          resetsAt: data.emailUsage.resetsAt ? new Date(data.emailUsage.resetsAt) : undefined,
-        } : undefined,
+        notificationUsage,
+        // Keep the old field while released plugin versions still consume it.
+        emailUsage: notificationUsage,
       };
 
       console.debug(`[PremiumService] ${isPremium ? '✅ Usuario ES premium' : '❌ Usuario NO es premium'}`);

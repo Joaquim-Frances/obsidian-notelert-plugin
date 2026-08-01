@@ -5,6 +5,23 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-08-01
+
+### Añadido
+- Selector de canales en el modal de cada recordatorio para elegir in situ entre
+  los canales habilitados en los ajustes.
+- Panel desplegable de Android con acceso directo a Notelert en Google Play.
+
+### Modificado
+- La cuota y su barra de progreso representan notificaciones compartidas entre
+  todos los canales, en lugar de mostrarse como un límite exclusivo de email.
+- Simplificado el ajuste de idioma eliminando el subtítulo sobre detección de
+  patrones.
+
+### Corregido
+- Eliminado el selector CSS `:has()` señalado por la revisión de Obsidian para
+  evitar una invalidación de selectores demasiado amplia.
+
 ## [1.2.0] - 2026-07-30
 
 ### Añadido

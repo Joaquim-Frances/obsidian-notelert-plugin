@@ -38,6 +38,7 @@ import {
 
 const CONTACT_EMAIL = "notelert@proton.me";
 const CONTACT_MAILTO_URL = `mailto:${CONTACT_EMAIL}?subject=Notelert%20Contact%20%26%20feedback`;
+const ANDROID_PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
 
 // Obsidian's runtime supports getSettingDefinitions(), but the generated type
 // definitions still model PluginSettingTab as abstract.
@@ -109,7 +110,6 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     this.renderLegacySection(containerEl, getTranslation(language, "settings.basicSettings"));
     new Setting(containerEl)
       .setName(getTranslation(language, "settings.language"))
-      .setDesc(getTranslation(language, "settings.languageDesc"))
       .addDropdown((dropdown) => {
         SUPPORTED_LANGUAGES.forEach((lang) => {
           dropdown.addOption(lang.code, `${lang.nativeName} (${lang.name})`);
@@ -124,7 +124,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
         });
       });
 
-    this.renderPlanAndEmailUsage(containerEl, language);
+    this.renderPlanAndNotificationUsage(containerEl, language);
     this.renderDeliveryModeSettings(containerEl, language);
     void this.refreshGoogleCalendarStatus();
     void this.refreshTelegramStatus();
@@ -508,7 +508,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     this.accountDeletionConfirmation = "";
   }
 
-  private renderPlanAndEmailUsage(containerEl: HTMLElement, language: string): void {
+  private renderPlanAndNotificationUsage(containerEl: HTMLElement, language: string): void {
     const status = getCachedPremiumStatus();
     const card = createDiv(containerEl, { cls: "notelert-plan-card" });
     const header = createDiv(card, { cls: "notelert-plan-header" });
@@ -530,7 +530,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       badge.setAttribute("aria-label", badge.textContent || "");
     }
 
-    const usage = status.emailUsage;
+    const usage = status.notificationUsage || status.emailUsage;
     if (status.loading && !usage) {
       createDiv(card, {
         text: getTranslation(language, "settings.emailPlan.loading"),
@@ -697,7 +697,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
 
       const premiumUsageReady = status.isPremium
         && status.plan === "premium"
-        && status.emailUsage?.limit === 300;
+        && (status.notificationUsage || status.emailUsage)?.limit === 300;
       if (premiumUsageReady) return;
     } finally {
       this.isRefreshingPlanStatus = false;
@@ -744,8 +744,8 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       isPremium: status.isPremium,
       plan: status.plan,
       source: status.source,
-      used: status.emailUsage?.used,
-      limit: status.emailUsage?.limit,
+      used: (status.notificationUsage || status.emailUsage)?.used,
+      limit: (status.notificationUsage || status.emailUsage)?.limit,
     });
   }
 
@@ -911,6 +911,24 @@ export class NotelertSettingTab extends PluginSettingTabBase {
       "Android",
       getTranslation(language, "settings.deliveryMode.desc")
     );
+    const androidSetup = createEl(containerEl, "details", {
+      cls: "notelert-android-channel-setup",
+    });
+    createEl(androidSetup, "summary", {
+      text: getTranslation(language, "settings.deliveryMode.androidSetup"),
+    });
+    const androidSetupContent = createDiv(androidSetup, {
+      cls: "notelert-android-channel-setup-content",
+    });
+    const playStoreLink = createEl(androidSetupContent, "a", {
+      text: getTranslation(language, "settings.deliveryMode.androidStoreLink"),
+      attr: {
+        href: ANDROID_PLAY_STORE_URL,
+        target: "_blank",
+        rel: "noopener noreferrer",
+      },
+    });
+    playStoreLink.addClass("notelert-android-store-link");
     const hasVerifiedEmail = this.plugin.settings.notificationEmailStatus === "verified" &&
       Boolean(this.plugin.settings.notificationEmail);
     const hasPendingEmail = Boolean(this.plugin.settings.emailVerificationId);
@@ -1409,7 +1427,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     createEl(bannerContainer, "a", {
       text: getTranslation(language, "settings.appRequired.downloadLink"),
       attr: {
-        href: "https://play.google.com/store/apps/details?id=com.quim79.notelert",
+        href: ANDROID_PLAY_STORE_URL,
         target: "_blank",
         style: `
           display: inline-block;
