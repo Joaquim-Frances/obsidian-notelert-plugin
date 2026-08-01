@@ -42,7 +42,7 @@ export function createDeliveryChannelSelector(
 
   channels.forEach(channel => {
     const label = createEl(options, "label", {
-      cls: "notelert-delivery-channel-option",
+      cls: "notelert-delivery-channel-option is-selected",
     });
     const input = createEl(label, "input");
     input.type = "checkbox";
@@ -50,6 +50,7 @@ export function createDeliveryChannelSelector(
     input.addEventListener("change", () => {
       if (input.checked) timeSelection.add(channel);
       else timeSelection.delete(channel);
+      label.classList.toggle("is-selected", input.checked);
     });
     createEl(label, "span", { text: CHANNEL_LABELS[channel] });
     inputs.set(channel, input);
@@ -67,7 +68,9 @@ export function createDeliveryChannelSelector(
       input.checked = isLocation
         ? channel === "push"
         : timeSelection.has(channel);
-      input.closest("label")?.toggleClass(
+      const label = input.closest("label");
+      label?.classList.toggle("is-selected", input.checked);
+      label?.classList.toggle(
         "is-disabled",
         isLocation && channel !== "push"
       );

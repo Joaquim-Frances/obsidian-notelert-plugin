@@ -311,7 +311,7 @@ body .notelert-plan-action-measure {
   font-size: 13px;
 }
 
-.notelert-delivery-channel-option:has(input:checked) {
+.notelert-delivery-channel-option.is-selected {
   border-color: var(--interactive-accent);
   background: color-mix(in srgb, var(--interactive-accent) 18%, transparent);
 }
