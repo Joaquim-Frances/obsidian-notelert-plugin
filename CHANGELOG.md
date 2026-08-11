@@ -5,6 +5,18 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-08-11
+
+### Mejorado
+- La programación de un recordatorio por Android, email, Google Calendar y
+  Telegram se inicia en paralelo. Con varios canales activos, el tiempo de
+  espera pasa a depender del canal más lento en lugar de sumar las cuatro
+  peticiones.
+
+### Corregido
+- El disparador configurable del selector de fecha se conserva al crear el
+  recordatorio y se limpia correctamente del mensaje antes de enviarlo.
+
 ## [1.2.1] - 2026-08-01
 
 ### Añadido
