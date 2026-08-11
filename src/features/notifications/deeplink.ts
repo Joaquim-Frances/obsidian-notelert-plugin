@@ -168,104 +168,84 @@ export async function createNotification(
     let telegramSucceeded = false;
     const deliveryErrors: string[] = [];
 
-    if (shouldSchedulePush) {
-      const pushResult = await schedulePushNotification(
-        { ...pattern, message: cleanMessage },
-        notificationId,
-        settings.pluginToken,
-        obsidianDeepLink,
-        settings.language
-      );
-      pushSucceeded = pushResult.success;
-      if (!pushResult.success) {
-        let deliveryError = pushResult.error || getTranslation(settings.language, "notices.pushScheduleError");
-        if (pushResult.errorCode === 'TOKEN_INVALID') {
-          deliveryError = getTranslation(settings.language, "notices.tokenInvalid403") || deliveryError;
-        } else if (pushResult.errorCode === 'LINK_ERROR') {
-          deliveryError = getTranslation(settings.language, "notices.linkError400") || deliveryError;
-        } else if (pushResult.errorCode === 'PREMIUM_REQUIRED') {
-          deliveryError = getTranslation(settings.language, "datePicker.premiumRequiredDesc") || deliveryError;
+    // Cada canal usa un endpoint y una cola independientes. Lanzarlos en
+    // paralelo evita que la espera sea la suma de cuatro peticiones remotas.
+    // El número de invocaciones, tareas y escrituras no cambia.
+    await Promise.all([
+      shouldSchedulePush ? (async () => {
+        const pushResult = await schedulePushNotification(
+          { ...pattern, message: cleanMessage }, notificationId, settings.pluginToken,
+          obsidianDeepLink, settings.language
+        );
+        pushSucceeded = pushResult.success;
+        if (!pushResult.success) {
+          let deliveryError = pushResult.error || getTranslation(settings.language, "notices.pushScheduleError");
+          if (pushResult.errorCode === 'TOKEN_INVALID') {
+            deliveryError = getTranslation(settings.language, "notices.tokenInvalid403") || deliveryError;
+          } else if (pushResult.errorCode === 'LINK_ERROR') {
+            deliveryError = getTranslation(settings.language, "notices.linkError400") || deliveryError;
+          } else if (pushResult.errorCode === 'PREMIUM_REQUIRED') {
+            deliveryError = getTranslation(settings.language, "datePicker.premiumRequiredDesc") || deliveryError;
+          }
+          deliveryErrors.push(deliveryError);
+          log(`Error programando push notification: ${deliveryError}`);
+        } else if (pushResult.hasActiveDevices === false) {
+          settings.hasActivePushDevice = false;
         }
-        deliveryErrors.push(deliveryError);
-        log(`Error programando push notification: ${deliveryError}`);
-      } else if (pushResult.hasActiveDevices === false) {
-        settings.hasActivePushDevice = false;
-      }
-    }
-
-    if (shouldScheduleEmail && scheduledDate) {
-      log(`Programando entrega por email verificado`);
-      const emailResult = await scheduleEmailReminderProxy(
-        pattern.title,
-        cleanMessage,
-        scheduledDate,
-        notificationId,
-        settings.pluginToken,
-        settings.language
-      );
-      emailSucceeded = emailResult.success;
-
-      if (emailResult.success && emailResult.notificationId) {
-        // Guardar el email programado en settings
-        const scheduledEmail: ScheduledEmail = {
-          notificationId: emailResult.notificationId,
-          title: pattern.title,
-          message: cleanMessage,
-          scheduledDate: scheduledDate.toISOString(),
-          createdAt: new Date().toISOString()
-        };
-
-        // Llamar callback si existe
-        if (onEmailScheduled) {
-          onEmailScheduled(scheduledEmail);
+      })() : Promise.resolve(),
+      shouldScheduleEmail && scheduledDate ? (async () => {
+        log(`Programando entrega por email verificado`);
+        const emailResult = await scheduleEmailReminderProxy(
+          pattern.title, cleanMessage, scheduledDate, notificationId,
+          settings.pluginToken, settings.language
+        );
+        emailSucceeded = emailResult.success;
+        if (emailResult.success && emailResult.notificationId) {
+          const scheduledEmail: ScheduledEmail = {
+            notificationId: emailResult.notificationId,
+            title: pattern.title,
+            message: cleanMessage,
+            scheduledDate: scheduledDate.toISOString(),
+            createdAt: new Date().toISOString()
+          };
+          if (onEmailScheduled) onEmailScheduled(scheduledEmail);
+          log(`Email programado: ${emailResult.notificationId}`);
+          void getPremiumStatus(settings.pluginToken, true);
+        } else {
+          const deliveryError = emailResult.error || getTranslation(settings.language, "notices.emailDeliveryUnavailable");
+          deliveryErrors.push(deliveryError);
+          log(`Error programando email: ${deliveryError}`);
         }
-
-        log(`Email programado: ${emailResult.notificationId}`);
-        void getPremiumStatus(settings.pluginToken, true);
-      } else {
-        const deliveryError = emailResult.error || getTranslation(settings.language, "notices.emailDeliveryUnavailable");
-        deliveryErrors.push(deliveryError);
-        log(`Error programando email: ${deliveryError}`);
-      }
-    }
-
-    if (wantsCalendar && scheduledDate) {
-      try {
-        log(`Programando entrega en Google Calendar`);
-        await scheduleGoogleCalendarReminder({
-          pluginToken: settings.pluginToken,
-          notificationId,
-          title: pattern.title,
-          message: cleanMessage,
-          scheduledDate,
-          obsidianDeepLink,
-        });
-        calendarSucceeded = true;
-      } catch (error) {
-        const deliveryError = errorToString(error);
-        deliveryErrors.push(deliveryError);
-        log(`Error programando Google Calendar: ${deliveryError}`);
-      }
-    }
-
-    if (wantsTelegram && scheduledDate) {
-      try {
-        log(`Programando entrega en Telegram`);
-        await scheduleTelegramReminder({
-          pluginToken: settings.pluginToken,
-          notificationId,
-          title: pattern.title,
-          message: cleanMessage,
-          scheduledDate,
-          obsidianDeepLink,
-        });
-        telegramSucceeded = true;
-      } catch (error) {
-        const deliveryError = errorToString(error);
-        deliveryErrors.push(deliveryError);
-        log(`Error programando Telegram: ${deliveryError}`);
-      }
-    }
+      })() : Promise.resolve(),
+      wantsCalendar && scheduledDate ? (async () => {
+        try {
+          log(`Programando entrega en Google Calendar`);
+          await scheduleGoogleCalendarReminder({
+            pluginToken: settings.pluginToken, notificationId, title: pattern.title,
+            message: cleanMessage, scheduledDate, obsidianDeepLink,
+          });
+          calendarSucceeded = true;
+        } catch (error) {
+          const deliveryError = errorToString(error);
+          deliveryErrors.push(deliveryError);
+          log(`Error programando Google Calendar: ${deliveryError}`);
+        }
+      })() : Promise.resolve(),
+      wantsTelegram && scheduledDate ? (async () => {
+        try {
+          log(`Programando entrega en Telegram`);
+          await scheduleTelegramReminder({
+            pluginToken: settings.pluginToken, notificationId, title: pattern.title,
+            message: cleanMessage, scheduledDate, obsidianDeepLink,
+          });
+          telegramSucceeded = true;
+        } catch (error) {
+          const deliveryError = errorToString(error);
+          deliveryErrors.push(deliveryError);
+          log(`Error programando Telegram: ${deliveryError}`);
+        }
+      })() : Promise.resolve(),
+    ]);
 
     loadingNotice.hide();
     if (!pushSucceeded && !emailSucceeded && !calendarSucceeded && !telegramSucceeded) {
