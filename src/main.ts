@@ -149,6 +149,7 @@ export class NotelertPlugin extends Plugin {
       // new Notice(getTranslation(this.settings.language, "notices.notificationCreated", { title: pattern.title }));
     } catch (error) {
       this.log(`Error procesando notificación confirmada: ${error}`);
+      throw error;
       // TEMPORALMENTE COMENTADO - Debug
       // new Notice(getTranslation(this.settings.language, "notices.errorCreatingNotification", { title: pattern.title }));
     }

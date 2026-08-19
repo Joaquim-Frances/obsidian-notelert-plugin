@@ -32,9 +32,10 @@ export function createRecurrenceSelector(
   parent: HTMLElement,
   language: string,
   onToggle: (enabled: boolean) => void,
-  _onPremiumRequired: () => void, // Ya no se usa, mantenemos por compatibilidad
+  onPremiumRequired: () => void,
   isPremium: boolean
 ): RecurrenceSelectorResult {
+  let premiumAccess = isPremium;
   let config: RecurrenceConfig = {
     enabled: false,
     interval: 1,
@@ -61,8 +62,8 @@ export function createRecurrenceSelector(
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    cursor: isPremium ? "pointer" : "not-allowed",
-    opacity: isPremium ? "1" : "0.7",
+    cursor: premiumAccess ? "pointer" : "not-allowed",
+    opacity: premiumAccess ? "1" : "0.7",
   });
 
   const toggleLabel = createEl(toggleContainer, "label", {
@@ -71,7 +72,7 @@ export function createRecurrenceSelector(
   setCssProps(toggleLabel, {
     fontWeight: "500",
     fontSize: "14px",
-    cursor: isPremium ? "pointer" : "not-allowed",
+    cursor: premiumAccess ? "pointer" : "not-allowed",
     display: "flex",
     alignItems: "center",
     gap: "8px",
@@ -79,11 +80,11 @@ export function createRecurrenceSelector(
 
   const toggleCheckbox = createEl(toggleContainer, "input", { type: "checkbox" });
   setElementId(toggleCheckbox, "recurrence-toggle");
-  toggleCheckbox.disabled = !isPremium;
+  toggleCheckbox.disabled = !premiumAccess;
   setCssProps(toggleCheckbox, {
     width: "18px",
     height: "18px",
-    cursor: isPremium ? "pointer" : "not-allowed",
+    cursor: premiumAccess ? "pointer" : "not-allowed",
   });
 
   // Mensaje de premium requerido (solo si no es premium)
@@ -249,8 +250,9 @@ export function createRecurrenceSelector(
   // Event listeners
   toggleCheckbox.addEventListener("change", () => {
     // Si no es premium, el checkbox está deshabilitado, pero por si acaso
-    if (!isPremium) {
+    if (!premiumAccess) {
       toggleCheckbox.checked = false;
+      onPremiumRequired();
       return;
     }
     
@@ -262,13 +264,21 @@ export function createRecurrenceSelector(
   });
 
   // También permitir click en el label (solo si es premium)
-  toggleLabel.addEventListener("click", () => {
-    if (!isPremium) {
-      // No hacer nada, el mensaje ya está visible
+  toggleLabel.addEventListener("click", (event) => {
+    if (!premiumAccess) {
+      event.preventDefault();
+      event.stopPropagation();
+      onPremiumRequired();
       return;
     }
     toggleCheckbox.checked = !toggleCheckbox.checked;
     toggleCheckbox.dispatchEvent(new Event("change"));
+  });
+
+  toggleContainer.addEventListener("click", (event) => {
+    if (premiumAccess) return;
+    event.preventDefault();
+    onPremiumRequired();
   });
 
   intervalInput.addEventListener("change", () => {
@@ -301,6 +311,7 @@ export function createRecurrenceSelector(
 
   // Función para actualizar el estado premium dinámicamente
   const updatePremiumUI = (newIsPremium: boolean) => {
+    premiumAccess = newIsPremium;
     // Actualizar checkbox
     toggleCheckbox.disabled = !newIsPremium;
     setCssProps(toggleCheckbox, {

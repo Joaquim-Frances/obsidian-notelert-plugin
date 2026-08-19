@@ -276,8 +276,7 @@ export class NotelertDatePickerModal extends Modal {
           this.plugin.log(`Recurrencia ${enabled ? 'activada' : 'desactivada'}`);
         },
         () => {
-          // Callback cuando se requiere premium
-          this.showPremiumRequiredModal();
+          this.showPremiumPaywall("premiumPaywall.recurrenceLimit");
         },
         this.isPremium
       );
@@ -438,7 +437,8 @@ export class NotelertDatePickerModal extends Modal {
           this.debugPanel.addLog(message);
         }
         this.plugin.log(message);
-      }
+      },
+      () => this.showPremiumPaywall("premiumPaywall.locationLimit")
     );
   }
 
@@ -449,69 +449,9 @@ export class NotelertDatePickerModal extends Modal {
     });
   }
 
-  private showPremiumRequiredModal() {
-    // Crear modal de premium requerido
-    const modal = new Modal(this.app);
-    modal.titleEl.setText(getTranslation(this.language, "recurrence.premiumRequired") || "Premium Required");
-
-    const content = modal.contentEl;
-    setCssProps(content, {
-      padding: "20px",
-      textAlign: "center",
-    });
-
-    // Icono
-    const iconEl = content.createDiv({ text: "🔄✨" });
-    setCssProps(iconEl, {
-      fontSize: "48px",
-      marginBottom: "15px",
-    });
-
-    // Descripción
-    const descEl = content.createEl("p", {
-      text: getTranslation(this.language, "recurrence.premiumRequiredDesc") ||
-        "Upgrade to Premium to create reminders that repeat automatically.",
-    });
-    setCssProps(descEl, {
-      marginBottom: "20px",
-      color: "var(--text-muted)",
-      lineHeight: "1.5",
-    });
-
-    // Botones
-    const buttonContainer = content.createDiv();
-    setCssProps(buttonContainer, {
-      display: "flex",
-      gap: "10px",
-      justifyContent: "center",
-      flexWrap: "wrap",
-    });
-
-    const openAppButton = buttonContainer.createEl("button", {
-      text: getTranslation(this.language, "recurrence.openApp") || "📱 Open app to upgrade",
-      cls: "mod-cta",
-    });
-    setCssProps(openAppButton, {
-      padding: "10px 20px",
-    });
-    openAppButton.addEventListener("click", () => {
-      // Abrir la app de Notelert (deep link)
-      window.open("notelert://premium", "_blank");
-      modal.close();
-    });
-
-    const cancelButton = buttonContainer.createEl("button", {
-      text: getTranslation(this.language, "datePicker.cancelButton") || "Cancel",
-      cls: "mod-secondary",
-    });
-    setCssProps(cancelButton, {
-      padding: "10px 20px",
-    });
-    cancelButton.addEventListener("click", () => {
-      modal.close();
-    });
-
-    modal.open();
+  private showPremiumPaywall(reasonKey: string): void {
+    new Notice(getTranslation(this.language, reasonKey), 6000);
+    this.setModalTab("premium");
   }
 
   private createPremiumPanel(parent: HTMLElement): void {
@@ -558,8 +498,7 @@ export class NotelertDatePickerModal extends Modal {
   }
 
   private showChannelPremiumPaywall(): void {
-    new Notice(getTranslation(this.language, "premiumPaywall.channelLimit"), 6000);
-    this.setModalTab("premium");
+    this.showPremiumPaywall("premiumPaywall.channelLimit");
   }
 
   private createCalendarPanel(parent: HTMLElement): void {
@@ -613,9 +552,20 @@ export class NotelertDatePickerModal extends Modal {
     }
     if (!this.isPremium) {
       const lock = viewport.createDiv({ cls: "notelert-calendar-lock" });
+      lock.setAttribute("role", "button");
+      lock.setAttribute("tabindex", "0");
+      lock.setAttribute("aria-label", getTranslation(this.language, "premiumPaywall.calendarLimit"));
       lock.createDiv({ text: "✦", cls: "notelert-calendar-lock-icon" });
       lock.createEl("strong", { text: getTranslation(this.language, "reminderCalendar.proTitle") });
       lock.createSpan({ text: getTranslation(this.language, "reminderCalendar.proDescription") });
+      const openPaywall = () => this.showPremiumPaywall("premiumPaywall.calendarLimit");
+      lock.addEventListener("click", openPaywall);
+      lock.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openPaywall();
+        }
+      });
     }
   }
 
@@ -766,7 +716,7 @@ export class NotelertDatePickerModal extends Modal {
               new Notice(getTranslation(this.language, "datePicker.selectLocationRequired"), 10000);
               return;
             }
-            const success = await createNotificationFromLocation(
+            const result = await createNotificationFromLocation(
               this.plugin,
               this.editor,
               this.cursor,
@@ -776,9 +726,11 @@ export class NotelertDatePickerModal extends Modal {
               selectedChannels
             );
             hideLoadingState(confirmButton, this.language);
-            if (success) {
+            if (result.success) {
               await this.loadCalendarReminders();
               this.close();
+            } else if (result.quotaReached) {
+              this.showPremiumPaywall("premiumPaywall.monthlyLimit");
             }
           } else {
             if (!this.datePicker || !this.timePicker) {
@@ -822,7 +774,7 @@ export class NotelertDatePickerModal extends Modal {
               }
 
               // Crear la notificación
-              const success = await createNotificationFromDatePicker(
+              const result = await createNotificationFromDatePicker(
                 this.plugin,
                 this.editor,
                 this.cursor,
@@ -836,9 +788,11 @@ export class NotelertDatePickerModal extends Modal {
               );
 
               hideLoadingState(confirmButton, this.language);
-              if (success) {
+              if (result.success) {
                 await this.loadCalendarReminders();
                 this.close();
+              } else if (result.quotaReached) {
+                this.showPremiumPaywall("premiumPaywall.monthlyLimit");
               }
             } else {
               hideLoadingState(confirmButton, this.language);

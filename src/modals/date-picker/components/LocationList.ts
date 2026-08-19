@@ -22,7 +22,8 @@ export async function createLocationList(
   language: string,
   plugin: INotelertPlugin,
   onLocationSelect: (location: SavedLocation | null) => void,
-  onDebugLog: (message: string) => void
+  onDebugLog: (message: string) => void,
+  onPremiumRequired: () => void
 ): Promise<LocationListResult> {
   const listWrapper = createDiv(parent);
   setCssProps(listWrapper, {
@@ -206,7 +207,7 @@ export async function createLocationList(
     });
 
     const openAppButton = createEl(premiumContainer, "button", {
-      text: getTranslation(language, "datePicker.openAppToUpgrade") || "Abrir app para actualizar",
+      text: getTranslation(language, "premiumPaywall.premiumTab"),
     });
     setCssProps(openAppButton, {
       padding: "10px 20px",
@@ -220,23 +221,7 @@ export async function createLocationList(
       marginBottom: "8px",
       width: "100%",
     });
-    addElementListener(openAppButton, "click", () => {
-      const paywallLink = "notelert://paywall";
-      try {
-        if (typeof window !== 'undefined') {
-          window.location.href = paywallLink;
-          window.setTimeout(() => {
-            const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
-            window.open(playStoreLink, "_blank");
-          }, 2000);
-        }
-      } catch {
-        const playStoreLink = "https://play.google.com/store/apps/details?id=com.quim79.notelert";
-        if (typeof window !== 'undefined') {
-          window.open(playStoreLink, "_blank");
-        }
-      }
-    });
+    addElementListener(openAppButton, "click", onPremiumRequired);
 
     const playStoreButton = createEl(premiumContainer, "button", {
       text: getTranslation(language, "datePicker.installApp") || "Instalar app desde Play Store",

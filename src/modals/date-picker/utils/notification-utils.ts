@@ -7,6 +7,19 @@ import { DeliveryChannel, DetectedPattern, SavedLocation, RecurrenceConfig } fro
 import { INotelertPlugin } from "../../../core/plugin-interface";
 import { errorToString } from "../../../features/notifications/utils";
 
+export interface NotificationCreationResult {
+  success: boolean;
+  quotaReached: boolean;
+}
+
+function isQuotaLimitError(error: unknown): boolean {
+  const message = errorToString(error).toLowerCase();
+  return message.includes("notification_limit_reached") ||
+    message.includes("email_monthly_limit_reached") ||
+    message.includes("notification limit") ||
+    (message.includes("límite") && message.includes("notificaciones"));
+}
+
 /**
  * Crea una notificación desde el date picker con fecha y hora
  */
@@ -21,7 +34,7 @@ export async function createNotificationFromDatePicker(
   language: string,
   recurrence?: RecurrenceConfig,
   deliveryChannels?: DeliveryChannel[]
-): Promise<boolean> {
+): Promise<NotificationCreationResult> {
   try {
     // Obtener el título de la nota (nombre del archivo sin extensión)
     const activeFile = plugin.app.workspace.getActiveFile();
@@ -53,14 +66,17 @@ export async function createNotificationFromDatePicker(
     // Crear la notificación directamente
     await plugin.createNotificationAndMarkProcessed(pattern);
 
-    return true;
+    return { success: true, quotaReached: false };
   } catch (err) {
     const errorMessage = errorToString(err);
     plugin.log(`Error creando notificación desde date picker: ${errorMessage}`);
-    const { getTranslation } = await import("../../../i18n");
-    const { Notice } = await import("obsidian");
-    new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: "Recordatorio" }), 10000);
-    return false;
+    const quotaReached = isQuotaLimitError(err);
+    if (!quotaReached) {
+      const { getTranslation } = await import("../../../i18n");
+      const { Notice } = await import("obsidian");
+      new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: "Recordatorio" }), 10000);
+    }
+    return { success: false, quotaReached };
   }
 }
 
@@ -75,7 +91,7 @@ export async function createNotificationFromLocation(
   location: SavedLocation,
   language: string,
   deliveryChannels?: DeliveryChannel[]
-): Promise<boolean> {
+): Promise<NotificationCreationResult> {
   try {
     // Reemplazar el trigger con :#nombreUbicacion (siempre usamos :# para ubicaciones)
     const replacement = `:#${location.name}`;
@@ -125,13 +141,16 @@ export async function createNotificationFromLocation(
     await plugin.createNotificationAndMarkProcessed(pattern);
 
     plugin.log(`Notificación de ubicación creada: ${pattern.title} en ${location.name}`);
-    return true;
+    return { success: true, quotaReached: false };
   } catch (err) {
     const errorMessage = errorToString(err);
     plugin.log(`Error creando notificación de ubicación: ${errorMessage}`);
-    const { getTranslation } = await import("../../../i18n");
-    const { Notice } = await import("obsidian");
-    new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: getTranslation(language, "notices.defaultLocationReminderTitle") }), 10000);
-    return false;
+    const quotaReached = isQuotaLimitError(err);
+    if (!quotaReached) {
+      const { getTranslation } = await import("../../../i18n");
+      const { Notice } = await import("obsidian");
+      new Notice(getTranslation(language, "notices.errorCreatingNotification", { title: getTranslation(language, "notices.defaultLocationReminderTitle") }), 10000);
+    }
+    return { success: false, quotaReached };
   }
 }

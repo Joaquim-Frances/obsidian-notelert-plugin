@@ -303,7 +303,9 @@ export async function createNotification(
       error.message.includes('Error al programar email') ||
       error.message.includes('Token') ||
       error.message.includes('inválido') ||
-      error.message.includes('expirado')
+      error.message.includes('expirado') ||
+      error.message.includes('LIMIT_REACHED') ||
+      (error.message.includes('límite') && error.message.includes('notificaciones'))
     )) {
       // Re-lanzar errores de negocio para que el modal no se cierre
       throw error;
