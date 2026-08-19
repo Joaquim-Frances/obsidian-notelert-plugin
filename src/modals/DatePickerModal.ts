@@ -584,7 +584,7 @@ export class NotelertDatePickerModal extends Modal {
     panel.createEl("p", { text: getTranslation(this.language, "reminderCalendar.description"), cls: "notelert-calendar-description" });
     const nav = panel.createDiv({ cls: "notelert-calendar-nav" });
     const previous = nav.createEl("button", { text: "←", cls: "mod-secondary" });
-    const monthTitle = nav.createDiv({ text: this.calendarMonth.toLocaleDateString(this.language, { month: "long", year: "numeric" }) });
+    nav.createDiv({ text: this.calendarMonth.toLocaleDateString(this.language, { month: "long", year: "numeric" }) });
     const next = nav.createEl("button", { text: "→", cls: "mod-secondary" });
     previous.addEventListener("click", () => { this.calendarMonth.setMonth(this.calendarMonth.getMonth() - 1); this.renderCalendar(); });
     next.addEventListener("click", () => { this.calendarMonth.setMonth(this.calendarMonth.getMonth() + 1); this.renderCalendar(); });
@@ -657,7 +657,7 @@ export class NotelertDatePickerModal extends Modal {
       } else {
         window.open(url, "_blank");
       }
-      this.pollPremiumAfterCheckout(++this.checkoutPollId, 45);
+      void this.pollPremiumAfterCheckout(++this.checkoutPollId, 45);
     } catch (error) {
       checkoutWindow?.close();
       new Notice(error instanceof Error ? error.message : String(error), 10000);
