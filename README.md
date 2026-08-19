@@ -5,7 +5,8 @@ workflow. Type `:@`, choose when to be reminded, and select where it should
 arrive: Android, email, Google Calendar, Telegram, or several channels at once.
 
 Android is optional for date and time reminders. You only need the Android app
-for Android push notifications and location-based reminders.
+for Android push notifications and location-based reminders. Location reminders
+run locally in the Android app and are not available on iPhone, even with Premium.
 
 ## What you can do
 

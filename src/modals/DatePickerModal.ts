@@ -19,6 +19,8 @@ import {
   DeliveryChannelSelectorResult,
 } from "./date-picker/components/DeliveryChannelSelector";
 import { getCachedPremiumStatus, onPremiumStatusChange, PremiumStatus } from "../features/premium/premium-service";
+import { createStripeCheckout } from "../features/premium/billing-api";
+import { listScheduledReminders, ScheduledReminder } from "../features/notifications/reminders-api";
 
 export class NotelertDatePickerModal extends Modal {
   private onCancel: () => void;
@@ -42,6 +44,16 @@ export class NotelertDatePickerModal extends Modal {
   private recurrenceSelector: RecurrenceSelectorResult | null = null;
   private deliveryChannelSelector: DeliveryChannelSelectorResult | null = null;
   private container: HTMLElement | null = null;
+  private premiumPanel: HTMLElement | null = null;
+  private calendarPanel: HTMLElement | null = null;
+  private scheduleTab: HTMLButtonElement | null = null;
+  private premiumTab: HTMLButtonElement | null = null;
+  private calendarTab: HTMLButtonElement | null = null;
+  private actionButtons: HTMLElement | null = null;
+  private isOpeningCheckout = false;
+  private checkoutPollId = 0;
+  private calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  private scheduledReminders: ScheduledReminder[] = [];
 
   // Estado premium
   private isPremium: boolean = false;
@@ -78,6 +90,9 @@ export class NotelertDatePickerModal extends Modal {
       minWidth: isDesktop ? "400px" : "300px",
       maxWidth: isDesktop ? "500px" : "600px",
       width: isDesktop ? "auto" : "95vw",
+      // Keep one stable canvas on mobile. Without an explicit height Obsidian
+      // resizes the dialog to each tab's content, which makes Premium jump.
+      height: isDesktop ? "auto" : "90vh",
       maxHeight: isDesktop ? "auto" : "90vh",
       overflow: "visible",
       padding: isDesktop ? "25px" : "20px",
@@ -107,6 +122,23 @@ export class NotelertDatePickerModal extends Modal {
       fontWeight: "600",
     });
 
+    const tabs = scrollContainer.createDiv({ cls: "notelert-modal-tabs" });
+    this.scheduleTab = tabs.createEl("button", {
+      text: getTranslation(this.language, "premiumPaywall.scheduleTab"),
+      cls: "notelert-modal-tab is-active",
+    });
+    this.premiumTab = tabs.createEl("button", {
+      text: "✦ " + getTranslation(this.language, "premiumPaywall.premiumTab"),
+      cls: "notelert-modal-tab notelert-modal-tab-premium",
+    });
+    this.scheduleTab.addEventListener("click", () => this.setModalTab("schedule"));
+    this.premiumTab.addEventListener("click", () => this.setModalTab("premium"));
+    this.calendarTab = tabs.createEl("button", {
+      text: "▦ " + getTranslation(this.language, "reminderCalendar.tab"),
+      cls: "notelert-modal-tab",
+    });
+    this.calendarTab.addEventListener("click", () => this.setModalTab("calendar"));
+
     // Contenedor principal
     this.container = scrollContainer.createDiv({ cls: "notelert-datepicker-container" });
     setCssProps(this.container, {
@@ -116,6 +148,8 @@ export class NotelertDatePickerModal extends Modal {
       visibility: "visible",
       minHeight: "200px", // Asegurar altura mínima
     });
+    this.createPremiumPanel(scrollContainer);
+    this.createCalendarPanel(scrollContainer);
 
     // Debug: verificar que el contenedor se creó
     this.plugin.log(`Container creado: ${this.container ? 'OK' : 'NULL'}`);
@@ -130,6 +164,7 @@ export class NotelertDatePickerModal extends Modal {
     const cachedStatus = getCachedPremiumStatus();
     this.isPremium = cachedStatus.isPremium;
     this.plugin.log(`📌 Estado premium precargado: ${this.isPremium} (loading: ${cachedStatus.loading})`);
+    this.updatePremiumTabVisibility();
 
     // Suscribirse a cambios de estado premium (por si aún está cargando)
     this.unsubscribePremium = onPremiumStatusChange((status: PremiumStatus) => {
@@ -141,6 +176,9 @@ export class NotelertDatePickerModal extends Modal {
         if (this.recurrenceSelector) {
           this.recurrenceSelector.updatePremiumStatus(this.isPremium);
         }
+        this.deliveryChannelSelector?.updatePremiumStatus(this.isPremium);
+        this.updatePremiumTabVisibility();
+        this.renderCalendar();
 
         // Actualizar/Recargar lista de ubicaciones si existe
         if (this.locationList) {
@@ -185,7 +223,9 @@ export class NotelertDatePickerModal extends Modal {
         this.container,
         this.language,
         this.plugin.settings.deliveryChannels || ["push"],
-        this.notificationType
+        this.notificationType,
+        this.isPremium,
+        () => this.showChannelPremiumPaywall()
       );
 
       // Selector de fecha
@@ -238,6 +278,16 @@ export class NotelertDatePickerModal extends Modal {
         },
         this.isPremium
       );
+      const recurrenceAndroidOnly = this.container.createDiv({
+        text: getTranslation(this.language, "recurrence.androidOnly"),
+        cls: "notelert-recurrence-android-only",
+      });
+      setCssProps(recurrenceAndroidOnly, {
+        marginTop: "-8px",
+        color: "var(--text-muted)",
+        fontSize: "12px",
+        lineHeight: "1.4",
+      });
       this.plugin.log(`SUCCESS RecurrenceSelector creado: ${this.recurrenceSelector ? 'OK' : 'NULL'}`);
 
       // Panel de debug
@@ -461,8 +511,183 @@ export class NotelertDatePickerModal extends Modal {
     modal.open();
   }
 
+  private createPremiumPanel(parent: HTMLElement): void {
+    this.premiumPanel = parent.createDiv({ cls: "notelert-premium-paywall" });
+    this.premiumPanel.hide();
+    this.renderPremiumPanel();
+  }
+
+  private renderPremiumPanel(): void {
+    if (!this.premiumPanel) return;
+    this.premiumPanel.empty();
+    const panel = this.premiumPanel;
+    panel.createDiv({ text: "NOTELERT PRO", cls: "notelert-premium-eyebrow" });
+    panel.createEl("h3", { text: getTranslation(this.language, "premiumPaywall.title") });
+    panel.createEl("p", {
+      text: getTranslation(this.language, "premiumPaywall.description"),
+      cls: "notelert-premium-lede",
+    });
+
+    const features = panel.createDiv({ cls: "notelert-premium-features" });
+    ["channels", "reminders", "recurrence", "location"].forEach(key => {
+      const feature = features.createDiv({ cls: "notelert-premium-feature" });
+      feature.createSpan({ text: "✓", cls: "notelert-premium-check" });
+      feature.createSpan({ text: getTranslation(this.language, `premiumPaywall.features.${key}`) });
+    });
+
+    const plans = panel.createDiv({ cls: "notelert-premium-plans" });
+    this.createCheckoutPlan(plans, "monthly", getTranslation(this.language, "premiumPaywall.monthly"), "3,99 € / mes");
+    this.createCheckoutPlan(plans, "yearly", getTranslation(this.language, "premiumPaywall.yearly"), "39,99 € / año", true);
+  }
+
+  private createCheckoutPlan(parent: HTMLElement, period: "monthly" | "yearly", title: string, price: string, recommended = false): void {
+    const plan = parent.createDiv({ cls: `notelert-premium-plan${recommended ? " is-recommended" : ""}` });
+    if (recommended) plan.createDiv({ text: getTranslation(this.language, "premiumPaywall.bestValue"), cls: "notelert-premium-best-value" });
+    const copy = plan.createDiv();
+    copy.createDiv({ text: title, cls: "notelert-premium-plan-title" });
+    copy.createDiv({ text: price, cls: "notelert-premium-price" });
+    const button = plan.createEl("button", {
+      text: this.isOpeningCheckout ? getTranslation(this.language, "premiumPaywall.opening") : getTranslation(this.language, "premiumPaywall.choose"),
+      cls: recommended ? "mod-cta" : "mod-secondary",
+    });
+    button.disabled = this.isOpeningCheckout;
+    button.addEventListener("click", () => void this.openStripeCheckout(period));
+  }
+
+  private showChannelPremiumPaywall(): void {
+    new Notice(getTranslation(this.language, "premiumPaywall.channelLimit"), 6000);
+    this.setModalTab("premium");
+  }
+
+  private createCalendarPanel(parent: HTMLElement): void {
+    this.calendarPanel = parent.createDiv({ cls: "notelert-reminder-calendar" });
+    this.calendarPanel.hide();
+    this.renderCalendar();
+  }
+
+  private async loadCalendarReminders(): Promise<void> {
+    const token = this.plugin.settings.pluginToken?.trim();
+    if (!token) return;
+    try {
+      this.scheduledReminders = await listScheduledReminders(token);
+      this.renderCalendar();
+    } catch (error) {
+      this.plugin.log(`No se pudieron cargar los recordatorios: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  private renderCalendar(): void {
+    if (!this.calendarPanel) return;
+    const panel = this.calendarPanel;
+    panel.empty();
+    panel.createEl("h3", { text: getTranslation(this.language, "reminderCalendar.title") });
+    panel.createEl("p", { text: getTranslation(this.language, "reminderCalendar.description"), cls: "notelert-calendar-description" });
+    const nav = panel.createDiv({ cls: "notelert-calendar-nav" });
+    const previous = nav.createEl("button", { text: "←", cls: "mod-secondary" });
+    const monthTitle = nav.createDiv({ text: this.calendarMonth.toLocaleDateString(this.language, { month: "long", year: "numeric" }) });
+    const next = nav.createEl("button", { text: "→", cls: "mod-secondary" });
+    previous.addEventListener("click", () => { this.calendarMonth.setMonth(this.calendarMonth.getMonth() - 1); this.renderCalendar(); });
+    next.addEventListener("click", () => { this.calendarMonth.setMonth(this.calendarMonth.getMonth() + 1); this.renderCalendar(); });
+
+    const viewport = panel.createDiv({ cls: `notelert-calendar-viewport${this.isPremium ? "" : " is-locked"}` });
+    const grid = viewport.createDiv({ cls: "notelert-calendar-grid" });
+    ["L", "M", "X", "J", "V", "S", "D"].forEach(day => grid.createDiv({ text: day, cls: "notelert-calendar-weekday" }));
+    const firstDay = (this.calendarMonth.getDay() + 6) % 7;
+    const daysInMonth = new Date(this.calendarMonth.getFullYear(), this.calendarMonth.getMonth() + 1, 0).getDate();
+    for (let i = 0; i < firstDay; i++) grid.createDiv({ cls: "notelert-calendar-day is-empty" });
+    for (let day = 1; day <= daysInMonth; day++) {
+      const today = new Date();
+      const isToday = today.getFullYear() === this.calendarMonth.getFullYear()
+        && today.getMonth() === this.calendarMonth.getMonth()
+        && today.getDate() === day;
+      const cell = grid.createDiv({ cls: `notelert-calendar-day${isToday ? " is-today" : ""}` });
+      cell.createDiv({ text: String(day), cls: "notelert-calendar-date" });
+      const reminders = this.scheduledReminders.filter(reminder => {
+        const date = new Date(reminder.scheduledDate);
+        return date.getFullYear() === this.calendarMonth.getFullYear() && date.getMonth() === this.calendarMonth.getMonth() && date.getDate() === day;
+      });
+      reminders.slice(0, 2).forEach(reminder => cell.createDiv({ text: reminder.title, cls: "notelert-calendar-event" }));
+    }
+    if (!this.isPremium) {
+      const lock = viewport.createDiv({ cls: "notelert-calendar-lock" });
+      lock.createDiv({ text: "✦", cls: "notelert-calendar-lock-icon" });
+      lock.createEl("strong", { text: getTranslation(this.language, "reminderCalendar.proTitle") });
+      lock.createSpan({ text: getTranslation(this.language, "reminderCalendar.proDescription") });
+    }
+  }
+
+  private setModalTab(tab: "schedule" | "premium" | "calendar"): void {
+    if (tab === "premium" && this.isPremium) tab = "schedule";
+    const premiumActive = tab === "premium";
+    const calendarActive = tab === "calendar";
+    this.container?.toggle(!premiumActive && !calendarActive);
+    this.premiumPanel?.toggle(premiumActive);
+    this.calendarPanel?.toggle(calendarActive);
+    this.actionButtons?.toggle(!premiumActive && !calendarActive);
+    this.scheduleTab?.classList.toggle("is-active", !premiumActive && !calendarActive);
+    this.premiumTab?.classList.toggle("is-active", premiumActive);
+    this.calendarTab?.classList.toggle("is-active", calendarActive);
+    if (calendarActive) void this.loadCalendarReminders();
+  }
+
+  private updatePremiumTabVisibility(): void {
+    if (!this.premiumTab) return;
+    this.premiumTab.toggle(!this.isPremium);
+    if (this.isPremium) this.setModalTab("schedule");
+  }
+
+  private async openStripeCheckout(period: "monthly" | "yearly"): Promise<void> {
+    const token = this.plugin.settings.pluginToken?.trim();
+    if (!token) {
+      new Notice(getTranslation(this.language, "premiumPaywall.tokenRequired"), 8000);
+      return;
+    }
+    const checkoutWindow = Platform.isMobile ? null : window.open("about:blank", "_blank");
+    this.isOpeningCheckout = true;
+    this.renderPremiumPanel();
+    try {
+      const url = await createStripeCheckout(token, period, this.language, this.app.vault.getName());
+      if (checkoutWindow && !checkoutWindow.closed) {
+        checkoutWindow.location.href = url;
+      } else if (Platform.isMobile) {
+        // `_system` is handled by Obsidian/Cordova as an external browser. A
+        // regular `_blank` after an async request is silently ignored on
+        // Android because it is no longer considered a direct user gesture.
+        window.open(url, "_system");
+      } else {
+        window.open(url, "_blank");
+      }
+      this.pollPremiumAfterCheckout(++this.checkoutPollId, 45);
+    } catch (error) {
+      checkoutWindow?.close();
+      new Notice(error instanceof Error ? error.message : String(error), 10000);
+    } finally {
+      this.isOpeningCheckout = false;
+      this.renderPremiumPanel();
+    }
+  }
+
+  private async pollPremiumAfterCheckout(pollId: number, attempts: number): Promise<void> {
+    if (pollId !== this.checkoutPollId || attempts <= 0) return;
+    try {
+      const { getPremiumStatus } = await import("../features/premium/premium-service");
+      const status = await getPremiumStatus(this.plugin.settings.pluginToken, true);
+      if (status.isPremium) {
+        this.isPremium = true;
+        this.deliveryChannelSelector?.updatePremiumStatus(true);
+        new Notice(getTranslation(this.language, "premiumPaywall.activated"), 6000);
+        this.setModalTab("schedule");
+        return;
+      }
+    } catch (error) {
+      this.plugin.log(`No se pudo refrescar Premium tras Checkout: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    window.setTimeout(() => void this.pollPremiumAfterCheckout(pollId, attempts - 1), 2000);
+  }
+
   private createActionButtons(parent: HTMLElement) {
     const buttonContainer = parent.createDiv({ cls: "notelert-datepicker-buttons" });
+    this.actionButtons = buttonContainer;
     setCssProps(buttonContainer, {
       display: "flex",
       gap: "10px",
@@ -549,6 +774,7 @@ export class NotelertDatePickerModal extends Modal {
             );
             hideLoadingState(confirmButton, this.language);
             if (success) {
+              await this.loadCalendarReminders();
               this.close();
             }
           } else {
@@ -586,6 +812,11 @@ export class NotelertDatePickerModal extends Modal {
 
               // Obtener configuración de recurrencia
               const recurrenceConfig = this.recurrenceSelector?.getConfig();
+              if (recurrenceConfig?.enabled && !selectedChannels.includes("push")) {
+                hideLoadingState(confirmButton, this.language);
+                new Notice(getTranslation(this.language, "recurrence.androidOnly"), 10000);
+                return;
+              }
 
               // Crear la notificación
               const success = await createNotificationFromDatePicker(
@@ -598,11 +829,12 @@ export class NotelertDatePickerModal extends Modal {
                 newLine,
                 this.language,
                 recurrenceConfig,
-                selectedChannels
+                recurrenceConfig?.enabled ? ["push"] : selectedChannels
               );
 
               hideLoadingState(confirmButton, this.language);
               if (success) {
+                await this.loadCalendarReminders();
                 this.close();
               }
             } else {
@@ -638,5 +870,10 @@ export class NotelertDatePickerModal extends Modal {
     this.locationList = null;
     this.recurrenceSelector = null;
     this.deliveryChannelSelector = null;
+    this.premiumPanel = null;
+    this.scheduleTab = null;
+    this.premiumTab = null;
+    this.actionButtons = null;
+    this.checkoutPollId++;
   }
 }

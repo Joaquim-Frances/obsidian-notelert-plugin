@@ -4,6 +4,6 @@
   "description": "Send reminders from note lines to Android, email, Google Calendar, or Telegram.",
   "author": "Joaquim Frances",
   "minAppVersion": "1.8.7",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "isDesktopOnly": false
 }

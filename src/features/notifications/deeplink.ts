@@ -7,17 +7,13 @@ import { getPremiumStatus } from "../premium/premium-service";
 import { scheduleGoogleCalendarReminder } from "./google-calendar-api";
 import { scheduleTelegramReminder } from "./telegram-api";
 
-function removeDatePickerMarker(message: string, trigger: string): string {
-  const escapedTrigger = trigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return message.replace(new RegExp(`${escapedTrigger}[^,\\s]+,\\s*[^\\s]+`, 'g'), '');
-}
-
-export function generateDeepLink(pattern: DetectedPattern, app: App, trigger = ':@'): string {
+export function generateDeepLink(pattern: DetectedPattern, app: App): string {
   const title = encodeURIComponent(pattern.title);
 
   // Limpiar el mensaje de los patrones :@fecha, hora y :#ubicacion
   let cleanMessage = pattern.message;
-  cleanMessage = removeDatePickerMarker(cleanMessage, trigger);
+  // Eliminar patrones :@fecha, hora (ej: :@2024-01-15, 14:30)
+  cleanMessage = cleanMessage.replace(/:@[^,\s]+,\s*[^\s]+/g, '');
   // Eliminar patrones :#ubicacion (ej: :#Supermercado)
   cleanMessage = cleanMessage.replace(/:#[^\s]+/g, '');
   // Limpiar espacios extra
@@ -72,7 +68,8 @@ export async function createNotification(
 
     // Limpiar el mensaje de los patrones :@fecha, hora y :#ubicacion
     let cleanMessage = pattern.message;
-    cleanMessage = removeDatePickerMarker(cleanMessage, settings.datePickerTrigger || ':@');
+    // Eliminar patrones :@fecha, hora (ej: :@2024-01-15, 14:30)
+    cleanMessage = cleanMessage.replace(/:@[^,\s]+,\s*[^\s]+/g, '');
     // Eliminar patrones :#ubicacion (ej: :#Supermercado)
     cleanMessage = cleanMessage.replace(/:#[^\s]+/g, '');
     // Limpiar espacios extra
@@ -131,9 +128,19 @@ export async function createNotification(
       : settings.deliveryMode === 'both'
         ? ['push', 'email']
         : [settings.deliveryMode || (hasVerifiedEmail ? 'email' : 'push')];
-    const selectedChannels = pattern.deliveryChannels !== undefined
+    let selectedChannels = pattern.deliveryChannels !== undefined
       ? pattern.deliveryChannels.filter(channel => configuredChannels.includes(channel))
       : configuredChannels;
+    // The picker is the primary conversion surface, but reminders can also be
+    // created from automatic/legacy flows. Keep Free delivery to one channel
+    // there as well, while still allowing users to switch their chosen channel.
+    if (notificationType === 'time' && selectedChannels.length > 1) {
+      const entitlement = await getPremiumStatus(settings.pluginToken);
+      if (!entitlement.isPremium) {
+        selectedChannels = selectedChannels.slice(0, 1);
+        log('Plan Free: se ha limitado la entrega a un único canal.');
+      }
+    }
     const wantsEmail = notificationType === 'time' && selectedChannels.includes('email');
     const wantsCalendar = notificationType === 'time' && selectedChannels.includes('calendar');
     const wantsTelegram = notificationType === 'time' && selectedChannels.includes('telegram');

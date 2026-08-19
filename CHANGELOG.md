@@ -5,6 +5,16 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2026-08-19
+
+### Añadido
+- Vista de calendario para los recordatorios programados, con navegación mensual.
+- Notelert Pro permite usar canales ilimitados por recordatorio; Free mantiene un canal seleccionable.
+
+### Corregido
+- Los enlaces de Obsidian enviados por Telegram abren mediante un enlace web seguro y presionable.
+- La vista de calendario detecta el estado Pro al abrirse y se actualiza tras crear un recordatorio.
+
 ## [1.2.2] - 2026-08-11
 
 ### Mejorado
