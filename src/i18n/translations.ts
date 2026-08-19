@@ -184,7 +184,7 @@ export const TRANSLATIONS = {
       "errorCreatingNotification": "Error creando notificación: {title}",
       "defaultTitle": "Recordatorio",
       "desktopConfigRequired": "❌ Configura tu email y API Key en Settings para usar Notelert en desktop",
-      "locationNotSupportedDesktop": "❌ Las notificaciones de ubicación solo están disponibles en móvil",
+      "locationNotSupportedDesktop": "❌ Los recordatorios de ubicación solo funcionan con la app Android de Notelert",
       "emailScheduled": "✅ Email programado correctamente",
       "calendarScheduled": "✅ Recordatorio añadido a Google Calendar",
       "telegramScheduled": "✅ Recordatorio programado en Telegram",
@@ -263,7 +263,7 @@ export const TRANSLATIONS = {
       "loadingLocations": "Cargando ubicaciones...",
       "noDebugLogs": "No hay logs aún. Los logs aparecerán aquí cuando se carguen las ubicaciones.",
       "premiumRequiredTitle": "Plan Premium requerido",
-      "premiumRequiredDesc": "Las notificaciones de ubicación solo están disponibles en el plan Premium.\n\nActualiza a Premium para usar esta función.",
+      "premiumRequiredDesc": "Los recordatorios de ubicación requieren Premium y la app Android de Notelert con permisos de ubicación.\n\nNo están disponibles en iPhone.",
       "openAppToUpgrade": "📱 Abrir app para actualizar",
       "installApp": "📥 Instalar app desde Play Store",
       "locationsErrorDesc": "Verifica que:\n1. El token sea correcto\n2. Tengas ubicaciones guardadas en la app\n3. La conexión con Notelert esté disponible",
@@ -275,6 +275,33 @@ export const TRANSLATIONS = {
       "minutes": "Minutos",
       "selectLocationTitle": "Selecciona una ubicación:",
       "selectLocationRequired": "Por favor, selecciona una ubicación"
+    },
+    "premiumPaywall": {
+      "scheduleTab": "Recordatorio",
+      "premiumTab": "Notelert Pro",
+      "title": "Más canales. Cero fricción.",
+      "description": "Free te deja elegir el canal que prefieras. Notelert Pro te permite combinarlos para que cada recordatorio llegue donde importa.",
+      "channelLimit": "Free incluye un canal por recordatorio. Notelert Pro desbloquea todos los canales.",
+      "features": {
+        "channels": "Canales ilimitados por recordatorio",
+        "reminders": "Hasta 300 recordatorios al mes",
+        "recurrence": "Recordatorios recurrentes",
+        "location": "Recordatorios por ubicación en Android"
+      },
+      "monthly": "Notelert Pro mensual",
+      "yearly": "Notelert Pro anual",
+      "bestValue": "MEJOR VALOR",
+      "choose": "Elegir Pro",
+      "opening": "Abriendo Stripe…",
+      "tokenRequired": "Vincula tu cuenta desde Ajustes para actualizar a Notelert Pro.",
+      "activated": "Notelert Pro activado. Ya puedes combinar canales."
+    },
+    "reminderCalendar": {
+      "tab": "Calendario",
+      "title": "Recordatorios programados",
+      "description": "Consulta de un vistazo los próximos recordatorios.",
+      "proTitle": "Vista de calendario Pro",
+      "proDescription": "Desbloquea Notelert Pro para ver y organizar tus recordatorios."
     },
     "locationPicker": {
       "title": "Seleccionar Ubicación",
@@ -307,6 +334,7 @@ export const TRANSLATIONS = {
       "nameLocationCancel": "Cancelar"
     },
     "recurrence": {
+      "androidOnly": "Por ahora, los recordatorios recurrentes solo se entregan mediante Android.",
       "repeat": "🔄 Repetir",
       "repeatLabel": "Repetir",
       "every": "Cada",
@@ -510,7 +538,7 @@ export const TRANSLATIONS = {
       "errorCreatingNotification": "Error creating notification: {title}",
       "defaultTitle": "Reminder",
       "desktopConfigRequired": "❌ Configure your email and API Key in Settings to use Notelert on desktop",
-      "locationNotSupportedDesktop": "❌ Location notifications are only available on mobile",
+      "locationNotSupportedDesktop": "❌ Location reminders only work with the Notelert Android app",
       "emailScheduled": "✅ Email scheduled successfully",
       "calendarScheduled": "✅ Reminder added to Google Calendar",
       "telegramScheduled": "✅ Reminder scheduled in Telegram",
@@ -589,7 +617,7 @@ export const TRANSLATIONS = {
       "loadingLocations": "Loading locations...",
       "noDebugLogs": "No logs yet. Logs will appear here when locations load.",
       "premiumRequiredTitle": "Premium Plan Required",
-      "premiumRequiredDesc": "Location notifications are only available in the Premium plan.\n\nUpgrade to Premium to use this feature.",
+      "premiumRequiredDesc": "Location reminders require Premium and the Notelert Android app with location permissions.\n\nThey are not available on iPhone.",
       "openAppToUpgrade": "📱 Open app to upgrade",
       "installApp": "📥 Install app from Play Store",
       "locationsErrorDesc": "Please verify:\n1. The token is correct\n2. You have saved locations in the app\n3. Use the 'View logs' button for more details",
@@ -601,6 +629,33 @@ export const TRANSLATIONS = {
       "minutes": "Minutes",
       "selectLocationTitle": "Select a location:",
       "selectLocationRequired": "Please select a location"
+    },
+    "premiumPaywall": {
+      "scheduleTab": "Reminder",
+      "premiumTab": "Notelert Pro",
+      "title": "More channels. Zero friction.",
+      "description": "Free lets you choose the channel you prefer. Notelert Pro lets you combine them, so every reminder arrives where it matters.",
+      "channelLimit": "Free includes one channel per reminder. Notelert Pro unlocks every channel.",
+      "features": {
+        "channels": "Unlimited channels per reminder",
+        "reminders": "Up to 300 reminders each month",
+        "recurrence": "Recurring reminders",
+        "location": "Location reminders on Android"
+      },
+      "monthly": "Notelert Pro monthly",
+      "yearly": "Notelert Pro yearly",
+      "bestValue": "BEST VALUE",
+      "choose": "Choose Pro",
+      "opening": "Opening Stripe…",
+      "tokenRequired": "Link your account in Settings to upgrade to Notelert Pro.",
+      "activated": "Notelert Pro activated. You can now combine channels."
+    },
+    "reminderCalendar": {
+      "tab": "Calendar",
+      "title": "Scheduled reminders",
+      "description": "See your upcoming reminders at a glance.",
+      "proTitle": "Pro calendar view",
+      "proDescription": "Unlock Notelert Pro to view and organize your reminders."
     },
     "locationPicker": {
       "title": "Select Location",
@@ -633,6 +688,7 @@ export const TRANSLATIONS = {
       "nameLocationCancel": "Cancel"
     },
     "recurrence": {
+      "androidOnly": "For now, recurring reminders are delivered through Android only.",
       "repeat": "🔄 Repeat",
       "repeatLabel": "Repeat",
       "every": "Every",
@@ -772,7 +828,7 @@ export const TRANSLATIONS = {
       "errorCreatingNotification": "Error creant notificació: {title}",
       "defaultTitle": "Recordatori",
       "desktopConfigRequired": "❌ Configura el teu email i API Key a Settings per usar Notelert a desktop",
-      "locationNotSupportedDesktop": "❌ Les notificacions d'ubicació només estan disponibles a mòbil",
+      "locationNotSupportedDesktop": "❌ Els recordatoris d'ubicació només funcionen amb l'app Android de Notelert",
       "emailScheduled": "✅ Email programat correctament",
       "calendarScheduled": "✅ Recordatori afegit a Google Calendar",
       "telegramScheduled": "✅ Recordatori programat a Telegram",
@@ -850,7 +906,7 @@ export const TRANSLATIONS = {
       "loadingLocations": "Carregant ubicacions...",
       "noDebugLogs": "Encara no hi ha logs. Els logs apareixeran aquí quan es carreguin les ubicacions.",
       "premiumRequiredTitle": "Pla Premium Requerit",
-      "premiumRequiredDesc": "Les notificacions d'ubicació només estan disponibles al pla Premium.\n\nActualitza a Premium per usar aquesta funció.",
+      "premiumRequiredDesc": "Els recordatoris d'ubicació requereixen Premium i l'app Android de Notelert amb permisos d'ubicació.\n\nNo estan disponibles a iPhone.",
       "openAppToUpgrade": "📱 Obrir app per actualitzar",
       "installApp": "📥 Instal·lar app des de Play Store",
       "locationsErrorDesc": "Verifica que:\n1. El token sigui correcte\n2. Tinguis ubicacions guardades a l'app\n3. Usa el botó 'Veure logs' per més detalls",
@@ -862,6 +918,15 @@ export const TRANSLATIONS = {
       "minutes": "Minuts",
       "selectLocationTitle": "Selecciona una ubicació:",
       "selectLocationRequired": "Si us plau, selecciona una ubicació"
+    },
+    "premiumPaywall": {
+      "scheduleTab": "Recordatori",
+      "premiumTab": "Notelert Pro",
+      "title": "Més canals. Zero fricció.",
+      "description": "Free et permet triar el canal que prefereixis. Notelert Pro et permet combinar-los perquè cada recordatori arribi on importa.",
+      "channelLimit": "Free inclou un canal per recordatori. Notelert Pro desbloqueja tots els canals.",
+      "features": { "channels": "Canals il·limitats per recordatori", "reminders": "Fins a 300 recordatoris al mes", "recurrence": "Recordatoris recurrents", "location": "Recordatoris per ubicació a Android" },
+      "monthly": "Notelert Pro mensual", "yearly": "Notelert Pro anual", "bestValue": "MILLOR VALOR", "choose": "Triar Pro", "opening": "Obrint Stripe…", "tokenRequired": "Vincula el teu compte a Configuració per actualitzar a Notelert Pro.", "activated": "Notelert Pro activat. Ja pots combinar canals."
     },
     "locationPicker": {
       "title": "Seleccionar Ubicació",
@@ -894,6 +959,7 @@ export const TRANSLATIONS = {
       "nameLocationCancel": "Cancel·lar"
     },
     "recurrence": {
+      "androidOnly": "De moment, els recordatoris recurrents només es lliuren mitjançant Android.",
       "repeat": "🔄 Repetir",
       "repeatLabel": "Repetir",
       "every": "Cada",
@@ -1033,7 +1099,7 @@ export const TRANSLATIONS = {
       "errorCreatingNotification": "Erreur lors de la création de la notification: {title}",
       "defaultTitle": "Rappel",
       "desktopConfigRequired": "❌ Configurez votre e-mail et votre clé API dans les paramètres pour utiliser Notelert sur le bureau",
-      "locationNotSupportedDesktop": "❌ Les notifications de localisation sont uniquement disponibles sur mobile",
+      "locationNotSupportedDesktop": "❌ Les rappels de localisation fonctionnent uniquement avec l'app Android Notelert",
       "emailScheduled": "✅ E-mail programmé avec succès",
       "calendarScheduled": "✅ Rappel ajouté à Google Agenda",
       "telegramScheduled": "✅ Rappel programmé dans Telegram",
@@ -1087,7 +1153,7 @@ export const TRANSLATIONS = {
       "loadingLocations": "Chargement des lieux...",
       "noDebugLogs": "Aucun log pour le moment. Les logs apparaîtront ici lorsque les lieux seront chargés.",
       "premiumRequiredTitle": "Plan Premium Requis",
-      "premiumRequiredDesc": "Les notifications de localisation ne sont disponibles que dans le plan Premium.\n\nPassez à Premium pour utiliser cette fonctionnalité.",
+      "premiumRequiredDesc": "Les rappels de localisation nécessitent Premium et l'app Android Notelert avec les autorisations de localisation.\n\nIls ne sont pas disponibles sur iPhone.",
       "openAppToUpgrade": "📱 Ouvrir l'app pour mettre à niveau",
       "installApp": "📥 Installer l'app depuis Play Store",
       "locationsErrorDesc": "Vérifiez que:\n1. Le token est correct\n2. Vous avez des lieux enregistrés dans l'app\n3. Utilisez le bouton 'Voir les logs' pour plus de détails",
@@ -1099,6 +1165,15 @@ export const TRANSLATIONS = {
       "minutes": "Minutes",
       "selectLocationTitle": "Sélectionnez un lieu:",
       "selectLocationRequired": "Veuillez sélectionner un lieu"
+    },
+    "premiumPaywall": {
+      "scheduleTab": "Rappel",
+      "premiumTab": "Notelert Pro",
+      "title": "Plus de canaux. Zéro friction.",
+      "description": "Free vous permet de choisir le canal que vous préférez. Notelert Pro vous permet de les combiner pour que chaque rappel arrive là où il compte.",
+      "channelLimit": "Free inclut un canal par rappel. Notelert Pro déverrouille tous les canaux.",
+      "features": { "channels": "Canaux illimités par rappel", "reminders": "Jusqu'à 300 rappels par mois", "recurrence": "Rappels récurrents", "location": "Rappels de localisation sur Android" },
+      "monthly": "Notelert Pro mensuel", "yearly": "Notelert Pro annuel", "bestValue": "MEILLEUR RAPPORT QUALITÉ-PRIX", "choose": "Choisir Pro", "opening": "Ouverture de Stripe…", "tokenRequired": "Liez votre compte dans les Paramètres pour passer à Notelert Pro.", "activated": "Notelert Pro activé. Vous pouvez maintenant combiner les canaux."
     },
     "locationPicker": {
       "title": "Sélectionner un lieu",
@@ -1131,6 +1206,7 @@ export const TRANSLATIONS = {
       "nameLocationCancel": "Annuler"
     },
     "recurrence": {
+      "androidOnly": "Pour le moment, les rappels récurrents sont livrés uniquement via Android.",
       "repeat": "🔄 Répéter",
       "repeatLabel": "Répéter",
       "every": "Chaque",
@@ -1294,7 +1370,7 @@ export const TRANSLATIONS = {
       "errorCreatingNotification": "Fehler beim Erstellen der Benachrichtigung: {title}",
       "defaultTitle": "Erinnerung",
       "desktopConfigRequired": "❌ Konfigurieren Sie Ihre E-Mail und API-Schlüssel in den Einstellungen, um Notelert auf dem Desktop zu verwenden",
-      "locationNotSupportedDesktop": "❌ Standortbenachrichtigungen sind nur auf Mobilgeräten verfügbar",
+      "locationNotSupportedDesktop": "❌ Standorterinnerungen funktionieren nur mit der Notelert-Android-App",
       "emailScheduled": "✅ E-Mail erfolgreich geplant",
       "calendarScheduled": "✅ Erinnerung zu Google Kalender hinzugefügt",
       "telegramScheduled": "✅ Erinnerung in Telegram geplant",
@@ -1372,7 +1448,7 @@ export const TRANSLATIONS = {
       "loadingLocations": "Orte werden geladen...",
       "noDebugLogs": "Noch keine Logs. Logs werden hier angezeigt, wenn Standorte geladen werden.",
       "premiumRequiredTitle": "Premium-Plan erforderlich",
-      "premiumRequiredDesc": "Standortbenachrichtigungen sind nur im Premium-Plan verfügbar.\n\nFühren Sie ein Upgrade auf Premium durch, um diese Funktion zu nutzen.",
+      "premiumRequiredDesc": "Standorterinnerungen benötigen Premium und die Notelert-Android-App mit Standortberechtigung.\n\nSie sind auf dem iPhone nicht verfügbar.",
       "openAppToUpgrade": "📱 App zum Upgrade öffnen",
       "installApp": "📥 App aus dem Play Store installieren",
       "locationsErrorDesc": "Bitte überprüfen Sie:\n1. Das Token ist korrekt\n2. Sie haben Orte in der App gespeichert\n3. Nutzen Sie den Button 'Logs anzeigen' für mehr Details",
@@ -1384,6 +1460,15 @@ export const TRANSLATIONS = {
       "minutes": "Minuten",
       "selectLocationTitle": "Wählen Sie einen Ort aus:",
       "selectLocationRequired": "Bitte wählen Sie einen Standort aus"
+    },
+    "premiumPaywall": {
+      "scheduleTab": "Erinnerung",
+      "premiumTab": "Notelert Pro",
+      "title": "Mehr Kanäle. Keine Reibung.",
+      "description": "Mit Free wählen Sie Ihren bevorzugten Kanal. Mit Notelert Pro kombinieren Sie sie, damit jede Erinnerung dort ankommt, wo sie zählt.",
+      "channelLimit": "Free enthält einen Kanal pro Erinnerung. Notelert Pro schaltet alle Kanäle frei.",
+      "features": { "channels": "Unbegrenzte Kanäle pro Erinnerung", "reminders": "Bis zu 300 Erinnerungen pro Monat", "recurrence": "Wiederkehrende Erinnerungen", "location": "Standorterinnerungen auf Android" },
+      "monthly": "Notelert Pro monatlich", "yearly": "Notelert Pro jährlich", "bestValue": "BESTER WERT", "choose": "Pro auswählen", "opening": "Stripe wird geöffnet…", "tokenRequired": "Verknüpfen Sie Ihr Konto in den Einstellungen, um auf Notelert Pro umzusteigen.", "activated": "Notelert Pro aktiviert. Sie können jetzt Kanäle kombinieren."
     },
     "locationPicker": {
       "title": "Ort auswählen",
@@ -1416,6 +1501,7 @@ export const TRANSLATIONS = {
       "nameLocationCancel": "Abbrechen"
     },
     "recurrence": {
+      "androidOnly": "Derzeit werden wiederkehrende Erinnerungen nur über Android zugestellt.",
       "repeat": "🔄 Wiederholen",
       "repeatLabel": "Wiederholen",
       "every": "Alle",
@@ -1555,7 +1641,7 @@ export const TRANSLATIONS = {
       "errorCreatingNotification": "Erro ao criar notificação: {title}",
       "defaultTitle": "Lembrete",
       "desktopConfigRequired": "❌ Configure seu e-mail e chave de API nas configurações para usar Notelert no desktop",
-      "locationNotSupportedDesktop": "❌ As notificações de localização estão disponíveis apenas no celular",
+      "locationNotSupportedDesktop": "❌ Lembretes de localização funcionam apenas com o aplicativo Android do Notelert",
       "emailScheduled": "✅ E-mail agendado com sucesso",
       "calendarScheduled": "✅ Lembrete adicionado ao Google Agenda",
       "telegramScheduled": "✅ Lembrete agendado no Telegram",
@@ -1633,7 +1719,7 @@ export const TRANSLATIONS = {
       "loadingLocations": "Carregando locais...",
       "noDebugLogs": "Ainda não há logs. Os logs aparecerão aqui quando os locais forem carregados.",
       "premiumRequiredTitle": "Plano Premium Necessário",
-      "premiumRequiredDesc": "As notificações de localização estão disponíveis apenas no plano Premium.\n\nAtualize para o Premium para usar esta função.",
+      "premiumRequiredDesc": "Lembretes de localização exigem Premium e o aplicativo Android do Notelert com permissões de localização.\n\nEles não estão disponíveis no iPhone.",
       "openAppToUpgrade": "📱 Abrir aplicativo para atualizar",
       "installApp": "📥 Instalar aplicativo da Play Store",
       "locationsErrorDesc": "Verifique se:\n1. O token está correto\n2. Você tem locais salvos no aplicativo\n3. Use o botão 'Ver logs' para mais detalhes",
@@ -1645,6 +1731,15 @@ export const TRANSLATIONS = {
       "minutes": "Minutos",
       "selectLocationTitle": "Selecione uma localização:",
       "selectLocationRequired": "Por favor, selecione uma localização"
+    },
+    "premiumPaywall": {
+      "scheduleTab": "Lembrete",
+      "premiumTab": "Notelert Pro",
+      "title": "Mais canais. Zero atrito.",
+      "description": "O Free permite escolher o canal que você prefere. O Notelert Pro permite combiná-los para que cada lembrete chegue onde importa.",
+      "channelLimit": "O Free inclui um canal por lembrete. O Notelert Pro desbloqueia todos os canais.",
+      "features": { "channels": "Canais ilimitados por lembrete", "reminders": "Até 300 lembretes por mês", "recurrence": "Lembretes recorrentes", "location": "Lembretes de localização no Android" },
+      "monthly": "Notelert Pro mensal", "yearly": "Notelert Pro anual", "bestValue": "MELHOR VALOR", "choose": "Escolher Pro", "opening": "Abrindo o Stripe…", "tokenRequired": "Vincule sua conta nas Configurações para atualizar para Notelert Pro.", "activated": "Notelert Pro ativado. Agora você pode combinar canais."
     },
     "locationPicker": {
       "title": "Selecionar Localização",
@@ -1677,6 +1772,7 @@ export const TRANSLATIONS = {
       "nameLocationCancel": "Cancelar"
     },
     "recurrence": {
+      "androidOnly": "Por enquanto, lembretes recorrentes são entregues apenas pelo Android.",
       "repeat": "🔄 Repetir",
       "repeatLabel": "Repetir",
       "every": "A cada",

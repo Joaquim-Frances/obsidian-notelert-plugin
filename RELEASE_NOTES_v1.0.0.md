@@ -16,7 +16,7 @@
 - Quick actions for common times (today, tomorrow, +1 hour, +2 hours)
 - Intuitive time picker interface
 
-### 📍 **Location-Based Notifications** (Premium)
+### 📍 **Location-Based Notifications** (Premium + Android app)
 - Set reminders based on location using geofencing
 - Save favorite locations for quick access
 - Google Maps integration for location search
@@ -65,7 +65,7 @@ The plugin is **completely free**, but the mobile app offers:
 ## 🐛 Known Limitations
 
 - Desktop mode only supports email notifications (no push notifications)
-- Location notifications require Premium subscription
+- Location notifications require Premium and the Notelert Android app; they are not available on iPhone.
 - App is currently in open beta testing
 
 ## 🙏 Special Thanks
@@ -75,4 +75,3 @@ This is the first public release of Notelert. We're excited to share it with the
 ---
 
 **Note**: The mobile app is currently in open beta. For testing access, please contact the developer.
-

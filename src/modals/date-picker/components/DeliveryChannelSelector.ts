@@ -7,6 +7,7 @@ export interface DeliveryChannelSelectorResult {
   container: HTMLElement;
   getSelectedChannels: () => DeliveryChannel[];
   updateNotificationType: (type: NotificationType) => void;
+  updatePremiumStatus: (isPremium: boolean) => void;
 }
 
 const CHANNEL_LABELS: Record<DeliveryChannel, string> = {
@@ -20,10 +21,16 @@ export function createDeliveryChannelSelector(
   parent: HTMLElement,
   language: string,
   availableChannels: DeliveryChannel[],
-  initialType: NotificationType
+  initialType: NotificationType,
+  isPremium: boolean,
+  onPremiumRequired: () => void
 ): DeliveryChannelSelectorResult {
   const channels = Array.from(new Set(availableChannels));
-  const timeSelection = new Set<DeliveryChannel>(channels);
+  let premiumAccess = isPremium;
+  const timeSelection = new Set<DeliveryChannel>(
+    premiumAccess ? channels : channels.slice(0, 1)
+  );
+  let currentType = initialType;
   const inputs = new Map<DeliveryChannel, HTMLInputElement>();
   const container = createDiv(parent, { cls: "notelert-delivery-channel-selector" });
 
@@ -42,12 +49,18 @@ export function createDeliveryChannelSelector(
 
   channels.forEach(channel => {
     const label = createEl(options, "label", {
-      cls: "notelert-delivery-channel-option is-selected",
+      cls: "notelert-delivery-channel-option",
     });
     const input = createEl(label, "input");
     input.type = "checkbox";
-    input.checked = true;
+    input.checked = timeSelection.has(channel);
+    label.classList.toggle("is-selected", input.checked);
     input.addEventListener("change", () => {
+      if (input.checked && !premiumAccess && timeSelection.size >= 1) {
+        input.checked = false;
+        onPremiumRequired();
+        return;
+      }
       if (input.checked) timeSelection.add(channel);
       else timeSelection.delete(channel);
       label.classList.toggle("is-selected", input.checked);
@@ -62,6 +75,7 @@ export function createDeliveryChannelSelector(
   });
 
   const updateNotificationType = (type: NotificationType) => {
+    currentType = type;
     const isLocation = type === "location";
     inputs.forEach((input, channel) => {
       input.disabled = isLocation;
@@ -88,5 +102,14 @@ export function createDeliveryChannelSelector(
       .filter(([, input]) => input.checked)
       .map(([channel]) => channel),
     updateNotificationType,
+    updatePremiumStatus: (nextIsPremium: boolean) => {
+      premiumAccess = nextIsPremium;
+      if (!premiumAccess && timeSelection.size > 1) {
+        const [firstChannel] = timeSelection;
+        timeSelection.clear();
+        if (firstChannel) timeSelection.add(firstChannel);
+      }
+      updateNotificationType(currentType);
+    },
   };
 }
