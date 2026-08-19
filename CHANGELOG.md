@@ -5,6 +5,12 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2026-08-19
+
+### Corregido
+- El modal conserva el mismo tamaño en escritorio al cambiar entre Recordatorio, Notelert Pro y Calendario.
+- El selector de fecha reserva espacio para el icono nativo, evitando que se solape con la fecha.
+
 ## [1.2.4] - 2026-08-19
 
 ### Corregido
