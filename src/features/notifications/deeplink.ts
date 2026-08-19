@@ -7,13 +7,17 @@ import { getPremiumStatus } from "../premium/premium-service";
 import { scheduleGoogleCalendarReminder } from "./google-calendar-api";
 import { scheduleTelegramReminder } from "./telegram-api";
 
-export function generateDeepLink(pattern: DetectedPattern, app: App): string {
+function removeDatePickerMarker(message: string, trigger: string): string {
+  const escapedTrigger = trigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return message.replace(new RegExp(`${escapedTrigger}[^,\\s]+,\\s*[^\\s]+`, 'g'), '');
+}
+
+export function generateDeepLink(pattern: DetectedPattern, app: App, trigger = ':@'): string {
   const title = encodeURIComponent(pattern.title);
 
   // Limpiar el mensaje de los patrones :@fecha, hora y :#ubicacion
   let cleanMessage = pattern.message;
-  // Eliminar patrones :@fecha, hora (ej: :@2024-01-15, 14:30)
-  cleanMessage = cleanMessage.replace(/:@[^,\s]+,\s*[^\s]+/g, '');
+  cleanMessage = removeDatePickerMarker(cleanMessage, trigger);
   // Eliminar patrones :#ubicacion (ej: :#Supermercado)
   cleanMessage = cleanMessage.replace(/:#[^\s]+/g, '');
   // Limpiar espacios extra
@@ -68,8 +72,7 @@ export async function createNotification(
 
     // Limpiar el mensaje de los patrones :@fecha, hora y :#ubicacion
     let cleanMessage = pattern.message;
-    // Eliminar patrones :@fecha, hora (ej: :@2024-01-15, 14:30)
-    cleanMessage = cleanMessage.replace(/:@[^,\s]+,\s*[^\s]+/g, '');
+    cleanMessage = removeDatePickerMarker(cleanMessage, settings.datePickerTrigger || ':@');
     // Eliminar patrones :#ubicacion (ej: :#Supermercado)
     cleanMessage = cleanMessage.replace(/:#[^\s]+/g, '');
     // Limpiar espacios extra
