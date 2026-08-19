@@ -192,6 +192,42 @@ button[aria-busy="true"] {
   white-space: nowrap;
 }
 
+.notelert-modal-tabs { display: flex; gap: .35rem; margin: 0 0 1rem; padding: .25rem; border: 1px solid var(--background-modifier-border); border-radius: .75rem; background: var(--background-secondary); }
+.notelert-modal-tab { flex: 1; padding: .5rem .7rem; border: 0; border-radius: .55rem; color: var(--text-muted); background: transparent; font-size: .78rem; font-weight: 700; }
+.notelert-modal-tab.is-active { color: var(--text-normal); background: var(--background-primary); box-shadow: 0 1px 3px rgba(0,0,0,.16); }
+.notelert-modal-tab-premium { color: #c55cff; }
+.notelert-modal-tab-premium.is-active { color: #fff; background: linear-gradient(120deg, #7c3aed, #d946ef); }
+.notelert-premium-paywall { padding: .4rem .1rem 1rem; }
+.notelert-premium-eyebrow { color: #d946ef; font-size: .68rem; font-weight: 800; letter-spacing: .13em; }
+.notelert-premium-paywall h3 { margin: .45rem 0; font-size: 1.45rem; letter-spacing: -.03em; }
+.notelert-premium-lede { margin: 0 0 1rem; color: var(--text-muted); line-height: 1.45; }
+.notelert-premium-features { display: grid; gap: .5rem; margin-bottom: 1rem; }
+.notelert-premium-feature { display: flex; gap: .55rem; align-items: center; font-size: .86rem; }
+.notelert-premium-check { display: grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: 50%; color: #fff; background: linear-gradient(135deg, #7c3aed, #d946ef); font-size: .72rem; font-weight: 900; }
+.notelert-premium-plans { display: grid; gap: .65rem; }
+.notelert-premium-plan { position: relative; display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .85rem; border: 1px solid var(--background-modifier-border); border-radius: .75rem; background: var(--background-secondary); }
+.notelert-premium-plan.is-recommended { border-color: #b44cff; box-shadow: inset 0 0 0 1px rgba(180,76,255,.22); }
+.notelert-premium-best-value { position: absolute; top: -.55rem; right: .7rem; padding: .14rem .42rem; border-radius: 99px; color: #fff; background: #a855f7; font-size: .62rem; font-weight: 800; letter-spacing: .04em; }
+.notelert-premium-plan-title { font-weight: 750; font-size: .88rem; }
+.notelert-premium-price { margin-top: .12rem; color: var(--text-muted); font-size: .76rem; }
+.notelert-reminder-calendar h3 { margin: .4rem 0; font-size: 1.3rem; }
+.notelert-calendar-description { margin: 0 0 .85rem; color: var(--text-muted); font-size: .85rem; line-height: 1.4; }
+.notelert-calendar-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: .65rem; font-weight: 700; text-transform: capitalize; }
+.notelert-calendar-nav button { min-width: 2.2rem; padding: .28rem; }
+.notelert-calendar-viewport { position: relative; }
+.notelert-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border: 1px solid var(--background-modifier-border); border-radius: .7rem; overflow: hidden; }
+.notelert-calendar-weekday { padding: .42rem 0; color: var(--text-muted); background: var(--background-secondary); text-align: center; font-size: .68rem; font-weight: 800; }
+.notelert-calendar-day { min-height: 4.15rem; padding: .25rem; border-top: 1px solid var(--background-modifier-border); border-left: 1px solid var(--background-modifier-border); overflow: hidden; }
+.notelert-calendar-day:nth-child(7n + 1) { border-left: 0; }
+.notelert-calendar-date { color: var(--text-muted); font-size: .7rem; font-weight: 700; }
+.notelert-calendar-day.is-today { background: color-mix(in srgb, var(--interactive-accent) 16%, transparent); box-shadow: inset 0 0 0 1px var(--interactive-accent); }
+.notelert-calendar-day.is-today .notelert-calendar-date { color: var(--text-normal); }
+.notelert-calendar-event { margin-top: .2rem; padding: .12rem .2rem; overflow: hidden; border-radius: .25rem; color: #fff; background: #7c3aed; font-size: .62rem; white-space: nowrap; text-overflow: ellipsis; }
+.notelert-calendar-viewport.is-locked .notelert-calendar-grid { filter: blur(3px); opacity: .45; pointer-events: none; }
+.notelert-calendar-lock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .3rem; flex-direction: column; padding: 2rem; text-align: center; }
+.notelert-calendar-lock-icon { color: #d946ef; font-size: 1.5rem; }
+.notelert-calendar-lock span { color: var(--text-muted); font-size: .78rem; }
+
 body .notelert-plan-action-measure {
   position: fixed;
   visibility: hidden;
