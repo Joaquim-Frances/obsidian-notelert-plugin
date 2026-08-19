@@ -165,6 +165,9 @@ export class NotelertDatePickerModal extends Modal {
     this.isPremium = cachedStatus.isPremium;
     this.plugin.log(`📌 Estado premium precargado: ${this.isPremium} (loading: ${cachedStatus.loading})`);
     this.updatePremiumTabVisibility();
+    // The calendar panel is created before the cached entitlement is applied.
+    // Render it again so it uses the same Pro state as the reminder controls.
+    this.renderCalendar();
 
     // Suscribirse a cambios de estado premium (por si aún está cargando)
     this.unsubscribePremium = onPremiumStatusChange((status: PremiumStatus) => {
