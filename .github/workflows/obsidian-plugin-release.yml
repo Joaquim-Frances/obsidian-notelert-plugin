@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -35,7 +34,11 @@ jobs:
         run: |
           VERSION=$(node -p "require('./manifest.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$VERSION" != "$GITHUB_REF_NAME" ]; then
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            echo "releases must be published from an immutable version tag"
+            exit 1
+          fi
+          if [ "$VERSION" != "$GITHUB_REF_NAME" ]; then
             echo "manifest version $VERSION does not match tag $GITHUB_REF_NAME"
             exit 1
           fi
