@@ -5,6 +5,13 @@ Todas las notables cambios a este proyecto serán documentadas en este archivo.
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-08-19
+
+### Corregido
+- El selector de fecha ya no deja promesas sin gestionar al iniciar el seguimiento de Stripe.
+- Eliminada una variable no utilizada en la vista de calendario.
+- El bundle y los assets de release se generan desde el mismo commit inmutable del tag.
+
 ## [1.2.3] - 2026-08-19
 
 ### Añadido
