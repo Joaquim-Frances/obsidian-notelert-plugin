@@ -43,7 +43,9 @@ export function createDatePicker(
   });
   setCssProps(dateInput, {
     width: "100%",
-    padding: "10px",
+    // Native date controls reserve space for a platform icon. Keep the text
+    // clear of it on both left- and right-indicator desktop implementations.
+    padding: "10px 3rem 10px 2.4rem",
     border: "1px solid var(--background-modifier-border)",
     borderRadius: "6px",
     boxSizing: "border-box",

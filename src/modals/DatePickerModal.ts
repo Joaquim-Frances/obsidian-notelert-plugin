@@ -90,10 +90,10 @@ export class NotelertDatePickerModal extends Modal {
       minWidth: isDesktop ? "400px" : "300px",
       maxWidth: isDesktop ? "500px" : "600px",
       width: isDesktop ? "auto" : "95vw",
-      // Keep one stable canvas on mobile. Without an explicit height Obsidian
-      // resizes the dialog to each tab's content, which makes Premium jump.
-      height: isDesktop ? "auto" : "90vh",
-      maxHeight: isDesktop ? "auto" : "90vh",
+      // Keep one stable canvas across every tab. The schedule tab can scroll,
+      // but changing between it, Pro and Calendar must never resize the dialog.
+      height: isDesktop ? "min(760px, calc(100vh - 48px))" : "90vh",
+      maxHeight: isDesktop ? "calc(100vh - 48px)" : "90vh",
       overflow: "visible",
       padding: isDesktop ? "25px" : "20px",
       boxSizing: "border-box",
@@ -106,9 +106,9 @@ export class NotelertDatePickerModal extends Modal {
     const scrollContainer = contentEl.createDiv();
     setCssProps(scrollContainer, {
       flex: "1 1 auto",
-      overflowY: isDesktop ? "visible" : "auto",
+      overflowY: "auto",
       overflowX: "hidden",
-      paddingRight: isDesktop ? "0" : "5px",
+      paddingRight: "5px",
       marginBottom: "10px",
       minHeight: "0",
     });
