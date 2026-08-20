@@ -23,7 +23,7 @@ export function createDeliveryChannelSelector(
   availableChannels: DeliveryChannel[],
   initialType: NotificationType,
   isPremium: boolean,
-  onPremiumRequired: () => void
+  _onPremiumRequired: () => void
 ): DeliveryChannelSelectorResult {
   const channels = Array.from(new Set(availableChannels));
   let premiumAccess = isPremium;
@@ -57,8 +57,12 @@ export function createDeliveryChannelSelector(
     label.classList.toggle("is-selected", input.checked);
     input.addEventListener("change", () => {
       if (input.checked && !premiumAccess && timeSelection.size >= 1) {
-        input.checked = false;
-        onPremiumRequired();
+        timeSelection.clear();
+        inputs.forEach((otherInput, otherChannel) => {
+          otherInput.checked = otherChannel === channel;
+          otherInput.closest("label")?.classList.toggle("is-selected", otherChannel === channel);
+        });
+        timeSelection.add(channel);
         return;
       }
       if (input.checked) timeSelection.add(channel);
