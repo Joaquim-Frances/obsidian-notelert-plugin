@@ -57,6 +57,7 @@ export class NotelertDatePickerModal extends Modal {
 
   // Estado premium
   private isPremium: boolean = false;
+  private premiumStatusLoading: boolean = true;
   private unsubscribePremium: (() => void) | null = null;
 
   constructor(
@@ -127,17 +128,17 @@ export class NotelertDatePickerModal extends Modal {
       text: getTranslation(this.language, "premiumPaywall.scheduleTab"),
       cls: "notelert-modal-tab is-active",
     });
-    this.premiumTab = tabs.createEl("button", {
-      text: "✦ " + getTranslation(this.language, "premiumPaywall.premiumTab"),
-      cls: "notelert-modal-tab notelert-modal-tab-premium",
-    });
     this.scheduleTab.addEventListener("click", () => this.setModalTab("schedule"));
-    this.premiumTab.addEventListener("click", () => this.setModalTab("premium"));
     this.calendarTab = tabs.createEl("button", {
-      text: "▦ " + getTranslation(this.language, "reminderCalendar.tab"),
+      text: getTranslation(this.language, "reminderCalendar.tab"),
       cls: "notelert-modal-tab",
     });
     this.calendarTab.addEventListener("click", () => this.setModalTab("calendar"));
+    this.premiumTab = tabs.createEl("button", {
+      text: getTranslation(this.language, "premiumPaywall.premiumTab"),
+      cls: "notelert-modal-tab notelert-modal-tab-premium",
+    });
+    this.premiumTab.addEventListener("click", () => this.setModalTab("premium"));
 
     // Contenedor principal
     this.container = scrollContainer.createDiv({ cls: "notelert-datepicker-container" });
@@ -163,6 +164,7 @@ export class NotelertDatePickerModal extends Modal {
     // Obtener estado premium precargado (instantáneo)
     const cachedStatus = getCachedPremiumStatus();
     this.isPremium = cachedStatus.isPremium;
+    this.premiumStatusLoading = cachedStatus.loading === true;
     this.plugin.log(`📌 Estado premium precargado: ${this.isPremium} (loading: ${cachedStatus.loading})`);
     this.updatePremiumTabVisibility();
     // The calendar panel is created before the cached entitlement is applied.
@@ -171,8 +173,11 @@ export class NotelertDatePickerModal extends Modal {
 
     // Suscribirse a cambios de estado premium (por si aún está cargando)
     this.unsubscribePremium = onPremiumStatusChange((status: PremiumStatus) => {
-      if (status.isPremium !== this.isPremium) {
+      const premiumChanged = status.isPremium !== this.isPremium;
+      const loadingChanged = (status.loading === true) !== this.premiumStatusLoading;
+      if (premiumChanged || loadingChanged) {
         this.isPremium = status.isPremium;
+        this.premiumStatusLoading = status.loading === true;
         this.plugin.log(`🔄 Estado premium actualizado: ${this.isPremium}`);
 
         // Actualizar el RecurrenceSelector
@@ -228,7 +233,8 @@ export class NotelertDatePickerModal extends Modal {
         this.plugin.settings.deliveryChannels || ["push"],
         this.notificationType,
         this.isPremium,
-        () => this.showChannelPremiumPaywall()
+        () => this.showChannelPremiumPaywall(),
+        () => this.updateRecurrenceVisibility()
       );
 
       // Selector de fecha
@@ -290,6 +296,7 @@ export class NotelertDatePickerModal extends Modal {
         fontSize: "12px",
         lineHeight: "1.4",
       });
+      this.updateRecurrenceVisibility();
       this.plugin.log(`SUCCESS RecurrenceSelector creado: ${this.recurrenceSelector ? 'OK' : 'NULL'}`);
 
       // Panel de debug
@@ -394,13 +401,7 @@ export class NotelertDatePickerModal extends Modal {
           opacity: '1'
         });
       }
-      if (isHTMLElement(recurrenceContainer)) {
-        setCssProps(recurrenceContainer, {
-          display: 'block',
-          visibility: 'visible',
-          opacity: '1'
-        });
-      }
+      this.updateRecurrenceVisibility();
 
       // Ocultar lista de ubicaciones
       if (isHTMLElement(locationListContainer)) {
@@ -479,8 +480,19 @@ export class NotelertDatePickerModal extends Modal {
     });
 
     const plans = panel.createDiv({ cls: "notelert-premium-plans" });
-    this.createCheckoutPlan(plans, "monthly", getTranslation(this.language, "premiumPaywall.monthly"), "3,99 € / mes");
-    this.createCheckoutPlan(plans, "yearly", getTranslation(this.language, "premiumPaywall.yearly"), "39,99 € / año", true);
+    this.createCheckoutPlan(
+      plans,
+      "monthly",
+      getTranslation(this.language, "premiumPaywall.monthly"),
+      getTranslation(this.language, "premiumPaywall.monthlyPrice")
+    );
+    this.createCheckoutPlan(
+      plans,
+      "yearly",
+      getTranslation(this.language, "premiumPaywall.yearly"),
+      getTranslation(this.language, "premiumPaywall.yearlyPrice"),
+      true
+    );
   }
 
   private createCheckoutPlan(parent: HTMLElement, period: "monthly" | "yearly", title: string, price: string, recommended = false): void {
@@ -523,6 +535,13 @@ export class NotelertDatePickerModal extends Modal {
     const panel = this.calendarPanel;
     panel.empty();
     panel.createEl("h3", { text: getTranslation(this.language, "reminderCalendar.title") });
+    if (this.premiumStatusLoading) {
+      panel.createEl("p", {
+        text: getTranslation(this.language, "settings.emailPlan.loading"),
+        cls: "notelert-calendar-description",
+      });
+      return;
+    }
     panel.createEl("p", { text: getTranslation(this.language, "reminderCalendar.description"), cls: "notelert-calendar-description" });
     const nav = panel.createDiv({ cls: "notelert-calendar-nav" });
     const previous = nav.createEl("button", { text: "←", cls: "mod-secondary" });
@@ -587,6 +606,18 @@ export class NotelertDatePickerModal extends Modal {
     if (!this.premiumTab) return;
     this.premiumTab.toggle(!this.isPremium);
     if (this.isPremium) this.setModalTab("schedule");
+  }
+
+  private updateRecurrenceVisibility(): void {
+    const recurrenceContainer = this.recurrenceSelector?.container;
+    if (!recurrenceContainer) return;
+
+    const androidSelected = this.deliveryChannelSelector?.getSelectedChannels().includes("push") === true;
+    const showRecurrence = this.notificationType !== "location" && androidSelected;
+    recurrenceContainer.toggle(showRecurrence);
+    const androidOnlyHint = this.container?.querySelector(".notelert-recurrence-android-only");
+    if (isHTMLElement(androidOnlyHint)) androidOnlyHint.toggle(showRecurrence);
+    if (!showRecurrence) this.recurrenceSelector?.setEnabled(false);
   }
 
   private async openStripeCheckout(period: "monthly" | "yearly"): Promise<void> {

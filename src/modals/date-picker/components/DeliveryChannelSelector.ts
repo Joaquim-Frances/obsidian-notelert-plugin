@@ -23,7 +23,8 @@ export function createDeliveryChannelSelector(
   availableChannels: DeliveryChannel[],
   initialType: NotificationType,
   isPremium: boolean,
-  _onPremiumRequired: () => void
+  _onPremiumRequired: () => void,
+  onSelectionChange: () => void
 ): DeliveryChannelSelectorResult {
   const channels = Array.from(new Set(availableChannels));
   let premiumAccess = isPremium;
@@ -63,11 +64,13 @@ export function createDeliveryChannelSelector(
           otherInput.closest("label")?.classList.toggle("is-selected", otherChannel === channel);
         });
         timeSelection.add(channel);
+        onSelectionChange();
         return;
       }
       if (input.checked) timeSelection.add(channel);
       else timeSelection.delete(channel);
       label.classList.toggle("is-selected", input.checked);
+      onSelectionChange();
     });
     createEl(label, "span", { text: CHANNEL_LABELS[channel] });
     inputs.set(channel, input);
@@ -96,6 +99,7 @@ export function createDeliveryChannelSelector(
     setCssProps(locationHint, {
       display: isLocation ? "block" : "none",
     });
+    onSelectionChange();
   };
 
   updateNotificationType(initialType);

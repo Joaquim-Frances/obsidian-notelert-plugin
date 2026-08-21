@@ -84,8 +84,8 @@ export const TRANSLATIONS = {
         "trialDescription": "Tu prueba Premium incluye 25 notificaciones durante el periodo de prueba. Cada recordatorio cuenta una vez aunque use varios canales.",
         "premiumDescription": "Premium incluye hasta 300 notificaciones al mes y recordatorios recurrentes. Cada recordatorio cuenta una vez aunque use varios canales.",
         "getMoreReminders": "Más recordatorios",
-        "upgradeMonthly": "Premium mensual · 3,99 €",
-        "upgradeYearly": "Premium anual · 39,99 €",
+        "upgradeMonthly": "Premium mensual · 1,99 €",
+        "upgradeYearly": "Premium anual · 19,99 €",
         "manageBilling": "Gestionar facturación"
       },
       "deliveryMode": {
@@ -278,7 +278,7 @@ export const TRANSLATIONS = {
     },
     "premiumPaywall": {
       "scheduleTab": "Recordatorio",
-      "premiumTab": "Notelert Pro",
+      "premiumTab": "Pro",
       "title": "Más canales. Cero fricción.",
       "description": "Free te deja elegir el canal que prefieras. Notelert Pro te permite combinarlos para que cada recordatorio llegue donde importa.",
         "channelLimit": "Free incluye un canal por recordatorio. Notelert Pro desbloquea todos los canales.",
@@ -294,7 +294,9 @@ export const TRANSLATIONS = {
       },
       "monthly": "Notelert Pro mensual",
       "yearly": "Notelert Pro anual",
-      "bestValue": "MEJOR VALOR",
+      "monthlyPrice": "1,99 € / mes",
+      "yearlyPrice": "19,99 € / año",
+      "bestValue": "AHORRA 16%",
       "choose": "Elegir Pro",
       "opening": "Abriendo Stripe…",
       "tokenRequired": "Vincula tu cuenta desde Ajustes para actualizar a Notelert Pro.",
@@ -442,8 +444,8 @@ export const TRANSLATIONS = {
         "trialDescription": "Your Premium trial includes 25 notifications during the trial period. Each reminder counts once even when it uses several channels.",
         "premiumDescription": "Premium includes up to 300 notifications per month and recurring reminders. Each reminder counts once even when it uses several channels.",
         "getMoreReminders": "Get more reminders",
-        "upgradeMonthly": "Monthly Premium · €3.99",
-        "upgradeYearly": "Yearly Premium · €39.99",
+        "upgradeMonthly": "Monthly Premium · €1.99",
+        "upgradeYearly": "Yearly Premium · €19.99",
         "manageBilling": "Manage billing"
       },
       "deliveryMode": {
@@ -636,7 +638,7 @@ export const TRANSLATIONS = {
     },
     "premiumPaywall": {
       "scheduleTab": "Reminder",
-      "premiumTab": "Notelert Pro",
+      "premiumTab": "Pro",
       "title": "More channels. Zero friction.",
       "description": "Free lets you choose the channel you prefer. Notelert Pro lets you combine them, so every reminder arrives where it matters.",
         "channelLimit": "Free includes one channel per reminder. Notelert Pro unlocks every channel.",
@@ -652,7 +654,9 @@ export const TRANSLATIONS = {
       },
       "monthly": "Notelert Pro monthly",
       "yearly": "Notelert Pro yearly",
-      "bestValue": "BEST VALUE",
+      "monthlyPrice": "€1.99 / month",
+      "yearlyPrice": "€19.99 / year",
+      "bestValue": "SAVE 16%",
       "choose": "Choose Pro",
       "opening": "Opening Stripe…",
       "tokenRequired": "Link your account in Settings to upgrade to Notelert Pro.",
@@ -777,7 +781,9 @@ export const TRANSLATIONS = {
         "freeDescription": "Free inclou 10 recordatoris al mes. Cada recordatori compta una vegada encara que utilitzi Android, email, Google Calendar, Telegram o diversos canals.",
         "trialDescription": "La prova Premium inclou 25 notificacions durant el període de prova. Cada recordatori compta una vegada encara que utilitzi diversos canals.",
         "premiumDescription": "Premium inclou fins a 300 notificacions al mes i recordatoris recurrents. Cada recordatori compta una vegada encara que utilitzi diversos canals.",
-        "getMoreReminders": "Més recordatoris"
+        "getMoreReminders": "Més recordatoris",
+        "upgradeMonthly": "Premium mensual · 1,99 €",
+        "upgradeYearly": "Premium anual · 19,99 €"
       },
       "deliveryMode": {
         "title": "Canal de lliurament",
@@ -929,7 +935,7 @@ export const TRANSLATIONS = {
     },
     "premiumPaywall": {
       "scheduleTab": "Recordatori",
-      "premiumTab": "Notelert Pro",
+      "premiumTab": "Pro",
       "title": "Més canals. Zero fricció.",
       "description": "Free et permet triar el canal que prefereixis. Notelert Pro et permet combinar-los perquè cada recordatori arribi on importa.",
       "channelLimit": "Free inclou un canal per recordatori. Notelert Pro desbloqueja tots els canals.",
@@ -938,7 +944,7 @@ export const TRANSLATIONS = {
       "locationLimit": "Els recordatoris per ubicació estan disponibles amb Notelert Pro a Android.",
       "monthlyLimit": "Has arribat al límit de recordatoris del pla Free. Notelert Pro t'ofereix fins a 300 al mes.",
       "features": { "channels": "Canals il·limitats per recordatori", "reminders": "Fins a 300 recordatoris al mes", "recurrence": "Recordatoris recurrents", "location": "Recordatoris per ubicació a Android" },
-      "monthly": "Notelert Pro mensual", "yearly": "Notelert Pro anual", "bestValue": "MILLOR VALOR", "choose": "Triar Pro", "opening": "Obrint Stripe…", "tokenRequired": "Vincula el teu compte a Configuració per actualitzar a Notelert Pro.", "activated": "Notelert Pro activat. Ja pots combinar canals."
+      "monthly": "Notelert Pro mensual", "yearly": "Notelert Pro anual", "monthlyPrice": "1,99 € / mes", "yearlyPrice": "19,99 € / any", "bestValue": "ESTALVIA UN 16%", "choose": "Triar Pro", "opening": "Obrint Stripe…", "tokenRequired": "Vincula el teu compte a Configuració per actualitzar a Notelert Pro.", "activated": "Notelert Pro activat. Ja pots combinar canals."
     },
     "locationPicker": {
       "title": "Seleccionar Ubicació",
@@ -1038,7 +1044,9 @@ export const TRANSLATIONS = {
         "freeDescription": "Free inclut 10 rappels par mois. Chaque rappel compte une fois, même avec Android, e-mail, Google Agenda, Telegram ou plusieurs canaux.",
         "trialDescription": "L'essai Premium inclut 25 notifications pendant la période d'essai. Chaque rappel ne compte qu'une fois, même avec plusieurs canaux.",
         "premiumDescription": "Premium inclut jusqu'à 300 notifications par mois et les rappels récurrents. Chaque rappel ne compte qu'une fois, même avec plusieurs canaux.",
-        "getMoreReminders": "Plus de rappels"
+        "getMoreReminders": "Plus de rappels",
+        "upgradeMonthly": "Premium mensuel · 1,99 €",
+        "upgradeYearly": "Premium annuel · 19,99 €"
       },
       "deliveryMode": {
         "title": "Canal de livraison",
@@ -1180,7 +1188,7 @@ export const TRANSLATIONS = {
     },
     "premiumPaywall": {
       "scheduleTab": "Rappel",
-      "premiumTab": "Notelert Pro",
+      "premiumTab": "Pro",
       "title": "Plus de canaux. Zéro friction.",
       "description": "Free vous permet de choisir le canal que vous préférez. Notelert Pro vous permet de les combiner pour que chaque rappel arrive là où il compte.",
       "channelLimit": "Free inclut un canal par rappel. Notelert Pro déverrouille tous les canaux.",
@@ -1189,7 +1197,7 @@ export const TRANSLATIONS = {
       "locationLimit": "Les rappels de localisation sont disponibles avec Notelert Pro sur Android.",
       "monthlyLimit": "Vous avez atteint la limite de rappels Free. Notelert Pro offre jusqu'à 300 rappels par mois.",
       "features": { "channels": "Canaux illimités par rappel", "reminders": "Jusqu'à 300 rappels par mois", "recurrence": "Rappels récurrents", "location": "Rappels de localisation sur Android" },
-      "monthly": "Notelert Pro mensuel", "yearly": "Notelert Pro annuel", "bestValue": "MEILLEUR RAPPORT QUALITÉ-PRIX", "choose": "Choisir Pro", "opening": "Ouverture de Stripe…", "tokenRequired": "Liez votre compte dans les Paramètres pour passer à Notelert Pro.", "activated": "Notelert Pro activé. Vous pouvez maintenant combiner les canaux."
+      "monthly": "Notelert Pro mensuel", "yearly": "Notelert Pro annuel", "monthlyPrice": "1,99 € / mois", "yearlyPrice": "19,99 € / an", "bestValue": "ÉCONOMISEZ 16%", "choose": "Choisir Pro", "opening": "Ouverture de Stripe…", "tokenRequired": "Liez votre compte dans les Paramètres pour passer à Notelert Pro.", "activated": "Notelert Pro activé. Vous pouvez maintenant combiner les canaux."
     },
     "locationPicker": {
       "title": "Sélectionner un lieu",
@@ -1313,7 +1321,9 @@ export const TRANSLATIONS = {
         "freeDescription": "Free enthält 10 Erinnerungen pro Monat. Jede Erinnerung zählt einmal, auch mit Android, E-Mail, Google Kalender, Telegram oder mehreren Kanälen.",
         "trialDescription": "Der Premium-Test enthält 25 Benachrichtigungen im Testzeitraum. Jede Erinnerung zählt auch bei mehreren Kanälen nur einmal.",
         "premiumDescription": "Premium enthält bis zu 300 Benachrichtigungen pro Monat und wiederkehrende Erinnerungen. Jede Erinnerung zählt auch bei mehreren Kanälen nur einmal.",
-        "getMoreReminders": "Mehr Erinnerungen"
+        "getMoreReminders": "Mehr Erinnerungen",
+        "upgradeMonthly": "Premium monatlich · 1,99 €",
+        "upgradeYearly": "Premium jährlich · 19,99 €"
       },
       "deliveryMode": {
         "title": "Zustellungskanal",
@@ -1479,7 +1489,7 @@ export const TRANSLATIONS = {
     },
     "premiumPaywall": {
       "scheduleTab": "Erinnerung",
-      "premiumTab": "Notelert Pro",
+      "premiumTab": "Pro",
       "title": "Mehr Kanäle. Keine Reibung.",
       "description": "Mit Free wählen Sie Ihren bevorzugten Kanal. Mit Notelert Pro kombinieren Sie sie, damit jede Erinnerung dort ankommt, wo sie zählt.",
       "channelLimit": "Free enthält einen Kanal pro Erinnerung. Notelert Pro schaltet alle Kanäle frei.",
@@ -1488,7 +1498,7 @@ export const TRANSLATIONS = {
       "locationLimit": "Standorterinnerungen sind mit Notelert Pro auf Android verfügbar.",
       "monthlyLimit": "Du hast dein Free-Erinnerungslimit erreicht. Notelert Pro bietet bis zu 300 Erinnerungen pro Monat.",
       "features": { "channels": "Unbegrenzte Kanäle pro Erinnerung", "reminders": "Bis zu 300 Erinnerungen pro Monat", "recurrence": "Wiederkehrende Erinnerungen", "location": "Standorterinnerungen auf Android" },
-      "monthly": "Notelert Pro monatlich", "yearly": "Notelert Pro jährlich", "bestValue": "BESTER WERT", "choose": "Pro auswählen", "opening": "Stripe wird geöffnet…", "tokenRequired": "Verknüpfen Sie Ihr Konto in den Einstellungen, um auf Notelert Pro umzusteigen.", "activated": "Notelert Pro aktiviert. Sie können jetzt Kanäle kombinieren."
+      "monthly": "Notelert Pro monatlich", "yearly": "Notelert Pro jährlich", "monthlyPrice": "1,99 € / Monat", "yearlyPrice": "19,99 € / Jahr", "bestValue": "16 % SPAREN", "choose": "Pro auswählen", "opening": "Stripe wird geöffnet…", "tokenRequired": "Verknüpfen Sie Ihr Konto in den Einstellungen, um auf Notelert Pro umzusteigen.", "activated": "Notelert Pro aktiviert. Sie können jetzt Kanäle kombinieren."
     },
     "locationPicker": {
       "title": "Ort auswählen",
@@ -1588,7 +1598,9 @@ export const TRANSLATIONS = {
         "freeDescription": "Free inclui 10 lembretes por mês. Cada lembrete conta uma vez, mesmo com Android, e-mail, Google Agenda, Telegram ou vários canais.",
         "trialDescription": "O teste Premium inclui 25 notificações durante o período de teste. Cada lembrete conta uma vez, mesmo com vários canais.",
         "premiumDescription": "Premium inclui até 300 notificações por mês e lembretes recorrentes. Cada lembrete conta uma vez, mesmo com vários canais.",
-        "getMoreReminders": "Mais lembretes"
+        "getMoreReminders": "Mais lembretes",
+        "upgradeMonthly": "Premium mensal · € 1,99",
+        "upgradeYearly": "Premium anual · € 19,99"
       },
       "deliveryMode": {
         "title": "Canal de entrega",
@@ -1754,7 +1766,7 @@ export const TRANSLATIONS = {
     },
     "premiumPaywall": {
       "scheduleTab": "Lembrete",
-      "premiumTab": "Notelert Pro",
+      "premiumTab": "Pro",
       "title": "Mais canais. Zero atrito.",
       "description": "O Free permite escolher o canal que você prefere. O Notelert Pro permite combiná-los para que cada lembrete chegue onde importa.",
       "channelLimit": "O Free inclui um canal por lembrete. O Notelert Pro desbloqueia todos os canais.",
@@ -1763,7 +1775,7 @@ export const TRANSLATIONS = {
       "locationLimit": "Lembretes por localização estão disponíveis com o Notelert Pro no Android.",
       "monthlyLimit": "Você atingiu o limite de lembretes do plano Free. O Notelert Pro oferece até 300 por mês.",
       "features": { "channels": "Canais ilimitados por lembrete", "reminders": "Até 300 lembretes por mês", "recurrence": "Lembretes recorrentes", "location": "Lembretes de localização no Android" },
-      "monthly": "Notelert Pro mensal", "yearly": "Notelert Pro anual", "bestValue": "MELHOR VALOR", "choose": "Escolher Pro", "opening": "Abrindo o Stripe…", "tokenRequired": "Vincule sua conta nas Configurações para atualizar para Notelert Pro.", "activated": "Notelert Pro ativado. Agora você pode combinar canais."
+      "monthly": "Notelert Pro mensal", "yearly": "Notelert Pro anual", "monthlyPrice": "€ 1,99 / mês", "yearlyPrice": "€ 19,99 / ano", "bestValue": "ECONOMIZE 16%", "choose": "Escolher Pro", "opening": "Abrindo o Stripe…", "tokenRequired": "Vincule sua conta nas Configurações para atualizar para Notelert Pro.", "activated": "Notelert Pro ativado. Agora você pode combinar canais."
     },
     "locationPicker": {
       "title": "Selecionar Localização",

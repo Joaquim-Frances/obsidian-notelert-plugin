@@ -471,6 +471,7 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     this.isRevokingInstallation = true;
     this.render();
     try {
+      // Only remove local account data after the backend confirms revocation.
       await revokeCurrentInstallation(this.plugin.settings.pluginToken || "");
       await this.clearLocalAccountState();
       new Notice(getTranslation(language, "settings.accountPrivacy.revoked"), 10000);
@@ -496,6 +497,10 @@ export class NotelertSettingTab extends PluginSettingTabBase {
     this.plugin.settings.deliveryMode = "push";
     this.plugin.settings.deliveryChannels = ["push"];
     this.plugin.settings.scheduledEmails = [];
+    this.candidateEmail = "";
+    this.verificationCode = "";
+    this.isEditingNotificationEmail = false;
+    this.isEmailDeliverySetupExpanded = false;
     this.accountSummary = null;
     this.accountSummaryToken = "";
     await this.plugin.saveSettings();
