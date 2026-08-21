@@ -195,7 +195,7 @@ button[aria-busy="true"] {
 .notelert-modal-tabs { display: flex; gap: .35rem; margin: 0 0 1rem; padding: .25rem; border: 1px solid var(--background-modifier-border); border-radius: .75rem; background: var(--background-secondary); }
 .notelert-modal-tab { flex: 1; padding: .5rem .7rem; border: 0; border-radius: .55rem; color: var(--text-muted); background: transparent; font-size: .78rem; font-weight: 700; }
 .notelert-modal-tab.is-active { color: var(--text-normal); background: var(--background-primary); box-shadow: 0 1px 3px rgba(0,0,0,.16); }
-.notelert-modal-tab-premium { color: #c55cff; }
+.notelert-modal-tab-premium { flex: 0 0 auto; padding-inline: .6rem; color: #c55cff; }
 .notelert-modal-tab-premium.is-active { color: #fff; background: linear-gradient(120deg, #7c3aed, #d946ef); }
 .notelert-premium-paywall { padding: .4rem .1rem 1rem; }
 .notelert-premium-eyebrow { color: #d946ef; font-size: .68rem; font-weight: 800; letter-spacing: .13em; }

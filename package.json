@@ -1,6 +1,6 @@
 {
   "name": "obsidian-notelert-plugin",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Send Obsidian reminders through Android, email, Google Calendar, and Telegram",
   "main": "dist/main.js",
   "license": "MIT",
